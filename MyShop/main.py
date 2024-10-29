@@ -19,4 +19,4 @@ def logout():
 
 if __name__=="__main__":
     # Start the index.html file
-    eel.start("till.html")
+    eel.start("admin.html")
