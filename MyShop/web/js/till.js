@@ -4,11 +4,18 @@ var total=0
 function addItem(){
     itemName=document.getElementById('itemCode').value
     quantity=document.getElementById('quantity').value
-    price=100
-    total=price*quantity
-    items.push({'name':itemName,'price':100,'quantity':quantity,'total':total})
-    renderItems(items)
-    computeTotal()
+    if(itemName.length>0 && quantity.length>0){
+        console.log(itemName)
+        console.log(quantity)
+        price=100
+        total=price*quantity
+        items.push({'name':itemName,'price':100,'quantity':quantity,'total':total})
+        renderItems(items)
+        computeTotal()
+    }
+    else{
+        notificationBubble("Please fill in the item code and quantity",3)
+    }
 
 }
 function renderItems(items){
@@ -38,6 +45,7 @@ function removeItem(itemId){
     if(items.length>0){
         items.splice(id,1)
     }
+    computeTotal()
     renderItems(items)
 }
 
