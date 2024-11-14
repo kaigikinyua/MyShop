@@ -24,17 +24,18 @@ input{
 
 #notification{
     position: fixed;
+    left:50%;
+    transform: translateX(-50%);
     z-index: 1000;
     padding:10px;
     border-radius: 10px;
     box-shadow:1px 1px 10px 10px rgba(0,0,0,0.2);
-    background-color: green;
     color:white;
 }
 @keyframes showNotification{
     0%{top:100vh;}
-    12%{top:90vh;}
-    88%{top:90vh;}
+    10%{top:90vh;}
+    90%{top:90vh;}
     100%{top:100vh;}
 }
 

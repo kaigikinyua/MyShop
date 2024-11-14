@@ -1,16 +1,17 @@
-function login(){
-    console.log("Login")
-    eel.login()
+function getAuthToken(){
+
 }
-function logOut(){
+function storeAuthToken(){
     
 }
 
 
 function notificationBubble(message,mode){
     //crimsonRed,mint green,amber
-    const colors=['#DC143C','#98FB98','#FFBF00']
+    const colors=['#DC143C','#98FB98','#EEAE00']
     var elm=document.getElementById('notification')
+    elm.classList.remove('active')
+
     elm.innerHTML=message
     elm.style.backgroundColor=colors[mode]
     elm.classList.add('active')

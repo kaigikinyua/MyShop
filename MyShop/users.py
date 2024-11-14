@@ -4,6 +4,7 @@ class User:
 
     def login(username,password):
         pass
+    
     def logout():
         pass
     def authenticated():
