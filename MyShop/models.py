@@ -2,7 +2,9 @@ from sqlalchemy import create_engine,ForeignKey,Float, Column, Integer, String,B
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base
 
-dbUrl="sqlite:///data/databases/current/myshop.db"
+from settings import Settings
+
+dbUrl=Settings.dataBaseUrl
 engine=create_engine(dbUrl)
 Base=declarative_base()
 
@@ -13,6 +15,7 @@ class UserModel(Base):
     name=Column(String)
     password=Column(String)
     userLevel=Column(String)
+    usrLevelChoices=['admin','cashier']
 
 class AuthModel(Base):
     __tablename__='Authenticated'
