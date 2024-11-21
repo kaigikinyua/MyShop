@@ -1,19 +1,23 @@
 from views import UserView
 from utils import Logging
 class User:
-    def __init__(userId):
-        pass
+    def login(self,username,password):
+        if(len(username)>4 and len(password)>7):
+            u=UserView()
+            auth,token,userLevel=u.login(username,password)
+            if(auth):
+                return True,token,userLevel
+            return False,token,None
+        else:
+            return False,'Username should be more than 5 characters and Password should 8 or more characters',None
 
-    def login(username,password):
+    def logout(self,userId):
         pass
     
-    def logout():
-        pass
-    
-    def authenticated():
+    def authenticated(self,userToken):
         pass
 
-    def permitAction():
+    def permitAction(self,userToken):
         pass
 
 class Cashier(User):
@@ -30,7 +34,7 @@ class Cashier(User):
 class Admin(Cashier):
     #admin user actions
     def addUser(self,username,password,userLevel):
-        if(len(username)>5 and len(password)>8 and userLevel!=None):
+        if(len(username)>4 and len(password)>8 and userLevel!=None):
             newUser=UserView()
             success,message=newUser.addUser(username,password,userLevel)
             if(success):

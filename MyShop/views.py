@@ -14,8 +14,8 @@ class UserView:
             auth=AuthModel(uid=u[0].id,time=time,token=token,active=True)
             session.add(auth)
             session.commit()
-            return True
-        return False
+            return True,token,u[0].userLevel
+        return False,'Wrong username or password'
 
     def logout(self,uid):
         Session=sessionmaker(bind=engine)
