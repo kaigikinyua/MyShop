@@ -7,9 +7,11 @@ class User:
     
     def logout():
         pass
+    
     def authenticated():
         pass
-    def userPermissions():
+
+    def permitAction():
         pass
 
 class Cashier(User):
@@ -17,8 +19,11 @@ class Cashier(User):
         pass
     def payCreditSale(saleID):
         pass
-    def genSalesReport():
+    def genXReport():
         pass
+    def genZReport():
+        pass
+
 
 class Admin(Cashier):
     #admin user actions
