@@ -1,3 +1,5 @@
+from views import UserView
+from utils import Logging
 class User:
     def __init__(userId):
         pass
@@ -27,11 +29,26 @@ class Cashier(User):
 
 class Admin(Cashier):
     #admin user actions
-    def addUser():
+    def addUser(self,username,password,userLevel):
+        if(len(username)>5 and len(password)>8 and userLevel!=None):
+            newUser=UserView()
+            success,message=newUser.addUser(username,password,userLevel)
+            if(success):
+                Logging.consoleLog('succ','{message}:[{username}] to users')
+                return True
+            else:
+                Logging.consoleLog(message)
+                return False
+        else:
+            Logging.consoleLog('err','Username must have more than 5 characters: {username}')
+            Logging.consoleLog('err',"Password must be more than 8 characters: {password}")
+            Logging.consoleLog('err',"UserLevel must not be none: {userLevel}")
+            return False
+
+    def deleteUser(self,uid):
         pass
-    def deleteUser():
-        pass
-    def updateUser():
+
+    def updateUser(self,uid,username,userLevel):
         pass
 
     #admin stock actions
