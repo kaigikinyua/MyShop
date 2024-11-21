@@ -10,7 +10,7 @@ class UserView:
             if(self.is_authenticated(u[0].id)):
                 self.logout(u[0].id)
             time=FormatTime.now()
-            token=str(time)+':'+str(u[0].name)
+            token=str(time)+':'+str(u[0].name)+':'+str(u[0].id)
             auth=AuthModel(uid=u[0].id,time=time,token=token,active=True)
             session.add(auth)
             session.commit()
@@ -25,6 +25,7 @@ class UserView:
             for sess in activeSessions:
                 sess.active=False
                 session.commit()
+            return True
 
     def is_authenticated(self,uid):
         Session=sessionmaker(bind=engine)

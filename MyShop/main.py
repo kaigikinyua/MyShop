@@ -9,16 +9,18 @@ eel.init("web")
 # Exposing the random_python function to javascript
 @eel.expose    
 def login(username,password):
-    print("Login from python")
     u=User()
     auth,message,userLevel=u.login(username,password)
     if(auth):
-        return {"auth":auth,"message":message,"userLevel":userLevel}    
+        return {"auth":auth,"token":message,"userLevel":userLevel}    
     return {"auth":auth,"message":message,"userLevel":None}
 
 @eel.expose
-def logout():
-    print("logged out")
+def logOut(userId):
+    print("logging out")
+    u=User()
+    u.logout(int(userId))
+    return {"state":True}
 
 
 

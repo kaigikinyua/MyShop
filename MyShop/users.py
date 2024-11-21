@@ -12,7 +12,9 @@ class User:
             return False,'Username should be more than 5 characters and Password should 8 or more characters',None
 
     def logout(self,userId):
-        pass
+        u=UserView()
+        if(u.logout(userId)):
+            return True
     
     def authenticated(self,userToken):
         pass
