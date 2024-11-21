@@ -15,15 +15,12 @@ async function login(){
     }
 }
 async function logOut(){
-    console.log("logging out")
     var token=localStorage.getItem('token')
     var arr_token=token.split(':')
     console.log(arr_token[arr_token.length-1])
     var response=await eel.logOut(arr_token[arr_token.length-1])()
-    console.log(response)
     if(response['state']==true){
         localStorage.removeItem('token')
-        console.log("Logged out")
         redirectToPage('login')
     }
 }
