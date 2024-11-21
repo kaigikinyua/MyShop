@@ -1,3 +1,4 @@
+var timeOutId
 function getAuthToken(){
 
 }
@@ -6,7 +7,10 @@ function storeAuthToken(){
 }
 
 
-function notificationBubble(message,mode){
+function notificationBubble(message,mode,delay){
+    if(timeOutId!=null){
+        clearTimeout(timeOutId)
+    }
     //crimsonRed,mint green,amber
     const colors=['#DC143C','#98FB98','#EEAE00']
     var elm=document.getElementById('notification')
@@ -15,9 +19,9 @@ function notificationBubble(message,mode){
     elm.innerHTML=message
     elm.style.backgroundColor=colors[mode]
     elm.classList.add('active')
-    setTimeout(()=>{
+    timeOutId=setTimeout(()=>{
         var elm=document.getElementById('notification')
         elm.classList.remove('active')
-    },10000)
-    console.log(message)
+        timeOutId=null
+    },1000*delay)
 }

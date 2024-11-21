@@ -1,4 +1,4 @@
-const windows=['reportsWindow','stockWindow','usersWindow']
+const windows=['reportsWindow','stockWindow','usersWindow','productsWindow']
 function viewWindow(windowId){
     windows.forEach(w=>{
         console.log(w)

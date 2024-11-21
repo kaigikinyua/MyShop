@@ -11,7 +11,7 @@ async function login(){
             notificationBubble(response['message'])
         }
     }else{
-        notificationBubble("Please fill in your Username and Password",2)
+        notificationBubble("Please fill in your Username and Password",2,5)
     }
 }
 async function logOut(){
