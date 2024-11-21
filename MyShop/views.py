@@ -17,8 +17,6 @@ class UserView:
             return True
         return False
 
-
-
     def logout(self,uid):
         Session=sessionmaker(bind=engine)
         session=Session()
@@ -32,14 +30,53 @@ class UserView:
         Session=sessionmaker(bind=engine)
         session=Session()
         auth=session.query(AuthModel).filter_by(uid=uid,active=True).all()
-        if(len(auth)>0):
+        if(len(auth)==0):
             return True
         return False
     
-    def permitAction():
+    def permitAction(self,userToken):
         pass
-    def updatePassword():
+
+    def getUser(self,username):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        users=session.query(UserModel).filter_by(name=username).all()
+        return users[0]
+
+    def addUser(self,username,userpassword,userLevel):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        collision_name=session.query(UserModel).filter_by(name=username).all()
+        if(len(collision_name)>0):
+            return False,'User name collision'
+        else:
+            user=UserModel(name=username,password=userpassword,userLevel=userLevel)
+            #add checks incase database failed connection
+            session.add(user)
+            session.commit()
+            return True,'Added user'
+
+    def deleteUser(self,uId):
         pass
+
+    def updateUser(self,uid,username,userLevel):
+        Session=sessionmaker()
+        session=Session()
+        user=session.query(UserModel).filter_by(id=uid).one_or_none()
+        if(user!=None):
+            user.name=username
+            user.userLevel=UserModel.usrLevelChoices[userLevel]
+            session.commit()
+            return True,'Updated user credentials'
+        
+    def updatePassword(self,uid,newPassword):
+        Session=sessionmaker()
+        session=Session()
+        user=session.query(UserModel).filter_by(id=uid).one_or_none()
+        if(user!=None):
+            user.password=newPassword
+            session.commit()
+            return True,'Updated user password'
 
 class TransactionView:
     def createTransaction():
