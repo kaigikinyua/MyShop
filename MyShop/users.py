@@ -25,6 +25,8 @@ class User:
 class Cashier(User):
     def declareStartingAmount():
         pass
+    def declareClosingAmount():
+        pass
     
     def addSale():
         pass

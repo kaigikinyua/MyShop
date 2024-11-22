@@ -33,6 +33,9 @@ class CashierActions:
     @staticmethod
     def declareStartingAmount():
         pass
+    @staticmethod
+    def declareClosingAmount():
+        pass
     
     @staticmethod
     def makeSale():
