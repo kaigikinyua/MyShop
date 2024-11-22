@@ -58,3 +58,7 @@ function computeTotal(){
     document.getElementById("basketTotal").innerHTML=total
 }
 
+async function payment(){
+    //var x=await eel.makeSale()
+}
+

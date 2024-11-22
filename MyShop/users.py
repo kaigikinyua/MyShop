@@ -23,10 +23,23 @@ class User:
         pass
 
 class Cashier(User):
+    def declareStartingAmount():
+        pass
+    
     def addSale():
         pass
     def payCreditSale(saleID):
         pass
+    
+    
+    def receiveStock():
+        pass
+    def despatchStock():
+        pass
+
+    def stockTake():
+        pass
+
     def genXReport():
         pass
     def genZReport():
@@ -57,6 +70,14 @@ class Admin(Cashier):
     def updateUser(self,uid,username,userLevel):
         pass
 
+    #admin product actions
+    def addProduct():
+        pass
+    def deleteProduct():
+        pass
+    def updateProduct():
+        pass
+
     #admin stock actions
     def addStock():
         pass
@@ -64,3 +85,4 @@ class Admin(Cashier):
         pass
     def updateStock():
         pass
+
