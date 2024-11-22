@@ -79,4 +79,21 @@ class File:
             return False,'File does not exist'
         
 class CSV:
-    pass
+    @staticmethod
+    def formatCsv(headers,listObjects,filterListObjectsIndex):
+        headersText=CSV.addRow(headers)
+        data=''
+        for object in listObjects:
+            arr=[]
+            for index in filterListObjectsIndex:
+                arr+=object[index]
+            data+=CSV.addRow(arr)
+        return headersText+data
+
+    @staticmethod
+    def addRow(headers):
+        line=""
+        for header in headers:
+            line+=f'{header},\n'
+        return line
+    
