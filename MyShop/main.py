@@ -99,6 +99,4 @@ class AdminActions:
 if __name__=="__main__":
     cashier=CashierActions()
     eel._expose("makeSale",cashier.makeSale)
-    
-    
-    eel.start("login.html")
+    eel.start("login.html",port=4040)

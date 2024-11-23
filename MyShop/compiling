@@ -1,0 +1,4 @@
+python3 -m eel main.py web --onedir --windowed
+
+copy the ./web to ./dist/main/
+copy the ./data to ./dist/main/
