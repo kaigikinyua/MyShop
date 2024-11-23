@@ -1,5 +1,6 @@
 from sqlalchemy.orm import sessionmaker
-from models import engine,UserModel,AuthModel
+
+from models import engine,UserModel,AuthModel,ShiftModel,TransactionModel
 from utils import FormatTime
 class UserView:
     def login(self,username,password):
@@ -15,7 +16,7 @@ class UserView:
             session.add(auth)
             session.commit()
             return True,token,u[0].userLevel
-        return False,'Wrong username or password'
+        return False,'Wrong username or password',None
 
     def logout(self,uid):
         Session=sessionmaker(bind=engine)
@@ -26,6 +27,12 @@ class UserView:
                 sess.active=False
                 session.commit()
             return True
+    def get_UserActiveSessions(self,username):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        user=self.getUser(username)
+        activeSessions=session.query(AuthModel).filter_by(uid=user.id,active=True).all()
+        return activeSessions
 
     def is_authenticated(self,uid):
         Session=sessionmaker(bind=engine)
@@ -71,7 +78,7 @@ class UserView:
             return True,'Updated user credentials'
         
     def updatePassword(self,uid,newPassword):
-        Session=sessionmaker()
+        Session=sessionmaker(bind=engine)
         session=Session()
         user=session.query(UserModel).filter_by(id=uid).one_or_none()
         if(user!=None):
@@ -79,16 +86,62 @@ class UserView:
             session.commit()
             return True,'Updated user password'
 
-class TransactionView:
-    def createTransaction():
+class ShiftView:
+    @staticmethod
+    def openShift(startingAmount=0,openningId=0):
+        shiftDate=FormatTime.nowStandardTime()
+        strtAmount=startingAmount
+        opnId=openningId
+
+    @staticmethod
+    def closeShift(closingAmount=0,closingId=0):
+        closId=closingId
+        closAmount=closingAmount
+
+    @staticmethod
+    def addLogin(loginId):
         pass
+
+    @staticmethod
+    def declareStartingAmount():
+        pass
+    @staticmethod
+    def declareClosingAmount():
+        pass
+
+class TransactionView:
+    def createTransaction(self,custId,sellerId,tillId,saleAmount,paidAmount):
+        if(len(custId)>0 and len(sellerId)>0 and len(tillId)>0):
+            if(int(saleAmount) and int(paidAmount)):
+                t=TransactionModel()
+                t.customerId=custId
+                t.sellerId=sellerId
+                t.tillId=tillId
+                t.saleAmount=int(saleAmount)
+                t.paidAmount=int(paidAmount)
+                t.time=FormatTime.now()
+
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                session.add(t)
+                session.commit()
+                return True
+        else:
+            return False
     def fetchTransactionById(self,tId):
         pass
+    def filterTransactionByPeriod(self,startDate,endDate):
+        pass
+    def filterTransactionByCustomer(self,custId):
+        if(len(custId)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            return session.query(TransactionModel).filter_by(customerId=custId).all()
+        else:
+            return False
     def fetchAllTransactions(self):
         pass
     def updatePaidAmount(self,tId,addAmount):
-        pass
-    def filterTransaction(self):
         pass
 
 class PaymentView:
