@@ -24,8 +24,8 @@ class AuthModel(Base):
     time=Column(Float)
     token=Column(String)
     active=Column(Boolean)
-    
-class Shift(Base):
+
+class ShiftModel(Base):
     __tablename__="Shifts"
     id=Column(Integer,primary_key=True)
     shiftId=Column(String)
@@ -35,10 +35,18 @@ class Shift(Base):
     openningId=Column(Integer)
     closingId=Column(Integer)
     logins=Column(Integer)
+
+class CustomerModel(Base):
+    __tablename__="Customers"
+    id=Column(Integer,primary_key=True)
+    name=Column(String)
+    phoneNumber=Column(String)
+
 ##transactions
 class TransactionModel(Base):
     __tablename__='Transaction'
-    transactionId=Column(String,primary_key=True)
+    id=Column(Integer,primary_key=True)
+    #transactionId=Column(String,primary_key=True)
     customerId=Column(String)
     sellerId=Column(String)
     tillId=Column(String)
