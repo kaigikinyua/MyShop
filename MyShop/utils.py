@@ -25,7 +25,14 @@ class FormatTime:
         minute=date.minute
         seconds=date.second
         return f'{day}/{month}/{year} {hour}:{minute}:{seconds}'
-        
+    
+    @staticmethod
+    def getDateToday():
+        date=datetime.datetime.now()
+        year=date.year
+        month=date.month
+        day=date.day
+        return f'{day}/{month}/{year}'       
 
 class Logging:
     @staticmethod
@@ -38,6 +45,7 @@ class Logging:
         time=FormatTime.nowStandardTime()
         line=f'{type}| {time}| {message}\n'
         File.writeToFile()
+
 class JsonFile:
     @staticmethod
     def readJsonFile(filePath):
