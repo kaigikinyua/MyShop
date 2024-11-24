@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ShiftModel,TransactionModel
+from models import engine,UserModel,AuthModel,ShiftModel,TransactionModel,PaymentModel
 from utils import FormatTime
 class UserView:
     def login(self,username,password):
@@ -145,11 +145,29 @@ class TransactionView:
         pass
 
 class PaymentView:
-    def addPayment():
-        pass
-    def fetchPayments(self,tId):
-        pass
+    def addPayment(self,paymentMethod,paymentAmount,transactionId):
+        if(len(paymentMethod)>0 and paymentAmount>0 and len(transactionId)>0):
+            payment=PaymentModel()
+            payment.transactionId=transactionId
+            payment.paymentMethod=paymentMethod
+            payment.amountPayed=paymentAmount
+            payment.time=FormatTime.now()
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            session.add(payment)
+            session.commit()
+            return True
+        else:
+            return False
 
+    def fetchTransactionPayments(self,tId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        return session.query(PaymentModel).filter_by(transactionId=tId).all()
+
+
+    def fetchAllPayments(self,startTime,endTime):
+        pass
 
 class SoldItemsView:
     def addSoldItem(self,tId,productId,quantity,itemsCollected):
