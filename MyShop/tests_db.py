@@ -3,7 +3,7 @@ from unittest import TestCase
 sys.path.insert(0,'../')
 
 
-from views import UserView,TransactionView
+from views import UserView,TransactionView,PaymentView
 
 class Tests_UserView(unittest.TestCase):
     def test_login(self):
@@ -55,10 +55,23 @@ class Tests_TransactionView(unittest.TestCase):
         t2_rslt=transaction.createTransaction(t2['custId'],t2['sellerId'],t2['tillId'],t2['saleAmount'],t2['paidAmount'])
         TestCase.assertEqual(self,True,t1_rslt)
         TestCase.assertNotEqual(self,True,t2_rslt)
+
     def test_fetchTransactionById(self):
         pass
     def fetchAllTransactions(self):
         pass
-
+class Tests_PaymentView(unittest.TestCase):
+    def test_addPayment(self):
+        p1={'pMethod':'mpesa','pAmount':1000,'tId':'0'}
+        p2={'pMethod':'cash','pAmount':500,'tId':'0'}
+        p3={'pMethod':'bank','pAmount':10000,'tId':'0'}
+        payments=[p1,p2,p3]
+        p=PaymentView()
+        for payMent in payments:
+            rslt=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'])
+            if(rslt==False):
+                print(f'Payment failed {payMent}')
+        payments=p.fetchTransactionPayments('0')
+        TestCase.assertEqual(self,len(payments),3)
 if __name__=='__main__':
     unittest.main()
