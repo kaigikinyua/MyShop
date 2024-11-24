@@ -128,10 +128,18 @@ class TransactionView:
                 return True
         else:
             return False
+        
     def fetchTransactionById(self,tId):
-        pass
+        if(tId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            transactions=session.query(TransactionModel).filter_by(id=int(tId)).first()
+            return transactions
+        return None
+    
     def filterTransactionByPeriod(self,startDate,endDate):
         pass
+
     def filterTransactionByCustomer(self,custId):
         if(len(custId)>0):
             Session=sessionmaker(bind=engine)
@@ -139,36 +147,100 @@ class TransactionView:
             return session.query(TransactionModel).filter_by(customerId=custId).all()
         else:
             return False
-    def fetchAllTransactions(self):
-        pass
+        
+    def fetchAllTransactions(self,startTime,endTime):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        if(startTime!=None and endTime!=None):
+            return session.query(TransactionModel).filter(TransactionModel.time>=startTime,TransactionModel.time<=endTime)
+        else:
+            return session.query(TransactionModel).all()
+
     def updatePaidAmount(self,tId,addAmount):
-        pass
+        try:
+            addAmount=int(addAmount)
+        except:
+            return False
+        if(tId!=None and addAmount!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            t=session.query(TransactionModel).filter_by(id=tId).first()
+            t.paidAmount=t.paidAmount+int(addAmount)
+            session.commit()
+            return True
+        return False
 
 class PaymentView:
     def addPayment(self,paymentMethod,paymentAmount,transactionId):
+        t=TransactionView()
+        tr=t.fetchTransactionById(transactionId)
+        if(tr==None):
+            #no transaction whose id=transactionId hence no payment can be made
+            return False,f'There is no transaction whose id={transactionId}'
         if(len(paymentMethod)>0 and paymentAmount>0 and len(transactionId)>0):
-            payment=PaymentModel()
-            payment.transactionId=transactionId
-            payment.paymentMethod=paymentMethod
-            payment.amountPayed=paymentAmount
-            payment.time=FormatTime.now()
+            bal=self.balanceOnPayment(transactionId,paymentAmount)
+            if(bal>=0):
+                payment=PaymentModel()
+                payment.transactionId=transactionId
+                payment.paymentMethod=paymentMethod
+                payment.amountPayed=paymentAmount
+                payment.time=FormatTime.now()
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                session.add(payment)
+                rslt=t.updatePaidAmount(transactionId,paymentAmount)
+                if(rslt):
+                    session.commit()
+                    return True,'Completed Successfully'
+                else:
+                    session.rollback()
+                    return False,'An error occured hence rollback database'
+            elif(bal<0):
+                return False,f'The customer will have paid exess of {bal*-1}'
+        else:
+            #one or some of the parameters are none
+            return False,'Please fill in the paymentMethod,paymentAmount,transactionId'
+    
+    def settledPayment(self,tId):
+        if(tId!=None):
+            t=TransactionView()
+            transaction=t.fetchTransactionById(tId)
+            if(transaction==None):
+                return None
+            if(transaction.saleAmount>transaction.paidAmount):
+                return False
+            elif(transaction.saleAmount==transaction.paidAmount):
+                return True 
+        else:
+            return None
+        
+    def balanceOnPayment(self,tId,additionalAmount):
+        t=TransactionView()
+        transaction=t.fetchTransactionById(tId)
+        if(transaction!=None):
+            diff=transaction.saleAmount-(transaction.paidAmount+int(additionalAmount))
+            #diff>0 - customer needs to top up
+            #diff<0 -customer has paid excess
+            return diff
+            
+    def fetchTransactionPayments(self,tId):
+        if(tId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            session.add(payment)
-            session.commit()
-            return True
+            return session.query(PaymentModel).filter_by(transactionId=tId).all()
         else:
-            return False
-
-    def fetchTransactionPayments(self,tId):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        return session.query(PaymentModel).filter_by(transactionId=tId).all()
-
+            #return error message tId is empty
+            return None
 
     def fetchAllPayments(self,startTime,endTime):
-        pass
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        if(startTime!=None and endTime!=None):
+            return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime).all()
+        else:
+            return session.query(PaymentModel).all()
 
+            
 class SoldItemsView:
     def addSoldItem(self,tId,productId,quantity,itemsCollected):
         pass
