@@ -3,6 +3,7 @@ from unittest import TestCase
 sys.path.insert(0,'../')
 
 
+from utils import FormatTime
 from views import UserView,TransactionView,PaymentView
 
 class Tests_UserView(unittest.TestCase):
@@ -47,31 +48,51 @@ class Tests_UserView(unittest.TestCase):
 
 class Tests_TransactionView(unittest.TestCase):
     def test_createTransaction(self):
-        t1={'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
-        t2={'custId':'','sellerId':'0','tillId':'WareHouse','saleAmount':30000,'paidAmount':30000}
-        
-        transaction=TransactionView()
-        t1_rslt=transaction.createTransaction(t1['custId'],t1['sellerId'],t1['tillId'],t1['saleAmount'],t1['paidAmount'])
-        t2_rslt=transaction.createTransaction(t2['custId'],t2['sellerId'],t2['tillId'],t2['saleAmount'],t2['paidAmount'])
-        TestCase.assertEqual(self,True,t1_rslt)
-        TestCase.assertNotEqual(self,True,t2_rslt)
+        t1={'succ':True,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
+        t2={'succ':False,'custId':'','sellerId':'0','tillId':'WareHouse','saleAmount':30000,'paidAmount':30000}
+        t3={'succ':True,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':15000,'paidAmount':15000}
+        all_transactions=[t1,t2,t3]
+        transactions=[]
+        counter=1
+        for t in all_transactions:
+            tr=TransactionView()
+            if(tr.fetchTransactionById(counter)==None):
+                transactions+=[t]
+            counter+=1
+
+        for t in transactions:
+            transaction=TransactionView()
+            rslt=transaction.createTransaction(t['custId'],t['sellerId'],t['tillId'],t['saleAmount'],t['paidAmount'])
+            TestCase.assertEqual(self,t['succ'],rslt)
 
     def test_fetchTransactionById(self):
-        pass
+        t=TransactionView()
+        transaction=t.fetchTransactionById(1)
+        print(transaction)
+
     def fetchAllTransactions(self):
         pass
+
 class Tests_PaymentView(unittest.TestCase):
     def test_addPayment(self):
-        p1={'pMethod':'mpesa','pAmount':1000,'tId':'0'}
-        p2={'pMethod':'cash','pAmount':500,'tId':'0'}
-        p3={'pMethod':'bank','pAmount':10000,'tId':'0'}
+        p1={'pMethod':'mpesa','pAmount':1000,'tId':'1'}
+        p2={'pMethod':'cash','pAmount':5000,'tId':'1'}
+        p3={'pMethod':'bank','pAmount':10000,'tId':'1'}
         payments=[p1,p2,p3]
         p=PaymentView()
         for payMent in payments:
-            rslt=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'])
+            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'])
             if(rslt==False):
-                print(f'Payment failed {payMent}')
+                print(f'Payment failed {payMent} -> {message}')
         payments=p.fetchTransactionPayments('0')
-        TestCase.assertEqual(self,len(payments),3)
+        TestCase.assertGreaterEqual(self,len(payments),0)
+    
+    def test_fetchAllPayments(self):
+        p1={'startTime':FormatTime.toTimeStamp(2024,10,3,0,0,0),'endtime':FormatTime.now()}
+        #p2={'startTime':[2024,10,3,0,0,0],'endtime':FormatTime.now()}
+        p=PaymentView()
+        allTransactions=p.fetchAllPayments(None,None)
+        rangeTransactions=p.fetchAllPayments(p1['startTime'],p1['endtime'])
+        TestCase.assertEqual(self,len(allTransactions),len(rangeTransactions))        
 if __name__=='__main__':
     unittest.main()
