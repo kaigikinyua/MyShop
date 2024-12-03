@@ -75,13 +75,13 @@ class Tests_TransactionView(unittest.TestCase):
 
 class Tests_PaymentView(unittest.TestCase):
     def test_addPayment(self):
-        p1={'pMethod':'mpesa','pAmount':1000,'tId':'1'}
-        p2={'pMethod':'cash','pAmount':5000,'tId':'1'}
-        p3={'pMethod':'bank','pAmount':10000,'tId':'1'}
+        p1={'pMethod':'mpesa','pAmount':1000,'tId':'1','tNum':'fasdgasdg'}
+        p2={'pMethod':'cash','pAmount':5000,'tId':'1','tNum':''}
+        p3={'pMethod':'bank','pAmount':10000,'tId':'1','tNum':'34523452345'}
         payments=[p1,p2,p3]
         p=PaymentView()
         for payMent in payments:
-            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'])
+            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'],payMent['tNum'])
             if(rslt==False):
                 print(f'Payment failed {payMent} -> {message}')
         payments=p.fetchTransactionPayments('0')
