@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ShiftModel,TransactionModel,PaymentModel
+from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,PaymentModel,CustomerModel
 from utils import FormatTime
 class UserView:
     def login(self,username,password):
@@ -88,18 +88,52 @@ class UserView:
 
 class ShiftView:
     @staticmethod
-    def openShift(startingAmount=0,openningId=0):
-        shiftDate=FormatTime.nowStandardTime()
-        strtAmount=startingAmount
-        opnId=openningId
+    def openShift(sAmount=0,openningId=0):
+        if(sAmount>0 and openningId>0):
+            shiftDate=FormatTime.nowStandardTime()
+            if(ShiftView.createShiftId(shiftDate)!=None):
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                shift=ShiftModel()
+                shift.shiftDate=None
+                shift.startingAmount=sAmount
+                shift.openningId=openningId
+                shift.shiftDate=shiftDate
+                shift.closingAmount=None
+                shift.closingId=None
+                shift.logins=1
+                session.add(shift)
+                session.commit()
+                sId=ShiftView.createShiftId(shiftDate)
+                s=session.query(ShiftModel).filter_by(shiftId=None).one_or_none()
+                if(s!=None):
+                    s.shiftId=sId
+                    session.commit()
+                    return True
+                else:
+                    return False,'Shift Id was not created'
+                #add method to create shiftId
+            else:
+                return False,'Cannot create new shift when there is an unclosed shift'
 
     @staticmethod
     def closeShift(closingAmount=0,closingId=0):
         closId=closingId
         closAmount=closingAmount
-
+    
     @staticmethod
-    def addLogin(loginId):
+    def createShiftId(shiftDate):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        r=session.query(ShiftModel).filter(shiftDate=shiftDate,closingAmount=None)
+        if(len(r)==0):
+            return None
+        else:
+            return r[0].id+r[0].shiftDate
+
+        
+    @staticmethod
+    def addLogin(loginId,shiftId):
         pass
 
     @staticmethod
@@ -108,6 +142,63 @@ class ShiftView:
     @staticmethod
     def declareClosingAmount():
         pass
+
+
+class ProductsView:
+    def addProduct(self,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+        if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            p=ProductsModel()
+            p.name=pName
+            p.barCode=barCode
+            p.buyingPrice=bPrice
+            p.sellingPrice=sPrice
+            p.returnContainers=returnContainers
+            p.productTags=tags
+            p.desc=desc
+            session.add(p)
+            session.commit()
+        else:
+            return False
+        
+    def getProduct(self,pId):
+        if(len(pId)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            result=session.query(ProductsModel).filter(productId=pId)
+            return result
+        else:
+            return False
+        
+    def updateProduct(self,pId,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+        if(len(pId)>0 and len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            p=session.query(ProductsModel).filter_by(productId=pId).one_or_none()
+            if(p!=None):
+                p.name=pName
+                p.barCode=barCode
+                p.buyingPrice=bPrice
+                p.sellingPrice=sPrice
+                p.returnContainers=returnContainers
+                p.productTags=tags
+                p.desc=desc
+                session.commit()
+                return True,''
+            else:
+                return False,f'Product {pId} not found'
+        return False,f'One or more required fields are empty: Pid={pId} name={pName}'
+    
+    def deleteProduct(self,pId):
+        if(len(pId)>0):
+            Session=sessionmaker()
+            session=Session()
+            result=session.query(ProductsModel).delete(productId=pId)
+            session.commit()
+            return True,''
+        else:
+            return False,'Product id is empty Pid={pId}'
 
 class TransactionView:
     def createTransaction(self,custId,sellerId,tillId,saleAmount,paidAmount):
@@ -171,7 +262,7 @@ class TransactionView:
         return False
 
 class PaymentView:
-    def addPayment(self,paymentMethod,paymentAmount,transactionId):
+    def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionNumber):
         t=TransactionView()
         tr=t.fetchTransactionById(transactionId)
         if(tr==None):
@@ -183,6 +274,10 @@ class PaymentView:
                 payment=PaymentModel()
                 payment.transactionId=transactionId
                 payment.paymentMethod=paymentMethod
+                if(paymentMethod=='mpesa'):
+                    payment.mpesaTransaction=transactionNumber
+                elif(paymentMethod=='bank'):
+                    payment.bankAcc=transactionNumber
                 payment.amountPayed=paymentAmount
                 payment.time=FormatTime.now()
                 Session=sessionmaker(bind=engine)
@@ -270,3 +365,58 @@ class StockView:
     def addStock(self,branchId,pId,stockType,quantity,authorId):
         stockTypes=['Receiving','Dispatch','Openning','Closing']
         pass
+
+class CustomerView:
+    def addCustomer(self,custName,phoneNumber):
+        if(len(custName)>0 and len(phoneNumber)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            c=CustomerModel()
+            c.name=custName
+            c.phoneNumber=phoneNumber
+            session.commit()
+            return True
+        else:
+            return False
+    def getCustomer(self,custId,custName,phoneNumber):
+        if(custId!=None or custName!=None or phoneNumber!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            if(custId!=None):
+                return session.query(CustomerModel).filter_by(id=custId).all()
+            elif(custName!=None):
+                return session.query(CustomerModel).filter_by(name=custName).all()
+            elif(phoneNumber!=None):
+                return session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
+        else:
+            return False
+        
+    def getAllCustomers(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        return session.query(CustomerModel).all()
+
+    def updateCustomerDetails(self,custId,custName,phoneNumber):
+        if(custId!=None and len(custName)>0 and len(phoneNumber)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            c=session.query(CustomerModel).filter(id=custId)
+            c.name=custName
+            c.phoneNumber=phoneNumber
+            session.commit()
+            return True
+        else:
+            return False
+        
+    def deleteCustomer(self,custId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        result=session.query(CustomerModel).delete(id=custId)
+        return True
+    
+    def getCustomerTransactions(self,custId):
+        if(custId!=None):
+            t=TransactionView()
+            return t.filterTransactionByCustomer(custId)
+        else:
+            return False
