@@ -25,6 +25,26 @@ input {
   background-color: white;
 }
 
+.listView :nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.listView .danger {
+  background-color: crimson;
+  color: white;
+  font-weight: bold;
+}
+.listView .success {
+  background-color: lightgreen;
+  color: white;
+  font-weight: bold;
+}
+.listView .cool {
+  background-color: turquoise;
+  color: white;
+  font-weight: bold;
+}
+
 #notification {
   position: fixed;
   left: 50%;
@@ -92,4 +112,22 @@ div.circle {
 div.loginFields {
   margin-top: 50px;
   margin-inline: auto;
+}
+
+.danger {
+  background-color: crimson;
+  color: white;
+  font-weight: bold;
+}
+
+.success {
+  background-color: lightgreen;
+  color: white;
+  font-weight: bold;
+}
+
+.cool {
+  background-color: turquoise;
+  color: white;
+  font-weight: bold;
 }/*# sourceMappingURL=all.css.map */

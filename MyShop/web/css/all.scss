@@ -1,9 +1,12 @@
+$backgroundColor:gray;
+
+
 *{
     padding:0px;
     margin:0px;
 }
 body{
-    background-color: gray;
+    background-color: $backgroundColor;
 }
 //all pages
 button,input{
@@ -16,11 +19,34 @@ button,input{
 button.longButton{
     width: 90%;
 }
+
 input{
     position: relative;
     width:90%;
-    background-color: white;
+    background-color: lighten($color: $backgroundColor, $amount: 100);
 }
+//re-useable Containers
+.listView :nth-child(odd){
+    background-color: rgba(0,0,0,0.05);
+}
+.listView{
+    .danger{
+        background-color: crimson;
+        color:white;
+        font-weight: bold;
+    }
+    .success{
+        background-color: lightgreen;
+        color:white;
+        font-weight: bold;
+    }
+    .cool{
+        background-color: turquoise;
+        color:white;
+        font-weight: bold;
+    } 
+}
+
 
 #notification{
     position: fixed;
@@ -84,3 +110,23 @@ div.loginFields{
     margin-top:50px;
     margin-inline:auto;
 }
+
+
+
+//colors
+.danger{
+    background-color: crimson;
+    color:white;
+    font-weight: bold;
+}
+.success{
+    background-color: lightgreen;
+    color:white;
+    font-weight: bold;
+}
+.cool{
+    background-color: turquoise;
+    color:white;
+    font-weight: bold;
+}
+//

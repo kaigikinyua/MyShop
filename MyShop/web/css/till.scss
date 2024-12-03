@@ -33,12 +33,19 @@ div.itemList{
     height:70vh;
     overflow-y:scroll;
     div.item{
-        margin-bottom: 10px;
+        padding:5px;
     }
 }
+
 div#total{
     display: grid;
     grid-template-columns: 1fr 1fr;
     margin-top:20px;
     margin-bottom: 20px;
+}
+div.dash{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding:5px;
+    margin-top:10px;
 }
