@@ -39,8 +39,8 @@ class ShiftModel(Base):
 class CustomerModel(Base):
     __tablename__="Customers"
     id=Column(Integer,primary_key=True)
-    name=Column(String)
-    phoneNumber=Column(String)
+    name=Column(String,primary_key=True)
+    phoneNumber=Column(String,primary_key=True)
 
 ##transactions
 class TransactionModel(Base):
@@ -61,6 +61,9 @@ class PaymentModel(Base):
     paymentMethod=Column(String)
     amountPayed=Column(String)
     time=Column(Float)
+    bankAcc=Column(String)
+    mpesaTransaction=Column(String)
+
 
 class SoldItemsModel(Base):
     __tablename__='SoldItems'
@@ -81,9 +84,12 @@ class CollectedItemModel(Base):
     timeCollected=Column(Float)
 
 ##Products and stock
-class Products(Base):
+class ProductsModel(Base):
     __tablename__='Products'
     productId=Column(String,primary_key=True)
+    name=Column(String)
+    barCode=Column(String)
+    productTags=Column(String)
     desc=Column(String)
     buyingPrice=Column(Integer)
     sellingPrice=Column(Integer)
