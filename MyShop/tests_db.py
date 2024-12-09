@@ -11,8 +11,8 @@ class Tests_UserView(unittest.TestCase):
         u1={'name':'admin','pass':'admin12345'}
         u2={'name':'admin','pass':'adm12345'}
         u=UserView()
-        login1,token1,userLevel1=u.login(u1['name'],u1['pass'])
-        login2,token2,userLevel2=u.login(u2['name'],u2['pass'])
+        login1,token1,userLevel1,shiftId=u.login(u1['name'],u1['pass'])
+        login2,token2,userLevel2,shiftId=u.login(u2['name'],u2['pass'])
         TestCase.assertEqual(self,login1,True)    
         TestCase.assertEqual(self,login2,False)
         if(login1==True,login2==False):
