@@ -1,8 +1,14 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,PaymentModel,CustomerModel
-from utils import FormatTime
+from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,PaymentModel,CustomerModel,SoldItemsModel
+from utils import FormatTime,Logging
+from settings import Settings
+
+
+#All the CRUD operations for a model MUST be in a class <modelName>View
 class UserView:
+    
+    #logs in the user plus adds details to the Auth[uId,time,token] and Shift[ShiftId,logins] models
     def login(self,username,password):
         Session=sessionmaker(bind=engine)
         session=Session()
@@ -15,9 +21,17 @@ class UserView:
             auth=AuthModel(uid=u[0].id,time=time,token=token,active=True)
             session.add(auth)
             session.commit()
-            return True,token,u[0].userLevel
-        return False,'Wrong username or password',None
+            
+            shiftId=ShiftView.getOpenShiftId()
+            if(shiftId==False):
+                shiftId=ShiftView.openShift(u[0].id)
+            if(shiftId!=False):
+                ShiftView.addLogin(shiftId)
 
+            return True,token,u[0].userLevel,shiftId
+        return False,'Wrong username or password',None,None
+
+    #logs out the user so a new token should be added on next login
     def logout(self,uid):
         Session=sessionmaker(bind=engine)
         session=Session()
@@ -27,13 +41,16 @@ class UserView:
                 sess.active=False
                 session.commit()
             return True
+    
+    #gets the users active sessions[where in the AuthModel the active field is True]
     def get_UserActiveSessions(self,username):
         Session=sessionmaker(bind=engine)
         session=Session()
         user=self.getUser(username)
         activeSessions=session.query(AuthModel).filter_by(uid=user.id,active=True).all()
         return activeSessions
-
+    
+    #check whether the user is authenticated
     def is_authenticated(self,uid):
         Session=sessionmaker(bind=engine)
         session=Session()
@@ -41,80 +58,119 @@ class UserView:
         if(len(auth)==0):
             return True
         return False
-    
-    def permitAction(self,userToken):
-        pass
 
+    #gets the user from the UserModel
     def getUser(self,username):
         Session=sessionmaker(bind=engine)
         session=Session()
         users=session.query(UserModel).filter_by(name=username).all()
         return users[0]
-
+    
+    #creates a new user while checking for name collisions
     def addUser(self,username,userpassword,userLevel):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        collision_name=session.query(UserModel).filter_by(name=username).all()
-        if(len(collision_name)>0):
-            return False,'User name collision'
+        if(len(username)>1 and len(userpassword)>5 and len(userLevel)>1):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            collision_name=session.query(UserModel).filter_by(name=username).all()
+            if(len(collision_name)>0):
+                return False,'User name collision'
+            else:
+                user=UserModel(name=username,password=userpassword,userLevel=userLevel)
+                #add checks incase database failed connection
+                session.add(user)
+                session.commit()
+                return True,'Added user'
         else:
-            user=UserModel(name=username,password=userpassword,userLevel=userLevel)
-            #add checks incase database failed connection
-            session.add(user)
-            session.commit()
-            return True,'Added user'
+            return False,'Make sure the username and password is not empty'
+
+    def updateUserLevel(self,uid,username,userLevel):
+        if(uid!=None and len(username)>1 and len(userLevel)>1):
+            Session=sessionmaker()
+            session=Session()
+            user=session.query(UserModel).filter_by(id=uid).one_or_none()
+            if(user!=None):
+                user.name=username
+                user.userLevel=UserModel.usrLevelChoices[userLevel]
+                session.commit()
+                return True,'Updated user credentials'
+        return False,'Ensure the username, userid and userlevel are not empty'
+        
+    def updatePassword(self,uid,newPassword):
+        if(uid!=None and newPassword!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            user=session.query(UserModel).filter_by(id=uid).one_or_none()
+            if(user!=None):
+                user.password=newPassword
+                session.commit()
+                return True,'Updated user password'
+        return False,'Ensure the uid and new password is not empty'
 
     def deleteUser(self,uId):
         pass
 
-    def updateUser(self,uid,username,userLevel):
-        Session=sessionmaker()
-        session=Session()
-        user=session.query(UserModel).filter_by(id=uid).one_or_none()
-        if(user!=None):
-            user.name=username
-            user.userLevel=UserModel.usrLevelChoices[userLevel]
-            session.commit()
-            return True,'Updated user credentials'
-        
-    def updatePassword(self,uid,newPassword):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        user=session.query(UserModel).filter_by(id=uid).one_or_none()
-        if(user!=None):
-            user.password=newPassword
-            session.commit()
-            return True,'Updated user password'
+    def permitAction(self,userToken):
+        pass
 
 class ShiftView:
     @staticmethod
-    def openShift(sAmount=0,openningId=0):
-        if(sAmount>0 and openningId>0):
-            shiftDate=FormatTime.nowStandardTime()
-            if(ShiftView.createShiftId(shiftDate)!=None):
+    def openShift(openningId=0):
+        Logging.consoleLog('succ',"Openning Shift")
+        openShifts=ShiftView.checkOpenShifts()
+        if(openShifts!=False):
+            if(openShifts==None):
+                sId=ShiftView.createShiftId()
                 Session=sessionmaker(bind=engine)
                 session=Session()
-                shift=ShiftModel()
-                shift.shiftDate=None
-                shift.startingAmount=sAmount
-                shift.openningId=openningId
-                shift.shiftDate=shiftDate
-                shift.closingAmount=None
-                shift.closingId=None
-                shift.logins=1
+                sDate=FormatTime.getDateToday()
+                shift=ShiftModel(shiftId=sId,shiftDate=sDate,startingAmount=0,closingAmount=0,openningId=openningId,closingId=0,logins=1,isClosed=False)
                 session.add(shift)
                 session.commit()
-                sId=ShiftView.createShiftId(shiftDate)
-                s=session.query(ShiftModel).filter_by(shiftId=None).one_or_none()
-                if(s!=None):
-                    s.shiftId=sId
-                    session.commit()
-                    return True
-                else:
-                    return False,'Shift Id was not created'
-                #add method to create shiftId
+                return sId
             else:
-                return False,'Cannot create new shift when there is an unclosed shift'
+                Logging.consoleLog('warn',f'Shift {openShifts} is not yet closed')
+                return openShifts
+        else:
+            Logging.consoleLog('err','More than one shift is open')
+            return False        
+
+    @staticmethod
+    def shiftIsOpen(shiftId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        openShifts=session.query(ShiftModel).filter_by(shiftId=shiftId,isClosed=False)
+        if(len(openShifts)==1):
+            return True
+        elif(len(openShifts)==0):
+            Logging.consoleLog('warn',f'There is no open shift by shiftId {shiftId}')
+        elif(len(openShifts)>1):
+            Logging.consoleLog('err',f'There is more than one shift with id {shiftId}')
+        return False
+    
+    @staticmethod
+    def getOpenShiftId():
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        openShifts=session.query(ShiftModel).filter_by(isClosed=False).all()
+        if(len(openShifts)==1):
+            return openShifts[0].shiftId
+        elif(len(openShifts)==0):
+            Logging.consoleLog('warn',f'There is no open shift')
+        elif(len(openShifts)>1):
+            Logging.consoleLog('err',f'There is more than one shift opened')
+        return False
+    
+    @staticmethod
+    def checkOpenShifts():
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        openShifts=session.query(ShiftModel).filter_by(isClosed=False).all()
+        if(len(openShifts)==1):
+            return openShifts[0].shiftId
+        elif(len(openShifts)==0):
+            return None
+        elif(len(openShifts)>1):
+            return False #Error more than one shift is open
 
     @staticmethod
     def closeShift(closingAmount=0,closingId=0):
@@ -122,26 +178,51 @@ class ShiftView:
         closAmount=closingAmount
     
     @staticmethod
-    def createShiftId(shiftDate):
+    def createShiftId():
+        timeStamp=FormatTime.now()
+        tillId=Settings.tillId()
+        return f'{tillId}{timeStamp}'
+
+    @staticmethod
+    def addLogin(shiftId):
         Session=sessionmaker(bind=engine)
         session=Session()
-        r=session.query(ShiftModel).filter(shiftDate=shiftDate,closingAmount=None)
-        if(len(r)==0):
-            return None
-        else:
-            return r[0].id+r[0].shiftDate
-
-        
-    @staticmethod
-    def addLogin(loginId,shiftId):
-        pass
+        shift=session.query(ShiftModel).filter_by(shiftId=shiftId).all()
+        if(len(shift)==1):
+            shift[0].logins=shift[0].logins+1
+            session.commit()
+            return True
+        return False
 
     @staticmethod
-    def declareStartingAmount():
-        pass
+    def declareStartingAmount(startingAmount,shiftId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        shift=session.query(ShiftModel).filter_by(shiftId=shiftId,startingAmount=0).all()
+        if(len(shift)==1):
+            shift[0].startingAmount=startingAmount
+            session.commit()
+            return True
+        elif(len(shift)>1):
+            Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose starting amount=0')
+        elif(len(shiftId)==0):
+            Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose starting amount is 0')
+        return False
+
     @staticmethod
-    def declareClosingAmount():
-        pass
+    def declareClosingAmount(closingAmount,shiftId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        shift=session.query(ShiftModel).filter_by(shiftId=shiftId,closingAmount=0).all()
+        if(len(shift)==1):
+            shift[0].closingAmount=closingAmount
+            session.commit()
+            return True
+        elif(len(shift)>1):
+            Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose closing amount=0')
+        elif(len(shiftId)==0):
+            Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
+        return False
 
 
 class ProductsView:
@@ -149,14 +230,7 @@ class ProductsView:
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=ProductsModel()
-            p.name=pName
-            p.barCode=barCode
-            p.buyingPrice=bPrice
-            p.sellingPrice=sPrice
-            p.returnContainers=returnContainers
-            p.productTags=tags
-            p.desc=desc
+            p=ProductsModel(name=pName,barCode=barCode,buyingPrice=bPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
             session.add(p)
             session.commit()
         else:
@@ -337,13 +411,25 @@ class PaymentView:
 
             
 class SoldItemsView:
-    def addSoldItem(self,tId,productId,quantity,itemsCollected):
-        pass
+    def addSoldItem(self,tId,productId,quantity,sellingPrice,itemsCollected):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        t=FormatTime.getDateTime()
+        soldItem=SoldItemsModel(transactionId=tId,productId=productId,quantity=quantity,sellingPrice=sellingPrice,itemsCollected=itemsCollected,time=t)
+        session.add(soldItem)
+        session.commit()
+
+
+
     def fetchSoldItems(self,timeBegin,timeEnd):
         #timeBegin=year month day hour=00 minute=00 second=00
         pass
+
     def fetchReservedItems():
-        pass
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        reservedItems=session.query(SoldItemsModel).filter_by(itemsCollected=False)
+        return reservedItems
 
     def updateItemCollected():
         #update the soldItemsModel.itemsCollected
@@ -362,8 +448,11 @@ class BranchesView:
         pass
 
 class StockView:
-    def addStock(self,branchId,pId,stockType,quantity,authorId):
+    def addStockState(self,branchId,pId,stockType,quantity,authorId):
         stockTypes=['Receiving','Dispatch','Openning','Closing']
+        pass
+
+    def calcItemInStock(pId):
         pass
 
 class CustomerView:
