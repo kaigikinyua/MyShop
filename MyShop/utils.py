@@ -1,6 +1,28 @@
 import datetime,os
+from settings import Settings
 
 class FormatTime:
+    #Jan:31 Feb Mar:31 Apr:30 May:31 June:30 July:31 Aug:31 Sep:30 Oct Nov:30 Dec:31
+    @staticmethod
+    def monthsTotalDays(year):
+        months={
+            'month':'jan','1':31,
+            'month':'feb','2':28,
+            'month':'mar','3':31,
+            'month':'apr','4':30,
+            'month':'may','5':31,
+            'month':'jun','6':30,
+            'month':'jul','7':31,
+            'month':'aug','8':31,
+            'month':'sep','9':30,
+            'month':'oct','10':31,
+            'month':'nov','11':30,
+            'month':'dec','12':31
+        }
+        if(year%4==0):
+            months['2']=29
+        return months
+
     @staticmethod
     def now():
         timestamp=datetime.datetime.timestamp(datetime.datetime.now())
@@ -32,19 +54,33 @@ class FormatTime:
         year=date.year
         month=date.month
         day=date.day
-        return f'{day}/{month}/{year}'       
+        return f'{day}/{month}/{year}'
+        
+    @staticmethod
+    def getMonthStartTimeStamp(month,year):
+        return FormatTime.toTimeStamp(year,month,1,0,0,0)
 
+    @staticmethod
+    def getMonthEndTimeStamp(month,year):
+        months=FormatTime.monthsTotalDays(year)
+        monthNumDays=months[str(month)]
+        return FormatTime.toTimeStamp(year,month,monthNumDays,0,0,0)
+    
 class Logging:
     @staticmethod
     def consoleLog(color,message):
         colors={'err':'','succ':'','warn':'','norm':''}
-        print(message)
+        if(Settings.mode=='DEBUG'):
+            print(message)
+        else:
+            Logging.logToFile('color',message)
 
     @staticmethod
     def logToFile(type,message):
+        logFilePath=Settings.logFile()
         time=FormatTime.nowStandardTime()
-        line=f'{type}| {time}| {message}\n'
-        File.writeToFile()
+        line=f'{type}| {time}| {message}'
+        File.writeToFile(logFilePath,line)
 
 class JsonFile:
     @staticmethod
@@ -60,13 +96,24 @@ class File:
 
     @staticmethod
     def writeToFile(filePath,data):
-        if(File.fileExists(filePath)):
-            with open(filePath,'w') as f:
-                f.write(data)
-                f.close()
-                return True
-        else:
-            return False
+        if(File.fileExists(filePath)==False):
+            try:
+                file=open(filePath,'w')
+                file.close()
+            except:
+                print(f'Error trying to create file {filePath}')
+                return False
+        with open(filePath,'w') as f:
+                try:
+                    prevData=f.readlines()
+                    wData=str(prevData)+'\n'+str(data)
+                    f.write(wData)
+                    f.close()
+                    return True
+                except Exception as err:
+                    print(f'Error trying to write to file {filePath}')
+                    return False
+            
     @staticmethod
     def createFile(filePath):
         if File.fileExists(filePath):
