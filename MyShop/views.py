@@ -29,7 +29,7 @@ class UserView:
                 ShiftView.addLogin(shiftId)
 
             return True,token,u[0].userLevel,shiftId
-        return False,'Wrong username or password',None,None
+        return False,'Wrong username or password',0,0
 
     #logs out the user so a new token should be added on next login
     def logout(self,uid):
@@ -230,17 +230,23 @@ class ProductsView:
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=ProductsModel(name=pName,barCode=barCode,buyingPrice=bPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
+            p=ProductsModel(name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
             session.add(p)
             session.commit()
+            return True
         else:
             return False
-        
+    
+    def getAllProducts(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        result=session.query(ProductsModel).all()
+        return result
     def getProduct(self,pId):
         if(len(pId)>0):
             Session=sessionmaker(bind=engine)
             session=Session()
-            result=session.query(ProductsModel).filter(productId=pId)
+            result=session.query(ProductsModel).filter_by(productId=pId).all()
             return result
         else:
             return False

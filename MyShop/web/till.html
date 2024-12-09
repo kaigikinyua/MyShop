@@ -20,19 +20,22 @@
         <div class="items">
             <div class="itemSearch">
                 <div class="inline">
-                    Item Code
+                    <h3>Item Code</h3>
                     <input type="text" id="itemCode" placeholder="Item Code or name"/>
+                    <div id="searchItemCode"></div>
                 </div>
                 <div class="inline">
-                    Quantity
+                    <h3>Quantity</h3>
                     <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1"/>
                 </div>
-                <button onclick="addItem()">Add Product</button>
-                <button id="searchItem">Search Product</button>
+                <div class="inline">
+                    <button onclick="addItem()">Add Product</button>
+                    <button id="searchItem">Search Product</button>
+                </div>
             </div>
             <div class="itemList listView" id="itemList">
             </div>
-            <div><h3>Total(KSH)</h3><h3 id="basketTotal">1000</h3></div>
+            <div class="inline boldFont"><h3>Total(KSH)</h3><h3 id="basketTotal">1000</h3></div>
             <div class="itemListActions">
                 <button onclick="voidTransaction()">Void Transaction</button>
                 <button onclick="payment()">Pay</button>
@@ -56,9 +59,9 @@
                 </div>
             </div>
             <div class="dash">
-                <button class="minLenBtn">Reports</button>
-                <button class="minLenBtn">Sales</button>
-                <button class="minLenBtn">Price Enquiry</button>
+                <button class="minLenBtn cool">Reports</button>
+                <button class="minLenBtn cool">Sales</button>
+                <button class="minLenBtn cool">Price Enquiry</button>
             </div>
             <div class="dash">
                 <button class="minLenBtn cool">Open Shift</button>
@@ -66,14 +69,16 @@
                 <button class="minLenBtn success" onclick="logOut()">LogOut</button>
             </div>
             <div class="dash">
-                <button class="minLenBtn">Admin</button>
-                <button class="minLenBtn">Stock Take</button>
+                <button class="minLenBtn cool">Receive Stock</button>
+                <button class="minLenBtn danger">Dispatch Stock</button>
+                <button class="minLenBtn success">Stock Take</button>
             </div>
         </div>
     </div>
     <div class="statusBar">
-        <div>User:Username</div>
-        <div>Date:11/11/2024 | Time: 12:00</div>
+        <div id="shiftId"></div>
+        <div id="username">User:Username</div>
+        <div id="date">Date:11/11/2024 | Time: 12:00</div>
     </div>
     <div id="notification">Notification</div>
     <div id="popUp">

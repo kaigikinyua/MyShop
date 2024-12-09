@@ -1,13 +1,13 @@
-from views import UserView
+from views import UserView,ProductsView
 from utils import Logging
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
             u=UserView()
-            auth,token,userLevel=u.login(username,password)
+            auth,token,userLevel,shiftId=u.login(username,password)
             if(auth):
-                return True,token,userLevel
-            return False,token,None
+                return True,token,userLevel,shiftId
+            return False,token,None,None
         else:
             return False,'Username should be more than 5 characters and Password should 8 or more characters',None
 
@@ -19,24 +19,31 @@ class User:
     def authenticated(self,userToken):
         pass
 
-    def permitAction(self,userToken):
+class Cashier(User):
+    def declareStartingAmount(startingAmount):
         pass
 
-class Cashier(User):
-    def declareStartingAmount():
-        pass
-    def declareClosingAmount():
+    def declareClosingAmount(closingAmount):
         pass
     
     def addSale():
         pass
-    def payCreditSale(saleID):
+    
+    def payCreditSale(saleID,amountPayed,paymentMethod):
         pass
     
-    
-    def receiveStock():
+    def fetchAllProducts(self):
+        pV=ProductsView()
+        products=pV.getAllProducts()
+        pList=[]
+        for i in products:
+            pList+=[{'id':i.productId,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
+        print(pList)
+        return pList
+    def receiveStock(items,uid):
         pass
-    def despatchStock():
+
+    def despatchStock(items,uid):
         pass
 
     def stockTake():
@@ -44,6 +51,7 @@ class Cashier(User):
 
     def genXReport():
         pass
+
     def genZReport():
         pass
 

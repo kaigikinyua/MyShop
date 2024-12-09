@@ -1,6 +1,6 @@
 import eel
 
-from users import User
+from users import User,Cashier
 
 pages=["index.html","till.html","admin.html"]
 
@@ -9,10 +9,10 @@ eel.init("web")
 @eel.expose    
 def login(username,password):
     u=User()
-    auth,message,userLevel=u.login(username,password)
+    auth,message,userLevel,shiftId=u.login(username,password)
     if(auth):
-        return {"auth":auth,"token":message,"userLevel":userLevel}    
-    return {"auth":auth,"message":message,"userLevel":None}
+        return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId}    
+    return {"auth":auth,"message":message,"userLevel":None,"shiftId":None}
 
 @eel.expose
 def logOut(userId):
@@ -28,8 +28,16 @@ class FetchData:
     @staticmethod
     def fetchTransaction():
         pass
+    @staticmethod
+    def getAllProducts():
+        c=Cashier()
+        return c.fetchAllProducts()
 
 class CashierActions:
+    @staticmethod
+    def getAllProducts():
+        c=Cashier()
+        c.fetchAllProducts()
     @staticmethod
     def declareStartingAmount():
         pass
@@ -98,5 +106,7 @@ class AdminActions:
 
 if __name__=="__main__":
     cashier=CashierActions()
+    fetchData=FetchData()
     eel._expose("makeSale",cashier.makeSale)
+    eel._expose("getAllProducts",fetchData.getAllProducts)
     eel.start("login.html",port=4040)

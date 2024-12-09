@@ -1,16 +1,30 @@
 var items=[]
+var productsList=[]
 var total=0
 
+function setUpUser(){
+    Auth.renderShiftId()
+}
 //user action buttons
 function addItem(){
     itemName=document.getElementById('itemCode').value
     quantity=document.getElementById('quantity').value
     if(itemName.length>0 && quantity.length>0){
-        price=100
-        total=price*quantity
-        items.push({'name':itemName,'price':100,'quantity':quantity,'total':total})
-        Render.renderItems(items)
-        Transaction.computeTotal()
+        var itemFound=false
+        productsList.forEach((p)=>{
+            if(p['barCode']==itemName){
+                price=p['sPrice']
+                total=price*quantity
+                items.push({'name':p['name'],'price':p['sPrice'],'quantity':quantity,'total':total})
+                Render.renderItems(items)
+                Transaction.computeTotal()
+                itemFound=true
+            }
+        })
+        if(itemFound==false){
+            console.log("There is no product with id "+itemName)
+            notificationBubble("There is no product with id "+itemName)
+        }
     }
     else{
         notificationBubble("Please fill in the item code and quantity",3)
@@ -53,10 +67,24 @@ class Render{
             itemParent.appendChild(itemDiv)
         });
     }
+    static renderProducts(products){
+        let parent=document.getElementById('searchItemCode')
+        products.forEach(p=>{
+            var container=document.createElement('div')
+            container.innerHTML=p['name']
+        })
+    }
 }
 
 class Product{
     static getProduct(){}
+}
+
+class FetchData{
+    static async getAllProducts(){
+        var products=await eel.getAllProducts()()
+        return products
+    }
 }
 class Shift{
     openShift(){}
@@ -84,4 +112,15 @@ class Reports{
     static generateZReport(){}
 }
 
-
+class Auth{
+    static renderShiftId(){
+        var shiftId=localStorage.getItem('shiftId')
+        var x=document.getElementById("shiftId")
+        x.innerHTML="Shift "+shiftId+" | "
+    }
+}
+setTimeout(async ()=>{
+    setUpUser()
+    productsList=await FetchData.getAllProducts()
+    Render.renderProducts(productsList)
+},1000)

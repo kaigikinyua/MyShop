@@ -1,11 +1,12 @@
 async function login(){
     var username=document.getElementById("username").value
     var password=document.getElementById("password").value
-    console.log(username+''+password)
+    //console.log(username+''+password)
     if(username.length>0 && password.length>0){
         var response=await eel.login(username,password)()
         if(response['auth']==true){
             localStorage.setItem('token',response['token'])
+            localStorage.setItem('shiftId',response['shiftId'])
             redirectToPage(response['userLevel'])
         }else{
             notificationBubble(response['message'])
