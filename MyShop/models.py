@@ -35,6 +35,7 @@ class ShiftModel(Base):
     openningId=Column(Integer)
     closingId=Column(Integer)
     logins=Column(Integer)
+    isClosed=Column(Boolean)
 
 class CustomerModel(Base):
     __tablename__="Customers"
@@ -123,6 +124,16 @@ class StockDispatchReceivingModel(Base):
     receiver=Column(Integer)
     received=Column(Boolean)
     rejected=Column(Boolean)
+
+class StockTakeModel(Base):
+    __tablename__='StockTake'
+    stockId=Column(Integer,primary_key=True)
+    branchId=Column(Integer)
+    productId=Column(Integer)
+    takingDate=Column(Integer)
+    expectedCount=Column(Integer)
+    counted=Column(Integer)
+    variance=Column(Integer)
 
 class EmptiesModel(Base):
     __tablename__='Empties'
