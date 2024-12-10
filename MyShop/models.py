@@ -87,9 +87,9 @@ class CollectedItemModel(Base):
 ##Products and stock
 class ProductsModel(Base):
     __tablename__='Products'
-    productId=Column(Integer,primary_key=True)
+    productId=Column(Integer,primary_key=True,autoincrement=True)
     name=Column(String)
-    barCode=Column(String)
+    barCode=Column(String,primary_key=True)
     productTags=Column(String)
     desc=Column(String)
     buyingPrice=Column(Integer)

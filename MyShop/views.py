@@ -226,11 +226,11 @@ class ShiftView:
 
 
 class ProductsView:
-    def addProduct(self,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+    def addProduct(self,pId,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=ProductsModel(name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
+            p=ProductsModel(productId=pId,name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
             session.add(p)
             session.commit()
             return True
