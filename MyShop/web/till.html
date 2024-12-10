@@ -64,8 +64,8 @@
                 <button class="minLenBtn cool">Price Enquiry</button>
             </div>
             <div class="dash">
-                <button class="minLenBtn cool">Open Shift</button>
-                <button class="minLenBtn danger">Close Shift</button>
+                <button class="minLenBtn cool" onclick="displayStartingAmount()">Starting Amount</button>
+                <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
                 <button class="minLenBtn success" onclick="logOut()">LogOut</button>
             </div>
             <div class="dash">
@@ -80,10 +80,9 @@
         <div id="username">User:Username</div>
         <div id="date">Date:11/11/2024 | Time: 12:00</div>
     </div>
-    <div id="notification">Notification</div>
-    <div id="popUp">
-        <!--div popUp title-->
-        <!--div popUpBody-->
+    <div id="notification" class="passive"></div>
+    <div id="popUp" class="passive">
+        <div id="popUpPanel" class="passive" onclick=""></div>
     </div>
   </body>
 </html>

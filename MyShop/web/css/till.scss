@@ -1,13 +1,20 @@
+body{
+    overflow-x: hidden;
+    overflow: hidden;
+}
 div.mainContainer{
     height:93vh;
     width:100vw;
     display:grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 2fr 1fr;
 }
 div.statusBar{
-    height:5vh;
+    position: fixed;
+    bottom:0px;
+    left:0px;
+    height:3vh;
     width:100vw;
-    display: flex;
+    display: inline-flex;
     background:gray;
 }
 div.items,div.tillFunctionButtons{

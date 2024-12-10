@@ -15,7 +15,8 @@ button, input {
   border: none;
 }
 
-button.longButton {
+button.longButton, button.submit {
+  position: relative;
   width: 90%;
 }
 
@@ -60,10 +61,10 @@ input {
   0% {
     top: 100vh;
   }
-  10% {
+  3% {
     top: 90vh;
   }
-  90% {
+  95% {
     top: 90vh;
   }
   100% {
@@ -72,7 +73,11 @@ input {
 }
 .active {
   animation-name: showNotification;
-  animation-duration: 4s;
+}
+
+.passive {
+  display: none;
+  box-shadow: none;
 }
 
 div#loginPanel {
@@ -130,6 +135,36 @@ div.loginFields {
   background-color: turquoise;
   color: white;
   font-weight: bold;
+}
+
+#popUp {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 50;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+#popUp div#popUpPanel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  min-width: 300px;
+  min-height: 300px;
+  background-color: white;
+  border-radius: 20px;
+  display: inline-flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  flex-flow: column;
+}
+#popUp div#popUpPanel .header {
+  padding: 10px;
+  margin-bottom: 20px;
 }
 
 .boldFont {
