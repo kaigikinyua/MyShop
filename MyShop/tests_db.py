@@ -21,7 +21,8 @@ class Tests_UserView(unittest.TestCase):
     def test_logout(self):
         u1={'name':'admin','pass':'admin12345'}
         u=UserView()
-        if(len(u.get_UserActiveSessions(u1['name']))>0):
+        activeSessions=u.get_UserActiveSessions(u1['name'])
+        if(len(activeSessions)>0):
             user=u.getUser(u1['name'])
             u.logout(user.id)
         else:
@@ -30,22 +31,66 @@ class Tests_UserView(unittest.TestCase):
             u.logout(user.id)
         activeSessions=u.get_UserActiveSessions(u1['name'])
         TestCase.assertEqual(self,len(activeSessions),0)
-        if(len(activeSessions)==0):
-            print("Test:[Success] test_logout()")
-    
+
     #test_authenticated can be skipped for now
     def test_isAuthenticated(self):
-        pass
+        user={'name':'admin','pass':'admin12345'}
+        u=UserView()
+        login,token,userLevel,shiftId=u.login(user['name'],user['pass'])
+        if(login):
+            userDetails=u.getUser(user['name'])
+            result=u.is_authenticated(userDetails.id)
+            TestCase.assertEqual(self,True,result)
+            u.logout(userDetails.id)
+            result=u.is_authenticated(userDetails.id)
+            TestCase.assertEqual(self,False,result)
+        else:
+            print("Error: test_isAuthenticated() -> Could not login user")
+            TestCase.assertEqual(self,True,False)
 
     def test_addUser(self):
-        pass
-    def test_deleteUser(self):
-        pass
-    def test_updateUser(self):
-        pass
-    def test_updatePassword(self):
-        pass
+        user={'name':'James','pass':'testpass12345','level':1}
+        u=UserView()
+        added,message=u.addUser(user['name'],user['pass'],user['level'])
+        TestCase.assertEqual(self,added,True)
+        added2,message=u.addUser(user['name'],user['pass'],user['level'])
+        TestCase.assertEqual(self,added2,False)
+        added3,message=u.addUser('TestUser','pa','admin')
+        TestCase.assertEqual(self,added3,False)
 
+    def test_updateUser(self):
+        user={'name':'James','pass':'newPass','level':'cashier'}
+        u=UserView()
+        userDetails=u.getUser(user['name'])
+        if(userDetails):
+            reslutPass,message=u.updatePassword(userDetails.id,user['pass'])
+            resultUpdateUserLevel,message=u.updateUserLevel(userDetails.id,user['level'])
+            TestCase.assertEqual(self,reslutPass,True)
+            TestCase.assertEqual(self,resultUpdateUserLevel,True)
+        else:
+            self.test_addUser()
+            userDetails=u.getUser(user['name'])
+            reslutPass,message=u.updatePassword(userDetails.id,user['pass'])
+            TestCase.assertEqual(self,reslutPass,True)
+            #resultUpdateUserLevel,message=u.updateUserLevel(userDetails.id,user['level'])
+            #TestCase.assertEqual(self,resultUpdateUserLevel,True)
+            self.test_deleteUser()
+            
+    def test_deleteUser(self):
+        user={'name':'James','pass':'testpass12345','level':'admin'}
+        u=UserView()
+        userDetails=u.getUser(user['name'])
+        deleted,message=u.deleteUser(userDetails.id)
+        TestCase.assertEqual(self,deleted,True)
+        deleted2,message=u.deleteUser(userDetails.id)
+        TestCase.assertEqual(self,deleted2,False)
+        deleted3,message=u.deleteUser(None)
+        TestCase.assertEqual(self,deleted3,False)
+    
+class Test_ProductsView(unittest.TestCase):
+    def test_addProduct(self):
+        pass
+    
 class Tests_TransactionView(unittest.TestCase):
     def test_createTransaction(self):
         t1={'succ':True,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}

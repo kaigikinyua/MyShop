@@ -36,11 +36,15 @@ class UserView:
         Session=sessionmaker(bind=engine)
         session=Session()
         activeSessions=session.query(AuthModel).filter_by(uid=uid,active=True).all()
+        #Logging.consoleLog('succ',f'Active sessions to logout={len(activeSessions)}')
         if(len(activeSessions)>0):
             for sess in activeSessions:
                 sess.active=False
                 session.commit()
+                #Logging.consoleLog('succ',f'logging out {sess}')
             return True
+        else:
+            return False
     
     #gets the users active sessions[where in the AuthModel the active field is True]
     def get_UserActiveSessions(self,username):
@@ -48,6 +52,7 @@ class UserView:
         session=Session()
         user=self.getUser(username)
         activeSessions=session.query(AuthModel).filter_by(uid=user.id,active=True).all()
+        session.close()
         return activeSessions
     
     #check whether the user is authenticated
@@ -55,7 +60,7 @@ class UserView:
         Session=sessionmaker(bind=engine)
         session=Session()
         auth=session.query(AuthModel).filter_by(uid=uid,active=True).all()
-        if(len(auth)==0):
+        if(len(auth)>0):
             return True
         return False
 
@@ -63,19 +68,23 @@ class UserView:
     def getUser(self,username):
         Session=sessionmaker(bind=engine)
         session=Session()
-        users=session.query(UserModel).filter_by(name=username).all()
-        return users[0]
+        users=session.query(UserModel).filter_by(name=username).one_or_none()
+        if(users!=None):
+            return users
+        else:
+            return None
     
     #creates a new user while checking for name collisions
     def addUser(self,username,userpassword,userLevel):
-        if(len(username)>1 and len(userpassword)>5 and len(userLevel)>1):
+        if(len(username)>1 and len(userpassword)>5 and userLevel!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
             collision_name=session.query(UserModel).filter_by(name=username).all()
             if(len(collision_name)>0):
                 return False,'User name collision'
             else:
-                user=UserModel(name=username,password=userpassword,userLevel=userLevel)
+                ulevel=UserModel.usrLevelChoices[userLevel]
+                user=UserModel(name=username,password=userpassword,userLevel=ulevel)
                 #add checks incase database failed connection
                 session.add(user)
                 session.commit()
@@ -83,16 +92,19 @@ class UserView:
         else:
             return False,'Make sure the username and password is not empty'
 
-    def updateUserLevel(self,uid,username,userLevel):
-        if(uid!=None and len(username)>1 and len(userLevel)>1):
+    def updateUserLevel(self,uid,userLevel):
+        if(uid!=None and userLevel!=None):
             Session=sessionmaker()
             session=Session()
             user=session.query(UserModel).filter_by(id=uid).one_or_none()
             if(user!=None):
-                user.name=username
                 user.userLevel=UserModel.usrLevelChoices[userLevel]
                 session.commit()
-                return True,'Updated user credentials'
+                Logging.logToFile("warn",f"Updated user id={uid} name={user.name} level to {userLevel}")
+                return True,f'Updated user level to {userLevel}'
+            else:
+                session.close()
+                return False,f'There is no user by id {uid}'
         return False,'Ensure the username, userid and userlevel are not empty'
         
     def updatePassword(self,uid,newPassword):
@@ -104,10 +116,23 @@ class UserView:
                 user.password=newPassword
                 session.commit()
                 return True,'Updated user password'
+            session.close()
         return False,'Ensure the uid and new password is not empty'
 
     def deleteUser(self,uId):
-        pass
+        if(uId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            user=session.query(UserModel).filter_by(id=uId).one_or_none()
+            if(user!=None):
+                session.delete(user)
+                session.commit()
+                Logging.logToFile('warn',f'Deleted user id={user.id} name={user.name} level={user.userLevel}')
+                return True,'Deleted user with id of {uId}'
+            else:
+                return False,'There is no user by id {uId}'
+        return False,'User id to be deleted cannot be empty'
+
 
     def permitAction(self,userToken):
         pass
@@ -242,6 +267,7 @@ class ProductsView:
         session=Session()
         result=session.query(ProductsModel).all()
         return result
+    
     def getProduct(self,pId):
         if(len(pId)>0):
             Session=sessionmaker(bind=engine)
@@ -417,13 +443,21 @@ class PaymentView:
 
             
 class SoldItemsView:
-    def addSoldItem(self,tId,productId,quantity,sellingPrice,itemsCollected):
+    def addSoldItem(self,tId,productId,quantity,actualSellingPrice,itemsCollected):
         Session=sessionmaker(bind=engine)
         session=Session()
-        t=FormatTime.getDateTime()
-        soldItem=SoldItemsModel(transactionId=tId,productId=productId,quantity=quantity,sellingPrice=sellingPrice,itemsCollected=itemsCollected,time=t)
-        session.add(soldItem)
-        session.commit()
+        bp=session.query(ProductsModel).filter_by(productId=productId).one_or_none()
+        if(bp!=None):
+            buyingPrice=bp.buyingPrice
+            productSellingPrice=bp.sellingPrice
+            discountPercent=((productSellingPrice-actualSellingPrice)/productSellingPrice)*100
+            if(actualSellingPrice>buyingPrice):
+                t=FormatTime.getDateTime()
+                soldItem=SoldItemsModel(transactionId=tId,productId=productId,soldPrice=actualSellingPrice,expectedSellingPrice=productSellingPrice,discountPercent=discountPercent,buyingPrice=buyingPrice,quantity=quantity,itemsCollected=itemsCollected,time=t)
+                session.add(soldItem)
+                session.commit()
+            else:
+                return False,'You are selling at a loss'
 
 
 

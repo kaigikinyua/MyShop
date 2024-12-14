@@ -97,22 +97,11 @@ class File:
     @staticmethod
     def writeToFile(filePath,data):
         if(File.fileExists(filePath)==False):
-            try:
-                file=open(filePath,'w')
-                file.close()
-            except:
-                print(f'Error trying to create file {filePath}')
-                return False
-        with open(filePath,'w') as f:
-                try:
-                    prevData=f.readlines()
-                    wData=str(prevData)+'\n'+str(data)
-                    f.write(wData)
-                    f.close()
-                    return True
-                except Exception as err:
-                    print(f'Error trying to write to file {filePath}')
-                    return False
+            File.createFile(filePath)
+        file=open(filePath,'a')
+        file.write(data)
+        file.close()
+        return True
             
     @staticmethod
     def createFile(filePath):

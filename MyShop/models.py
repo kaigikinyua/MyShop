@@ -72,7 +72,10 @@ class SoldItemsModel(Base):
     transactionId=Column(String)
     productId=Column(String)
     quantity=Column(Integer)
-    sellingPrice=Column(Integer)
+    soldPrice=Column(Integer)
+    expectedSellingPrice=Column(Integer)
+    buyingPrice=Column(Integer)
+    discountPercent=Column(Float)
     itemsCollected=Column(Boolean)
     time=Column(Float)
 
@@ -87,7 +90,7 @@ class CollectedItemModel(Base):
 ##Products and stock
 class ProductsModel(Base):
     __tablename__='Products'
-    productId=Column(Integer,primary_key=True,autoincrement=True)
+    productId=Column(Integer,primary_key=True)
     name=Column(String)
     barCode=Column(String,primary_key=True)
     productTags=Column(String)

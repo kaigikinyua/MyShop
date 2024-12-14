@@ -8,7 +8,7 @@ class Settings:
     def logFile():
         sessionLogDir=f"./data/logs/sessionLogs/"
         dTimeObj=datetime.datetime.now()
-        return f'{sessionLogDir}logFile_{dTimeObj.year}|{dTimeObj.month}|{dTimeObj.date}_at{dTimeObj.hour}|{dTimeObj.minute}.txt'
+        return f'{sessionLogDir}logFile_{dTimeObj.year}|{dTimeObj.month}|{dTimeObj.day}_at{dTimeObj.hour}|{dTimeObj.minute}.txt'
     
     @staticmethod
     def tillId():
