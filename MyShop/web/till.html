@@ -22,20 +22,20 @@
                 <div class="inline">
                     <h3>Item Code</h3>
                     <input type="text" id="itemCode" placeholder="Item Code or name"/>
-                    <div id="searchItemCode"></div>
+                    
                 </div>
                 <div class="inline">
                     <h3>Quantity</h3>
                     <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1"/>
                 </div>
                 <div class="inline">
-                    <button onclick="addItem()">Add Product</button>
+                    <button onclick="addItem()" onkeypress="searchItem()">Add Product</button>
                     <button id="searchItem">Search Product</button>
                 </div>
             </div>
             <div class="itemList listView" id="itemList">
             </div>
-            <div class="inline boldFont"><h3>Total(KSH)</h3><h3 id="basketTotal">1000</h3></div>
+            <div class="inline boldFont"><h3>Total(KSH)</h3><h3 id="basketTotal">0</h3></div>
             <div class="itemListActions">
                 <button onclick="voidTransaction()">Void Transaction</button>
                 <button onclick="payment()">Pay</button>
@@ -72,6 +72,10 @@
                 <button class="minLenBtn cool">Receive Stock</button>
                 <button class="minLenBtn danger">Dispatch Stock</button>
                 <button class="minLenBtn success">Stock Take</button>
+            </div>
+            <div class="dash" style="display: block;">
+                <h3>Product List</h3>
+                <div id="searchItemCode"></div>
             </div>
         </div>
     </div>

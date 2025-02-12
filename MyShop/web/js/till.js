@@ -38,6 +38,9 @@ function removeItem(itemId){
     Render.renderItems(items)
 }
 
+function searchItem(){
+    var userInput=document.getElementById('itemCode').value
+}
 
 //shift action buttons
 function displayStartingAmount(){
@@ -144,11 +147,12 @@ class Render{
             itemParent.appendChild(itemDiv)
         });
     }
-    static renderProducts(products){
+    static renderSearchBoxProducts(products){
         let parent=document.getElementById('searchItemCode')
         products.forEach(p=>{
-            var container=document.createElement('div')
-            container.innerHTML=p['name']
+            var container=document.createElement('ul')
+            container.innerHTML="<li>"+p['name']+" "+p['barCode']+"</li>"
+            container.classList.add('listView')
             parent.appendChild(container)
         })
     }
@@ -206,5 +210,5 @@ class Auth{
 setTimeout(async ()=>{
     setUpUser()
     productsList=await FetchData.getAllProducts()
-    Render.renderProducts(productsList)
+    Render.renderSearchBoxProducts(productsList)
 },1000)

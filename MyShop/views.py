@@ -367,6 +367,9 @@ class TransactionView:
             return True
         return False
 
+    def fetchTransactionReceipt(self,tId):
+        pass
+
 class PaymentView:
     def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionNumber):
         t=TransactionView()
