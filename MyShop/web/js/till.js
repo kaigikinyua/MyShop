@@ -149,6 +149,7 @@ class Render{
         products.forEach(p=>{
             var container=document.createElement('div')
             container.innerHTML=p['name']
+            parent.appendChild(container)
         })
     }
 }

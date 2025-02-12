@@ -29,3 +29,9 @@ function redirectToPage(page){
     const pages={'admin':'admin.html','cashier':'till.html','login':'login.html'}
     location.href=pages[page]
 }
+
+function getUserId(){
+    var token=localStorage.getItem('token')
+    splitToken=token.split(':')
+    return splitToken[splitToken.length-1]
+}

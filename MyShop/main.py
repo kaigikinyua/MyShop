@@ -84,9 +84,12 @@ class AdminActions:
     @staticmethod
     def addProduct():
         pass
+
     @staticmethod
-    def deleteProduct():
-        pass
+    def deleteProduct(uId,productId):
+        print(f"User {uId} Deleting product {productId}")
+        return True
+
     @staticmethod
     def updateProduct():
         pass
@@ -106,7 +109,16 @@ class AdminActions:
 
 if __name__=="__main__":
     cashier=CashierActions()
+    admin=AdminActions()
     fetchData=FetchData()
-    eel._expose("makeSale",cashier.makeSale)
+    
+    #all functions
     eel._expose("getAllProducts",fetchData.getAllProducts)
+    
+    #cashier functions
+    eel._expose("makeSale",cashier.makeSale)
+    
+    #adminactions
+    eel._expose("deleteProduct",admin.deleteProduct)
+
     eel.start("login.html",port=4040)
