@@ -1,9 +1,12 @@
+$backgroundColor:gray;
+
+
 *{
     padding:0px;
     margin:0px;
 }
 body{
-    background-color: gray;
+    background-color: $backgroundColor;
 }
 //all pages
 button,input{
@@ -13,13 +16,62 @@ button,input{
     border-radius: 10px;
     border:none;
 }
-button.longButton{
+button.longButton, button.submit{
+    position: relative;
     width: 90%;
 }
+
 input{
     position: relative;
     width:90%;
-    background-color: white;
+    background-color: lighten($color: $backgroundColor, $amount: 100);
+}
+//re-useable Containers
+.listView :nth-child(odd){
+    background-color: rgba(0,0,0,0.05);
+}
+.listView{
+    .danger{
+        background-color: crimson;
+        color:white;
+        font-weight: bold;
+    }
+    .success{
+        background-color: lightgreen;
+        color:white;
+        font-weight: bold;
+    }
+    .cool{
+        background-color: turquoise;
+        color:white;
+        font-weight: bold;
+    } 
+}
+
+
+#notification{
+    position: fixed;
+    left:50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding:10px;
+    border-radius: 10px;
+    box-shadow:1px 1px 10px 10px rgba(0,0,0,0.2);
+    color:white;
+}
+@keyframes showNotification{
+    0%{top:100vh;}
+    3%{top:90vh;}
+    95%{top:90vh;}
+    100%{top:100vh;}
+}
+.active{
+    animation-name: showNotification;
+    //animation-duration: 4s;
+}
+.passive{
+    display: none;
+    box-shadow: none;
 }
 
 //login page
@@ -36,8 +88,14 @@ div.loginCard{
     border-radius: 20px;
     width:30%;
     height:50%;
+    min-width: 300px;
+    min-height: 350px;
+    max-height: 400px;
+    max-width: 400px;
     background-color: white;
     box-shadow: 2px 2px 10px 10px rgba(0,0,0,0.2);
+    display: grid;
+    grid-template-rows: 1fr 1fr;
 }
 div.circle{
     position: relative;
@@ -51,4 +109,62 @@ div.circle{
 div.loginFields{
     margin-top:50px;
     margin-inline:auto;
+}
+
+
+
+//colors
+.danger{
+    background-color: crimson;
+    color:white;
+    font-weight: bold;
+}
+.success{
+    background-color: lightgreen;
+    color:white;
+    font-weight: bold;
+}
+.cool{
+    background-color: turquoise;
+    color:white;
+    font-weight: bold;
+}
+//
+
+#popUp{
+    position: fixed;
+    top:0px;
+    left: 0px;
+    z-index: 50;
+    height: 100vh;
+    width:100vw;
+    background-color: rgba(0,0,0,0.2);
+    //opacity: 0.2;
+}
+#popUp div#popUpPanel{
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+    z-index: 100;
+    min-width: 300px;
+    min-height: 300px;
+    background-color: white;
+    border-radius: 20px;
+    display: inline-flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    flex-flow: column;
+    .header{
+        padding:10px;
+        margin-bottom: 20px;
+    }
+}
+
+
+
+
+//fontweights
+.boldFont{
+    font-size: 1.3em;
 }

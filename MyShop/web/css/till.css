@@ -1,14 +1,22 @@
+body {
+  overflow-x: hidden;
+  overflow: hidden;
+}
+
 div.mainContainer {
   height: 93vh;
   width: 100vw;
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 2fr 1fr;
 }
 
 div.statusBar {
-  height: 5vh;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  height: 3vh;
   width: 100vw;
-  display: flex;
+  display: inline-flex;
   background: gray;
 }
 
@@ -30,7 +38,10 @@ div.itemSearch {
 }
 
 div.inline {
+  position: relative;
+  width: 100%;
   display: flex;
+  flex-direction: row;
 }
 
 div.itemList {
@@ -39,7 +50,7 @@ div.itemList {
   overflow-y: scroll;
 }
 div.itemList div.item {
-  margin-bottom: 10px;
+  padding: 5px;
 }
 
 div#total {
@@ -47,4 +58,11 @@ div#total {
   grid-template-columns: 1fr 1fr;
   margin-top: 20px;
   margin-bottom: 20px;
+}
+
+div.dash {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 5px;
+  margin-top: 10px;
 }/*# sourceMappingURL=till.css.map */

@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="css/admin.css"/>
     <script type="text/javascript" src="eel.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
 
     <meta charset="UTF-8" />
@@ -20,7 +21,9 @@
             <div>
                 <button onclick="viewWindow('reportsWindow')">Reports</button>
                 <button onclick="viewWindow('stockWindow')">Stock</button>
+                <button onclick="viewWindow('productsWindow')">Products</button>
                 <button onclick="viewWindow('usersWindow')">Users</button>
+                <button onclick="logOut()">LogOut</button>
             </div>
         </div>
         <div id="mainScreen">
@@ -30,9 +33,11 @@
                     <div>
                         <input type="date" name="startDate" id="startDate" placeholder="13/10/2020"/>
                         <input type="date" name="endDate" id="endDate"/>
-                        <button>Generate Sales Report</button>
-                        <button>Generate Stock Report</button>
+                        <button>Generate X Report</button>
+                        <button>Generate Z Report</button>
                         <button>Generate Credit Report</button>
+                        <button>Generate Stock Movement</button>
+
                     </div>
                 </div>
                 <div class="col2">
@@ -42,16 +47,36 @@
             </div>
             <div class="tab" id="stockWindow">
                 <div class="col1">
-                    <h3>Stock Reports</h3>
+                    <h3>Stock</h3>
                     <div>
-                        <button>Stock Enquiry</button>
-                        <button>Add Product</button>
-                        <button>View Product</button>
+                        <button>Generate Stock Movement</button>
+                        <button>Generate Stock Take</button>
+                        <button>Receive Stock</button>
+                        <button>Dispatch Stock</button>
                     </div>
                 </div>
                 <div class="col2">
                     <h3 id="stockReportType">Stock Report</h3>
                     <div id="stockReportContent"></div>
+                </div>
+            </div>
+            <div class="tab" id="productsWindow">
+                <div class="col1">
+                    <h3>Products</h3>
+                    <div>
+                        <button>View Products</button>
+                        <button>Products Reports</button>
+                    </div>
+                </div>
+                <div class="col2">
+                    <div id="products">
+                        <h3>Products</h3>
+                        <div id="productList" class="listView">
+
+                        </div>
+                    </div>
+                    <div>
+                    </div>
                 </div>
             </div>
             <div class="tab" id="usersWindow">

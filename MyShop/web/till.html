@@ -6,6 +6,7 @@
 
     <script type="text/javascript" src="eel.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/till.js"></script>
 
     <meta charset="UTF-8" />
@@ -19,22 +20,33 @@
         <div class="items">
             <div class="itemSearch">
                 <div class="inline">
-                    Item Code
+                    <h3>Item Code</h3>
                     <input type="text" id="itemCode" placeholder="Item Code or name"/>
+                    <div id="searchItemCode"></div>
                 </div>
                 <div class="inline">
-                    Quantity
-                    <input style="width:100px;" type="number" id="quantity" placeholder="Quantity">
+                    <h3>Quantity</h3>
+                    <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1"/>
                 </div>
-                <button onclick="addItem()">Add</button>
+                <div class="inline">
+                    <button onclick="addItem()">Add Product</button>
+                    <button id="searchItem">Search Product</button>
+                </div>
             </div>
-            <div class="itemList" id="itemList">
+            <div class="itemList listView" id="itemList">
             </div>
-            <div id="total"><h3>Total(KSH)</h3><h3>1000</h3></div>
+            <div class="inline boldFont"><h3>Total(KSH)</h3><h3 id="basketTotal">1000</h3></div>
             <div class="itemListActions">
-                <button>Void item</button>
-                <button>Pay</button>
-                <button>Counter Id</button>
+                <button onclick="voidTransaction()">Void Transaction</button>
+                <button onclick="payment()">Pay</button>
+                <select name="counterID" id="counterID">
+                    <option value="c1" default>Counter 1</option>
+                    <option value="c2">Counter 2</option>
+                    <option value="c3">Counter 3</option>
+                </select>
+                <select name="Customer" id="customerId">
+                    
+                </select>
             </div>
         </div>
         <div class="tillFunctionButtons">
@@ -42,24 +54,35 @@
                 <h3>Transaction</h3>
                 <div>
                     <input type="text" id="transactionId"/>
-                    <button>Get Transaction</button>
+                    <button class="success">Get Transaction</button>
+                    <button class="cool">Search Transaction</button>
                 </div>
             </div>
-            <div>
-                <button class="minLenBtn">Reports</button>
-                <button class="minLenBtn">Sales</button>
-                <button class="minLenBtn">Stock Enquiry</button>
+            <div class="dash">
+                <button class="minLenBtn cool">Reports</button>
+                <button class="minLenBtn cool">Sales</button>
+                <button class="minLenBtn cool">Price Enquiry</button>
             </div>
-            <div>
-                <button class="minLenBtn">Admin</button>
-                <button class="minLenBtn">Stock Take</button>
+            <div class="dash">
+                <button class="minLenBtn cool" onclick="displayStartingAmount()">Starting Amount</button>
+                <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
+                <button class="minLenBtn success" onclick="logOut()">LogOut</button>
+            </div>
+            <div class="dash">
+                <button class="minLenBtn cool">Receive Stock</button>
+                <button class="minLenBtn danger">Dispatch Stock</button>
+                <button class="minLenBtn success">Stock Take</button>
             </div>
         </div>
     </div>
     <div class="statusBar">
-        <div>User:Username</div>
-        <div>Date:11/11/2024 | Time: 12:00</div>
+        <div id="shiftId"></div>
+        <div id="username">User:Username</div>
+        <div id="date">Date:11/11/2024 | Time: 12:00</div>
     </div>
-    <div id="notification"></div>
+    <div id="notification" class="passive"></div>
+    <div id="popUp" class="passive">
+        <div id="popUpPanel" class="passive" onclick=""></div>
+    </div>
   </body>
 </html>
