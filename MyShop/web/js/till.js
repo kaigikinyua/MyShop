@@ -85,6 +85,9 @@ function displayPaymentBox(){
     mpesaOption.style.display="";cashOption.style.display="none";bankOption.style.display="none";creditOption.style.display="none"
     paymentMethods.appendChild(mpesaOption);paymentMethods.appendChild(cashOption);paymentMethods.appendChild(bankOption);paymentMethods.appendChild(creditOption)
     
+    var customerIdTile=document.createElement("div")
+    customerIdTile.innerHTML="<input type='text' id='customerId' placeholder='Customer Registration Number'/>"
+
     var paymentTile=document.createElement('div')
     paymentTile.id='paymentTile'
 
@@ -110,6 +113,7 @@ function displayPaymentBox(){
     popUpPanel.appendChild(paymentOptions)
     popUpPanel.appendChild(paymentMethods)
     popUpPanel.appendChild(paymentTile)
+    popUpPanel.appendChild(customerIdTile)
     popUpPanel.appendChild(balanceTile)
     popUpPanel.appendChild(cancel)
     popUpPanel.appendChild(completeTransaction)
@@ -159,14 +163,7 @@ function addPayment(paymentMethod){
             amount=document.getElementById("creditAmount").value
             var custId=document.getElementById("creditCustomerId").value
             var custPhone=document.getElementById("creditCustomerPhone").value
-            var response=FetchData.customerCreditWorthy(custId,custPhone,amount).then((response)=>{
-                console.log(response)
-            });
-            if(response==false){
-                return 0
-            }else{
-                tDetails={"paymentType":"credit","amount":amount}
-            }
+            tDetails={"paymentType":"credit","amount":amount,"custId":custId,"custPhone":custPhone}
             break; 
     }
     var balance=busketTotalPrice
@@ -213,7 +210,11 @@ function addPayment(paymentMethod){
 
 function sendTransactionToBackend(){
     var counterId=document.getElementById("counterID").value
-    Transaction.sendTransactionToBackend(customerBusket,payments,counterId)
+    var customerId=document.getElementById("customerId").value
+    if(customerId.length==0){
+        customerId='0'
+    }
+    Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
 }
 
 
@@ -360,9 +361,10 @@ class Transaction{
     static loadTransaction(transaction){}
     static getTransactions(){}
     static getAllTransactions(){}
-    static async sendTransactionToBackend(busket,payments,counterId){
+    static async sendTransactionToBackend(busket,payments,counterId,custId){
+        console.log("Sending transaction to the backend")
         var cashierId=Auth.getUserId()
-        var response=await eel.makeSale(busket,payments,counterId,cashierId)
+        var response=await eel.makeSale(busket,payments,counterId,cashierId,custId)
     }
 
     static computeTotal(items){

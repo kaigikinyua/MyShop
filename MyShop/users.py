@@ -1,4 +1,4 @@
-from views import UserView,ProductsView
+from views import UserView,TransactionView,PaymentView,ProductsView
 from utils import Logging
 class User:
     def login(self,username,password):
@@ -16,6 +16,17 @@ class User:
         if(u.logout(userId)):
             return True
     
+    def getUserLevel(self,userId):
+        u=UserView()
+        user=u.getUserById(userId)
+        return user.userLevel
+
+    def authUserLevelAction(self,userId,targetLevel):
+        uLevel=self.getUserLevel(userId)
+        if(targetLevel==uLevel):
+            return True
+        return False
+
     def authenticated(self,userToken):
         pass
 
@@ -26,8 +37,39 @@ class Cashier(User):
     def declareClosingAmount(closingAmount):
         pass
     
-    def addSale():
-        pass
+    def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
+        authAction=super().authUserLevelAction(cashierId,"cashier")
+        if(authAction):
+
+            t=TransactionView()
+            #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
+            saleAmount=t.calcTotalAmount(paymentList)
+            tState,tId=t.createTransaction(custId,cashierId,tillId,saleAmount)
+            if(tState):
+                pInstance=PaymentView()
+                allPaymentsDone=True
+                errorMessage=""
+                for p in paymentList:
+                    transactionCredentials="None"
+                    pMethod=p["paymentType"]
+                    if(pMethod!='credit'):
+                        if(pMethod=='mpesa'):
+                            transactionCredentials=p["phoneNum"]+';'+p["mpesaTid"]
+                        elif(pMethod=='bank'):
+                            transactionCredentials=p["bankName"]+';'+p["bankAccNumber"]
+                        pState,pmessage=pInstance.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials)
+                        if(pState==False):
+                            allPaymentsDone=False
+                            errorMessage=pmessage
+                if(allPaymentsDone):
+                    print("Transaction successfully done")
+                    return True,"Transaction success"
+                else:
+                    return False,errorMessage
+            else:
+                return False,tId
+        return False,"User level is not cashier"
+
     
     def payCreditSale(saleID,amountPayed,paymentMethod):
         pass

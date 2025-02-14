@@ -64,11 +64,21 @@ class UserView:
             return True
         return False
 
-    #gets the user from the UserModel
+    #gets the user from the UserModel using username
     def getUser(self,username):
         Session=sessionmaker(bind=engine)
         session=Session()
         users=session.query(UserModel).filter_by(name=username).one_or_none()
+        if(users!=None):
+            return users
+        else:
+            return None
+    
+    #get user from UserModel using userId
+    def getUserById(self,userId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        users=session.query(UserModel).filter_by(id=userId).one_or_none()
         if(users!=None):
             return users
         else:
@@ -132,7 +142,6 @@ class UserView:
             else:
                 return False,'There is no user by id {uId}'
         return False,'User id to be deleted cannot be empty'
-
 
     def permitAction(self,userToken):
         pass
@@ -249,7 +258,6 @@ class ShiftView:
             Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
         return False
 
-
 class ProductsView:
     def addProduct(self,pId,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
@@ -307,30 +315,34 @@ class ProductsView:
             return False,'Product id is empty Pid={pId}'
 
 class TransactionView:
-    def createTransaction(self,custId,sellerId,tillId,saleAmount,paidAmount):
+    def createTransaction(self,custId,sellerId,tillId,saleAmount):
         if(len(custId)>0 and len(sellerId)>0 and len(tillId)>0):
-            if(int(saleAmount) and int(paidAmount)):
+            if(int(saleAmount)):
+                time_id=FormatTime.now()
                 t=TransactionModel()
+                t.transactionId=tillId+str(time_id)
                 t.customerId=custId
                 t.sellerId=sellerId
                 t.tillId=tillId
                 t.saleAmount=int(saleAmount)
-                t.paidAmount=int(paidAmount)
-                t.time=FormatTime.now()
+                t.paidAmount=0
+                t.time=time_id
 
                 Session=sessionmaker(bind=engine)
                 session=Session()
                 session.add(t)
                 session.commit()
-                return True
+                return True,t.transactionId
+            else:
+                return False,"Either saleamount or paidamount could not be typecasted to integer"
         else:
-            return False
+            return False,f"There could be a null value passed to function TransactionView.createTransaction()\ncustomerId {custId} sellerId {sellerId} tillId {tillId} saleAmount {saleAmount}"
         
     def fetchTransactionById(self,tId):
         if(tId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            transactions=session.query(TransactionModel).filter_by(id=int(tId)).first()
+            transactions=session.query(TransactionModel).filter_by(transactionId=tId).first()
             return transactions
         return None
     
@@ -361,7 +373,7 @@ class TransactionView:
         if(tId!=None and addAmount!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            t=session.query(TransactionModel).filter_by(id=tId).first()
+            t=session.query(TransactionModel).filter_by(transactionId=tId).first()
             t.paidAmount=t.paidAmount+int(addAmount)
             session.commit()
             return True
@@ -370,8 +382,24 @@ class TransactionView:
     def fetchTransactionReceipt(self,tId):
         pass
 
+    def calcPaidandCreditAmount(self,paymentList):
+        paidAmount=0
+        creditAmount=0
+        for p in paymentList:
+            if(p["paymentType"]=="credit"):
+                creditAmount=creditAmount+int(p["amount"])
+            else:
+                paidAmount=paidAmount+int(p["amount"])
+        return paidAmount,creditAmount
+    
+    def calcTotalAmount(self,paymentList):
+        total=0
+        for p in paymentList:
+            total=total+int(p["amount"])
+        return total
+
 class PaymentView:
-    def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionNumber):
+    def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials):
         t=TransactionView()
         tr=t.fetchTransactionById(transactionId)
         if(tr==None):
@@ -384,9 +412,9 @@ class PaymentView:
                 payment.transactionId=transactionId
                 payment.paymentMethod=paymentMethod
                 if(paymentMethod=='mpesa'):
-                    payment.mpesaTransaction=transactionNumber
+                    payment.mpesaTransaction=transactionCredentials
                 elif(paymentMethod=='bank'):
-                    payment.bankAcc=transactionNumber
+                    payment.bankAcc=transactionCredentials
                 payment.amountPayed=paymentAmount
                 payment.time=FormatTime.now()
                 Session=sessionmaker(bind=engine)
@@ -443,7 +471,6 @@ class PaymentView:
             return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime).all()
         else:
             return session.query(PaymentModel).all()
-
             
 class SoldItemsView:
     def addSoldItem(self,tId,productId,quantity,actualSellingPrice,itemsCollected):

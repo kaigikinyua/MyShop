@@ -22,12 +22,13 @@ def logOut(userId):
     return {"state":True}
 
 @eel.expose
-def makeSale(busketList,paymentList,counterId,cashier):
-    print("Making a sale")
-    print(busketList)
-    print(paymentList)
-    print(counterId)
-    print(cashier)
+def makeSale(busketList,paymentList,tillId,cashier,custId):
+    print("Making Sale")
+    c=Cashier()
+    state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
+    if(state==False):
+        print(message)
+        return False
     return {"state":True}
 
 @eel.expose
