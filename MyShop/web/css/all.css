@@ -137,6 +137,13 @@ div.loginFields {
   font-weight: bold;
 }
 
+.innactive {
+  background-color: lightgray;
+  color: gray;
+  font-weight: lighter;
+  border-radius: darkgray;
+}
+
 #popUp {
   position: fixed;
   top: 0px;
