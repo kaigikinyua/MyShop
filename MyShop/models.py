@@ -47,7 +47,7 @@ class CustomerModel(Base):
 class TransactionModel(Base):
     __tablename__='Transaction'
     id=Column(Integer,primary_key=True)
-    #transactionId=Column(String,primary_key=True)
+    transactionId=Column(String)
     customerId=Column(String)
     sellerId=Column(String)
     tillId=Column(String)

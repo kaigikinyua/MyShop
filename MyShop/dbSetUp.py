@@ -2,8 +2,8 @@ from views import UserView,ProductsView
 from settings import Settings
 def createUsers():
     users=[
-        {'name':'admin','password':'admin12345','level':'admin'},
-        {'name':'cashier','password':'admin12345','level':'cashier'}
+        {'name':'admin','password':'admin12345','level':0},
+        {'name':'cashier','password':'admin12345','level':1}
     ]
     for u in users:
         x=UserView()
@@ -21,7 +21,8 @@ def createProducts():
     for p in products:
         x=ProductsView()
         x.addProduct(i,p['name'],p['barCode'],p['tags'],p['desc'],p['bPrice'],p['sPrice'],p['returnContainers'])
-
+        i=i+1
+        
 if __name__=="__main__":
     if Settings.mode=="DEBUG":
         createUsers()
