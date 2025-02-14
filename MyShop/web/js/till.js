@@ -1,4 +1,4 @@
-var items=[]
+//var items=[]
 var productsList=[]
 var customerBusket=[]
 var busketTotalPrice=0
@@ -14,9 +14,9 @@ function addItem(){
             if(p['barCode']==itemName){
                 price=p['sPrice']
                 total=price*quantity
-                items.push({'name':p['name'],'price':p['sPrice'],'quantity':quantity,'total':total})
-                Render.renderItems(items)
-                Transaction.computeTotal()
+                customerBusket.push({'name':p['name'],'price':p['sPrice'],'quantity':quantity,'total':total})
+                Render.renderItems(customerBusket)
+                Transaction.computeTotal(customerBusket)
                 itemFound=true
             }
         });
@@ -34,15 +34,11 @@ function addItem(){
 //removes item from the productsList when user clicks 'remove' btn on item list in the UI
 function removeItem(itemId){
     var id=itemId.split(',')
-    if(items.length>0){
-        items.splice(id,1)
+    if(customerBusket.length>0){
+        customerBusket.splice(id,1)
     }
-    Transaction.computeTotal()
-    Render.renderItems(items)
-}
-
-function searchItem(){
-    var userInput=document.getElementById('itemCode').value
+    Transaction.computeTotal(customerBusket)
+    Render.renderItems(customerBusket)
 }
 //when user clicks 'Pay' button on UI it displays a Pay Pop Up
 function displayPaymentBox(){
@@ -81,6 +77,8 @@ function displayPaymentBox(){
 
     creditOption.innerHTML='<input type="number" placeholder="Credit Amount" id="creditAmount"/>'
     creditOption.innerHTML+='<input type="date" id="creditDeadline"/>'
+    creditOption.innerHTML+='<input type="text" id="creditCustomerId" placeholder="Customer System Id Name"/>'
+    creditOption.innerHTML+='<input type="text" id="creditCustomerPhone" placeholder="Customer Phone Number"/>'
     creditOption.innerHTML+='<button onclick=addPayment("credit")>Add Payment</button>'
 
     mpesaOption.id="mpesa";cashOption.id="cash";bankOption.id="bank";creditOption.id="credit"
@@ -100,7 +98,7 @@ function displayPaymentBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.onclick=completeTransaction()
+    completeTransaction.onclick=(()=>sendTransactionToBackend())
 
     var cancel=document.createElement("button")
     cancel.innerHTML="Cancel"
@@ -159,7 +157,16 @@ function addPayment(paymentMethod){
             break;
         case 'credit':
             amount=document.getElementById("creditAmount").value
-            tDetails={"paymentType":"credit","amount":amount}
+            var custId=document.getElementById("creditCustomerId").value
+            var custPhone=document.getElementById("creditCustomerPhone").value
+            var response=FetchData.customerCreditWorthy(custId,custPhone,amount).then((response)=>{
+                console.log(response)
+            });
+            if(response==false){
+                return 0
+            }else{
+                tDetails={"paymentType":"credit","amount":amount}
+            }
             break; 
     }
     var balance=busketTotalPrice
@@ -204,8 +211,9 @@ function addPayment(paymentMethod){
     }
 }
 
-function completeTransaction(){
-    Transaction.sendTransactionToBackend(productsList)
+function sendTransactionToBackend(){
+    var counterId=document.getElementById("counterID").value
+    Transaction.sendTransactionToBackend(customerBusket,payments,counterId)
 }
 
 
@@ -331,6 +339,10 @@ class FetchData{
         var products=await eel.getAllProducts()()
         return products
     }
+    static async customerCreditWorthy(custIdName,custPhoneNumber,amount){
+        var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)
+        return response
+    }
 }
 class Shift{
     static declareStartingAmount(amount){
@@ -347,11 +359,13 @@ class Transaction{
     static getTransaction(transactionId){}
     static loadTransaction(transaction){}
     static getTransactions(){}
-    static sendTransactionToBackend(){
-        
+    static getAllTransactions(){}
+    static async sendTransactionToBackend(busket,payments,counterId){
+        var cashierId=Auth.getUserId()
+        var response=await eel.makeSale(busket,payments,counterId,cashierId)
     }
 
-    static computeTotal(){
+    static computeTotal(items){
         var tot=0
         items.forEach(i=>{
             tot+=i["total"]
@@ -371,6 +385,11 @@ class Auth{
         var shiftId=localStorage.getItem('shiftId')
         var x=document.getElementById("shiftId")
         x.innerHTML="Shift "+shiftId+" | "
+    }
+    static getUserId(){
+        var token=localStorage.getItem('token')
+        var splitToken=token.split(':')
+        return splitToken[splitToken.length-1]
     }
 }
 setTimeout(async ()=>{

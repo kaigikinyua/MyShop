@@ -21,6 +21,22 @@ def logOut(userId):
     u.logout(int(userId))
     return {"state":True}
 
+@eel.expose
+def makeSale(busketList,paymentList,counterId,cashier):
+    print("Making a sale")
+    print(busketList)
+    print(paymentList)
+    print(counterId)
+    print(cashier)
+    return {"state":True}
+
+@eel.expose
+def customerCreditWorthy(custId,custPhone,amount):
+    print("Assessing customer credit worthyness")
+    return False
+
+
+
 class FetchData:
     @staticmethod
     def fetchTransactions():
@@ -44,10 +60,7 @@ class CashierActions:
     @staticmethod
     def declareClosingAmount():
         pass
-    
-    @staticmethod
-    def makeSale():
-        print("Making a sale")
+
     @staticmethod
     def payCreditSale():
         print("paying credit sale")
@@ -108,17 +121,10 @@ class AdminActions:
 
 
 if __name__=="__main__":
-    cashier=CashierActions()
-    admin=AdminActions()
     fetchData=FetchData()
     
-    #all functions
+    # #all functions
     eel._expose("getAllProducts",fetchData.getAllProducts)
     
-    #cashier functions
-    eel._expose("makeSale",cashier.makeSale)
-    
-    #adminactions
-    eel._expose("deleteProduct",admin.deleteProduct)
 
     eel.start("login.html",port=4040)
