@@ -1,4 +1,4 @@
-from views import UserView,TransactionView,PaymentView,ProductsView
+from views import UserView,TransactionView,PaymentView,ProductsView,SoldItemsView
 from utils import Logging
 class User:
     def login(self,username,password):
@@ -40,33 +40,26 @@ class Cashier(User):
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
         if(authAction):
+            transaction=TransactionView()
+            payment=PaymentView()
+            soldProduct=SoldItemsView()
 
-            t=TransactionView()
             #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
-            saleAmount=t.calcTotalAmount(paymentList)
-            tState,tId=t.createTransaction(custId,cashierId,tillId,saleAmount)
+            saleAmount=transaction.calcTotalAmount(paymentList)
+            
+            tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
+            paymentState,paymentMessage=payment.addPaymentList(paymentList,tId)
+            soldProduct.addSoldItemsList(tId,busketList,True)
+
             if(tState):
-                pInstance=PaymentView()
-                allPaymentsDone=True
-                errorMessage=""
-                for p in paymentList:
-                    transactionCredentials="None"
-                    pMethod=p["paymentType"]
-                    if(pMethod!='credit'):
-                        if(pMethod=='mpesa'):
-                            transactionCredentials=p["phoneNum"]+';'+p["mpesaTid"]
-                        elif(pMethod=='bank'):
-                            transactionCredentials=p["bankName"]+';'+p["bankAccNumber"]
-                        pState,pmessage=pInstance.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials)
-                        if(pState==False):
-                            allPaymentsDone=False
-                            errorMessage=pmessage
-                if(allPaymentsDone):
-                    print("Transaction successfully done")
-                    return True,"Transaction success"
+                if(paymentState==True):
+                    return True,paymentMessage
                 else:
-                    return False,errorMessage
+                    #RollBack Contigency [delete transaction, delete payments,deleteSoldProducts]
+                    rollBackState,rollBackMessage=transaction.rollBackTransaction(tId,paymentList,busketList)
+                    
             else:
+                #
                 return False,tId
         return False,"User level is not cashier"
 
@@ -82,6 +75,7 @@ class Cashier(User):
             pList+=[{'id':i.productId,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
         print(pList)
         return pList
+
     def receiveStock(items,uid):
         pass
 

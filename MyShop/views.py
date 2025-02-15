@@ -337,7 +337,34 @@ class TransactionView:
                 return False,"Either saleamount or paidamount could not be typecasted to integer"
         else:
             return False,f"There could be a null value passed to function TransactionView.createTransaction()\ncustomerId {custId} sellerId {sellerId} tillId {tillId} saleAmount {saleAmount}"
+    
+    def deleteTransaction(self,tId):
+        if(tId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            t=session.query(TransactionModel).filter_by(transactionId=tId).one_or_none()
+            if(t!=None):
+                session.delete(t)
+                session.commit()
+                transactionString=f'[id:{t.id},transactionId:{t.transactionId},customerId:{t.customerId},sellerId:{t.sellerId},tillId:{t.tillId},paidAmount:{t.paidAmount},time:{t.time}]'
+                Logging.logToFile('warn',f'Deleted transaction{transactionString}')
+                return True,'Deleted transaction with tranactionId{tId}'
+            else:
+                return False,f'There is no transaction with transactionId {tId}'
+        return False,'Parameter "tId" to function deleteTransaction(tId) is "None"'
         
+    def rollBackTransaction(self,tId,paymentList,busketList):
+        payment=PaymentView()
+        product=ProductsView()
+
+        deleteState,pMessage,failedToDelete=payment.deletePaymentList(paymentList,tId)
+        deleteTransactionState,tMessage=self.deleteTransaction(tId)
+        if(deleteState==False):
+            errorMessage+=f' {pMessage}'
+        if(deleteTransactionState==False):
+            errorMessage+=f' {tMessage}'
+        return False,errorMessage
+
     def fetchTransactionById(self,tId):
         if(tId!=None):
             Session=sessionmaker(bind=engine)
@@ -404,7 +431,7 @@ class PaymentView:
         tr=t.fetchTransactionById(transactionId)
         if(tr==None):
             #no transaction whose id=transactionId hence no payment can be made
-            return False,f'There is no transaction whose id={transactionId}'
+            return False,f'There is no transaction whose with transactionId={transactionId}'
         if(len(paymentMethod)>0 and paymentAmount>0 and len(transactionId)>0):
             bal=self.balanceOnPayment(transactionId,paymentAmount)
             if(bal>=0):
@@ -433,6 +460,57 @@ class PaymentView:
             #one or some of the parameters are none
             return False,'Please fill in the paymentMethod,paymentAmount,transactionId'
     
+    def addPaymentList(self,paymentList,tId):
+        if(paymentList.length()>0 and tId!=None):
+            allPaymentsDone=True
+            errorMessage=None
+            for p in paymentList:
+                transactionCredentials="None"
+                pMethod=p["paymentType"]
+                if(pMethod!='credit'):
+                    if(pMethod=='mpesa'):
+                        transactionCredentials=p["phoneNum"]+';'+p["mpesaTid"]
+                    elif(pMethod=='bank'):
+                        transactionCredentials=p["bankName"]+';'+p["bankAccNumber"]
+                    pState,pmessage=self.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials)
+                    if(pState==False):
+                        allPaymentsDone=False
+                        errorMessage=pmessage
+            if(allPaymentsDone):
+                return True,"Transaction success"
+            else:
+                return False,f"One or more payments failed to be added to the database {errorMessage}"
+        else:
+            return False,"None Parameter passed to function addPaymentList(paymentList,tId)"
+
+    def deletePayment(self,tId):
+        if(tId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            p=session.query(PaymentModel).filter_by(transactionId=tId).first()
+            if(p!=None):
+                session.delete(p)
+                session.commit()
+                paymentString=f'[id:{p.id},transactionId:{p.transactionId},paymentMethod:{p.paymentMethod},amountPayed:{p.amountPayed},time:{p.time},bankAcc:{p.bankAcc},mpesaTransaction:{p.mpesaTransaction}]'
+                Logging.logToFile('warn',f'Deleted payment {paymentString}')
+                return True,'Deleted Payment with transactionId {tId}'
+            else:
+                return False,f'There is no payment with transactionId {tId}'
+        return False,'Parameter "tId" to function deletePayment(tId) is "None"'
+    
+    def deletePaymentList(self,paymentList,tId):
+        if(paymentList!=None):
+            failedToDelete=[]
+            for p in paymentList:
+                state,message=self.deletePayment(tId)
+                if(state!=True):
+                    failedToDelete+=p
+            if(failedToDelete.length()==0):
+                return True,'Deleted all payments',failedToDelete
+            else:
+                return False,f'Failed to delete all payments',failedToDelete
+        return False,'None "paymentList" passed to deletePaymentList(paymentList)'
+
     def settledPayment(self,tId):
         if(tId!=None):
             t=TransactionView()
@@ -474,26 +552,39 @@ class PaymentView:
             
 class SoldItemsView:
     def addSoldItem(self,tId,productId,quantity,actualSellingPrice,itemsCollected):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        bp=session.query(ProductsModel).filter_by(productId=productId).one_or_none()
-        if(bp!=None):
-            buyingPrice=bp.buyingPrice
-            productSellingPrice=bp.sellingPrice
-            discountPercent=((productSellingPrice-actualSellingPrice)/productSellingPrice)*100
-            if(actualSellingPrice>buyingPrice):
-                t=FormatTime.getDateTime()
-                soldItem=SoldItemsModel(transactionId=tId,productId=productId,soldPrice=actualSellingPrice,expectedSellingPrice=productSellingPrice,discountPercent=discountPercent,buyingPrice=buyingPrice,quantity=quantity,itemsCollected=itemsCollected,time=t)
-                session.add(soldItem)
-                session.commit()
-            else:
-                return False,'You are selling at a loss'
+        if(tId!=None and productId!=None and quantity!=None and actualSellingPrice!=None and itemsCollected!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            bp=session.query(ProductsModel).filter_by(productId=productId).one_or_none()
+            if(bp!=None):
+                buyingPrice=bp.buyingPrice
+                productSellingPrice=bp.sellingPrice
+                discountPercent=((productSellingPrice-actualSellingPrice)/productSellingPrice)*100
+                if(actualSellingPrice>buyingPrice):
+                    t=FormatTime.getDateTime()
+                    soldItem=SoldItemsModel(transactionId=tId,productId=productId,soldPrice=actualSellingPrice,expectedSellingPrice=productSellingPrice,discountPercent=discountPercent,buyingPrice=buyingPrice,quantity=quantity,itemsCollected=itemsCollected,time=t)
+                    session.add(soldItem)
+                    session.commit()
+                    return True,'Success: Item has been sold '
+                else:
+                    return False,'You are selling at a loss'
+        else:
+            return False,'None parameter passed to addSoldItem(tId,productId,quantity,actualSellingPrice,itemsCollected)'
+    
+    def addSoldItemsList(self,tId,soldItemsList,itemsCollected):
+        if(tId!=None and soldItemsList.length()>0 and itemsCollected!=None):
+            for item in soldItemsList:
+                pass
+        else:
+            return False,'None passed as a parameter to addSoldItemsList(tId,soldItemsList,itemsCollected)'
 
+    def fetchSoldItemsByTransaction(self,tId):
+        pass
 
-
-    def fetchSoldItems(self,timeBegin,timeEnd):
+    def fetchSoldItemsByDate(self,timeBegin,timeEnd):
         #timeBegin=year month day hour=00 minute=00 second=00
         pass
+
 
     def fetchReservedItems():
         Session=sessionmaker(bind=engine)
