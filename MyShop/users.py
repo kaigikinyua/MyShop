@@ -48,19 +48,18 @@ class Cashier(User):
             saleAmount=transaction.calcTotalAmount(paymentList)
             
             tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
-            paymentState,paymentMessage=payment.addPaymentList(paymentList,tId)
-            soldProduct.addSoldItemsList(tId,busketList,True)
+            pState,pMessage=payment.addPaymentList(paymentList,tId)
+            sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
 
-            if(tState):
-                if(paymentState==True):
-                    return True,paymentMessage
-                else:
-                    #RollBack Contigency [delete transaction, delete payments,deleteSoldProducts]
-                    rollBackState,rollBackMessage=transaction.rollBackTransaction(tId,paymentList,busketList)
-                    
+            if(tState and pState and sPState):
+                return True,"Success in adding Transaction,Payments and SoldItems"
             else:
-                #
-                return False,tId
+                #RollBack Contigency [delete transaction, delete payments,deleteSoldProducts]
+                rollBackState,rollBackMessage=transaction.rollBackTransaction(tId,paymentList,busketList)
+                errorMessage=f"Error while adding Transaction,Payments and Sold Items\nTransaction Error {tId}\n\nPayment Error {pMessage}\n\nSoldProduct Error {sPMessage}"
+                if(rollBackState!=True):
+                    errorMessage+=f"\n\nRollBackError {rollBackMessage}"
+                return False,errorMessage
         return False,"User level is not cashier"
 
     
