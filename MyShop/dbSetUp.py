@@ -23,6 +23,14 @@ def createProducts():
         x.addProduct(i,p['name'],p['barCode'],p['tags'],p['desc'],p['bPrice'],p['sPrice'],p['returnContainers'])
         i=i+1
         
+class TransactionsSetUp:
+    transactions=[]
+    def createTransactions(self):
+        pass
+    def deleteTransactions(self):
+        pass
+
+
 if __name__=="__main__":
     if Settings.mode=="DEBUG":
         createUsers()
