@@ -71,6 +71,7 @@ class SoldItemsModel(Base):
     id=Column(Integer,primary_key=True)
     transactionId=Column(String)
     productId=Column(String)
+    barCode=Column(String)
     quantity=Column(Integer)
     soldPrice=Column(Integer)
     expectedSellingPrice=Column(Integer)
@@ -90,7 +91,7 @@ class CollectedItemModel(Base):
 ##Products and stock
 class ProductsModel(Base):
     __tablename__='Products'
-    productId=Column(Integer,primary_key=True)
+    id=Column(Integer,primary_key=True)
     name=Column(String)
     barCode=Column(String,primary_key=True)
     productTags=Column(String)
