@@ -10,6 +10,7 @@ function notificationBubble(message,mode,delay){
         timeOutId=null
     }
     //crimsonRed,mint green,amber
+    //0->error 1->success 2->warning
     const colors=['#DC143C','#98FB98','#EEAE00']
     var elm=document.getElementById('notification')
     elm.classList.remove('active')

@@ -14,10 +14,11 @@ function addItem(){
             if(p['barCode']==itemName){
                 price=p['sPrice']
                 total=price*quantity
-                customerBusket.push({'name':p['name'],'price':p['sPrice'],'quantity':quantity,'total':total})
+                customerBusket.push({'name':p['name'],'barCode':p['barCode'],'price':p['sPrice'],'quantity':quantity,'total':total,'discount':0,})
                 Render.renderItems(customerBusket)
                 Transaction.computeTotal(customerBusket)
                 itemFound=true
+                Render.clearItemCode()
             }
         });
         if(itemFound==false){
@@ -320,6 +321,16 @@ class Render{
             itemParent.appendChild(itemDiv)
         });
     }
+    static clearAllItems(){
+        var list=document.getElementById('itemList')
+        while(list.hasChildNodes()){
+            list.removeChild(list.firstChild)
+        }
+    }
+    static clearItemCode(){
+        document.getElementById('itemCode').value=""
+        document.getElementById('quantity').value=1
+    }
     static renderSearchBoxProducts(products){
         let parent=document.getElementById('searchItemCode')
         products.forEach(p=>{
@@ -364,7 +375,21 @@ class Transaction{
     static async sendTransactionToBackend(busket,payments,counterId,custId){
         console.log("Sending transaction to the backend")
         var cashierId=Auth.getUserId()
-        var response=await eel.makeSale(busket,payments,counterId,cashierId,custId)
+        var response=await eel.makeSale(busket,payments,counterId,cashierId,custId)()
+        console.log(response['state'])
+        if(response['state']==true){
+            Transaction.clearTransactionFromUi()
+            notificationBubble("Transaction Completed Successfully",1,5)
+        }else{
+            notificationBubble("Transaction Failed",0,5)
+        }
+    }
+    static clearTransactionFromUi(){
+        Render.clearAllItems()
+        customerBusket=[]
+        busketTotalPrice=0
+        payments=[]
+        closePopUp()
     }
 
     static computeTotal(items){

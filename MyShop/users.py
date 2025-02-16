@@ -71,7 +71,7 @@ class Cashier(User):
         products=pV.getAllProducts()
         pList=[]
         for i in products:
-            pList+=[{'id':i.productId,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
+            pList+=[{'id':i.id,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
         print(pList)
         return pList
 

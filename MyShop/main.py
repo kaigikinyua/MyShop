@@ -27,8 +27,7 @@ def makeSale(busketList,paymentList,tillId,cashier,custId):
     c=Cashier()
     state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
     if(state==False):
-        print(message)
-        return False
+        return {"state":False,"message":"Could Not complete sale"}
     return {"state":True}
 
 @eel.expose

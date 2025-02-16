@@ -259,11 +259,11 @@ class ShiftView:
         return False
 
 class ProductsView:
-    def addProduct(self,pId,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+    def addProduct(self,id,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=ProductsModel(productId=pId,name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
+            p=ProductsModel(id=id,name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
             session.add(p)
             session.commit()
             return True
@@ -276,11 +276,19 @@ class ProductsView:
         result=session.query(ProductsModel).all()
         return result
     
-    def getProduct(self,pId):
+    def getProductById(self,pId):
         if(len(pId)>0):
             Session=sessionmaker(bind=engine)
             session=Session()
-            result=session.query(ProductsModel).filter_by(productId=pId).all()
+            result=session.query(ProductsModel).filter_by(id=pId).one_or_none()
+            return result
+        else:
+            return False
+    def getProductByBarCode(self,barcode):
+        if(len(barcode)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            result=session.query(ProductsModel).filter_by(barCode=barcode).one_or_none()
             return result
         else:
             return False
@@ -461,7 +469,7 @@ class PaymentView:
             return False,'Please fill in the paymentMethod,paymentAmount,transactionId'
     
     def addPaymentList(self,paymentList,tId):
-        if(paymentList.length()>0 and tId!=None):
+        if(len(paymentList)>0 and tId!=None):
             allPaymentsDone=True
             errorMessage=None
             for p in paymentList:
@@ -483,11 +491,11 @@ class PaymentView:
         else:
             return False,"None Parameter passed to function addPaymentList(paymentList,tId)"
 
-    def deletePayment(self,tId):
-        if(tId!=None):
+    def deletePayment(self,tId,payment):
+        if(tId!=None and payment!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=session.query(PaymentModel).filter_by(transactionId=tId).first()
+            p=session.query(PaymentModel).filter_by(transactionId=tId,paymentMethod=payment["paymentType"],amountPayed=payment["amount"]).first()
             if(p!=None):
                 session.delete(p)
                 session.commit()
@@ -499,10 +507,11 @@ class PaymentView:
         return False,'Parameter "tId" to function deletePayment(tId) is "None"'
     
     def deletePaymentList(self,paymentList,tId):
-        if(paymentList!=None):
+        if(paymentList!=None and len(paymentList)>0):
             failedToDelete=[]
             for p in paymentList:
-                state,message=self.deletePayment(tId)
+                payment={"paymentType":p["paymentType"],"amount":p["amount"]}
+                state,message=self.deletePayment(tId,payment)
                 if(state!=True):
                     failedToDelete+=p
             if(failedToDelete.length()==0):
@@ -551,30 +560,44 @@ class PaymentView:
             return session.query(PaymentModel).all()
             
 class SoldItemsView:
-    def addSoldItem(self,tId,productId,quantity,actualSellingPrice,itemsCollected):
+    def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
         if(tId!=None and productId!=None and quantity!=None and actualSellingPrice!=None and itemsCollected!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            bp=session.query(ProductsModel).filter_by(productId=productId).one_or_none()
+            bp=session.query(ProductsModel).filter_by(id=productId).one_or_none()
             if(bp!=None):
                 buyingPrice=bp.buyingPrice
                 productSellingPrice=bp.sellingPrice
                 discountPercent=((productSellingPrice-actualSellingPrice)/productSellingPrice)*100
                 if(actualSellingPrice>buyingPrice):
-                    t=FormatTime.getDateTime()
-                    soldItem=SoldItemsModel(transactionId=tId,productId=productId,soldPrice=actualSellingPrice,expectedSellingPrice=productSellingPrice,discountPercent=discountPercent,buyingPrice=buyingPrice,quantity=quantity,itemsCollected=itemsCollected,time=t)
+                    t=FormatTime.now()
+                    soldItem=SoldItemsModel(transactionId=tId,productId=productId,barCode=barCode,soldPrice=actualSellingPrice,expectedSellingPrice=productSellingPrice,discountPercent=discountPercent,buyingPrice=buyingPrice,quantity=quantity,itemsCollected=itemsCollected,time=t)
                     session.add(soldItem)
                     session.commit()
                     return True,'Success: Item has been sold '
                 else:
                     return False,'You are selling at a loss'
+            else:
+                return False,bp
         else:
             return False,'None parameter passed to addSoldItem(tId,productId,quantity,actualSellingPrice,itemsCollected)'
     
     def addSoldItemsList(self,tId,soldItemsList,itemsCollected):
-        if(tId!=None and soldItemsList.length()>0 and itemsCollected!=None):
+        if(tId!=None and len(soldItemsList)>0 and itemsCollected!=None):
+            error=False
+            message=""
             for item in soldItemsList:
-                pass
+                pView=ProductsView()
+                product=pView.getProductByBarCode(item['barCode'])
+                if(product!=False):
+                    soldItemState,soldItemMessage=self.addSoldItem(tId,product.id,product.barCode,item['quantity'],item["price"],itemsCollected)
+                    if(soldItemState==False):
+                        error=True
+                        message=message+soldItemMessage
+            if(error==False):
+                return True,'Added all the products to SoldItemsList'
+            else:
+                return False,message
         else:
             return False,'None passed as a parameter to addSoldItemsList(tId,soldItemsList,itemsCollected)'
 
