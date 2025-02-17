@@ -1,6 +1,8 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,PaymentModel,CustomerModel,SoldItemsModel
+from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel
+from models import PaymentModel,CustomerModel,SoldItemsModel,SalesSettingsModel,CustomerCreditModel
+
 from utils import FormatTime,Logging
 from settings import Settings
 
@@ -284,6 +286,7 @@ class ProductsView:
             return result
         else:
             return False
+    
     def getProductByBarCode(self,barcode):
         if(len(barcode)>0):
             Session=sessionmaker(bind=engine)
@@ -434,13 +437,13 @@ class TransactionView:
         return total
 
 class PaymentView:
-    def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials):
+    def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials,paymentTime):
         t=TransactionView()
         tr=t.fetchTransactionById(transactionId)
         if(tr==None):
             #no transaction whose id=transactionId hence no payment can be made
             return False,f'There is no transaction whose with transactionId={transactionId}'
-        if(len(paymentMethod)>0 and paymentAmount>0 and len(transactionId)>0):
+        if(len(paymentMethod)>0 and paymentAmount>0 and len(transactionId)>0 and paymentTime!=None):
             bal=self.balanceOnPayment(transactionId,paymentAmount)
             if(bal>=0):
                 payment=PaymentModel()
@@ -450,8 +453,10 @@ class PaymentView:
                     payment.mpesaTransaction=transactionCredentials
                 elif(paymentMethod=='bank'):
                     payment.bankAcc=transactionCredentials
+                else:
+                    return False,f'Payment method {paymentMethod} is not implemented in PaymentView.addPayment()'
                 payment.amountPayed=paymentAmount
-                payment.time=FormatTime.now()
+                payment.time=paymentTime
                 Session=sessionmaker(bind=engine)
                 session=Session()
                 session.add(payment)
@@ -461,17 +466,18 @@ class PaymentView:
                     return True,'Completed Successfully'
                 else:
                     session.rollback()
-                    return False,'An error occured hence rollback database'
+                    return False,'An error occured during payment hence rollback database'
             elif(bal<0):
                 return False,f'The customer will have paid exess of {bal*-1}'
         else:
             #one or some of the parameters are none
-            return False,'Please fill in the paymentMethod,paymentAmount,transactionId'
+            return False,'None parameter passed to addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials,paymentTime)'
     
     def addPaymentList(self,paymentList,tId):
         if(len(paymentList)>0 and tId!=None):
             allPaymentsDone=True
             errorMessage=None
+            paymentTime=FormatTime.now()
             for p in paymentList:
                 transactionCredentials="None"
                 pMethod=p["paymentType"]
@@ -480,10 +486,15 @@ class PaymentView:
                         transactionCredentials=p["phoneNum"]+';'+p["mpesaTid"]
                     elif(pMethod=='bank'):
                         transactionCredentials=p["bankName"]+';'+p["bankAccNumber"]
-                    pState,pmessage=self.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials)
+                    pState,pmessage=self.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials,paymentTime)
                     if(pState==False):
                         allPaymentsDone=False
                         errorMessage=pmessage
+                else:
+                    #handle customer credit here
+                    #check credit worthyness and max credit setting
+
+                    pass
             if(allPaymentsDone):
                 return True,"Transaction success"
             else:
@@ -558,7 +569,81 @@ class PaymentView:
             return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime).all()
         else:
             return session.query(PaymentModel).all()
+
+class CustomerCreditView:
+    def payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId):
+        if(paymentMethod!=None and amount!=None and tId!=None):
+            creditBalance=self.creditBalance(custId,tId)
+            if(creditBalance>=amount):
+                paymentTime=FormatTime.now()
+                p=PaymentView()
+                paymentState,paymentMessage=p.addPayment(paymentMethod,amount,tId,transactionCredentials,paymentTime)
+                if(paymentState==True):
+                    Session=sessionmaker(bind=engine)
+                    session=Session()
+                    payment=session.query(PaymentModel).filter_by(time=paymentTime,transactionId=tId,amountPayed=amount).one_or_none()
+                    if(payment!=None):
+                        payment.paidForCreditId=creditId
+                        session.commit()
+                        customerCredit=session.query(CustomerCreditModel).filter_by(customerId=custId,transactionId=tId,id=creditId).one_or_none()
+                        credit=customerCredit.totalCreditPaid+amount
+                        customerCredit.totalCreditPaid=credit
+                        if(creditBalance==0):
+                            customerCredit.fullyPaid=True
+                        session.commit()
+                        return True,f'Customer credit updated successfully'
+                    else:
+                        return False,f'System admin should RollBack Payment [Method={paymentMethod} amount={amount} TransactionId={tId} Cred={transactionCredentials} CreditCred={creditCredentials}]'
+                else:
+                    return False,f'Customer Credit Failed to add\n{paymentMessage}'
+            else:
+                return False,f'Customer will have overpaid the credit balance Credit Balance={creditBalance} amount paid={amount}'
+        return False,'None parameter passed to payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId)'
+
+    def addCredit(self,custId,tId,cAmount,cDeadline):
+        if(custId!=None and tId!=None and cAmount!=None and cDeadline!=None):
+            customerCredit=CustomerCreditModel()
+            customerCredit.customerId=custId
+            customerCredit.transactionId=tId
+            customerCredit.creditAmount=cAmount
+            customerCredit.totalCreditPaid=0
+            customerCredit.creditDeadline=cDeadline
+            customerCredit.fullyPaid=False
+            customerCredit.time=FormatTime.now()
             
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            session.add(customerCredit)
+            session.commit()
+            return True,'Credit added'
+        return False,'Credit could not be added'
+
+    def creditBalance(self,custId,tId):
+        if(custId!=None and tId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            credit=session.query(CustomerCreditModel).filter_by(customerId=custId,transactionId=tId).one_or_none()
+            if(credit!=None):
+                balance=credit.creditAmount-credit.totalCreditPaid
+                return balance
+            else:
+                return False,f'Çustomer credit record [Customer id {custId} Transaction id {tId}] could not be found'
+
+        return False,'None value passed to creditFullySettled(self,custId,tId)'
+
+    def calcTotalCustomerCredit(self,custId):
+        if(custId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            debtList=session.query(CustomerCreditModel).filter_by(customerId=custId,fullyPaid=False).all()
+            totalDebt=0
+            transactionIds=[]
+            for debt in debtList:
+                totalDebt=totalDebt+(debt.creditAmount-debt.totalCreditPaid)
+                transactionIds+=debt.transactionId
+            return totalDebt,transactionIds
+        return False,'None parameter passed to calcTotalCustomerCredit(self,custId)'
+
 class SoldItemsView:
     def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
         if(tId!=None and productId!=None and quantity!=None and actualSellingPrice!=None and itemsCollected!=None):
@@ -608,7 +693,6 @@ class SoldItemsView:
         #timeBegin=year month day hour=00 minute=00 second=00
         pass
 
-
     def fetchReservedItems():
         Session=sessionmaker(bind=engine)
         session=Session()
@@ -620,6 +704,35 @@ class SoldItemsView:
         #proceed to add collectedItem details
         #commit
         pass
+
+class SaleSettingsView:
+    def addSalesSettings(self,id,maxCredit,discount,vat,currency,tillTag):
+        if(id!=None,maxCredit!=None,discount!=None,vat!=None,currency!=None,tillTag!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            settings=session.add(SalesSettingsModel,id=id,maxCustomerCredit=maxCredit,maxDiscountPercent=discount,valueAddedTaxPercent=vat,currencyTag=currency,tillTagId=tillTag)
+            session.commit(settings)
+            return True,'Settings added Successfully'
+        return False,'Passed a None or null parameter to addSalesSettings(self,id,maxCredit,discount,vat,currency,tillTag)'
+
+    def getSalesSettings(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        settings=None
+        settings=session.query(SalesSettingsModel).filter_by(id=1).one_or_none()
+        if(settings!=None):
+            return True,settings
+        return False,settings 
+
+    def deleteSalesSettings(self):
+        state,settings=self.getSalesSettings()
+        if(state==True):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            session.delete(settings)
+            session.commit()
+            return True
+        return False
 
 class BranchesView:
     def addBranch(self,branchName,location,branchPhone,tillNumber,manager):
@@ -651,6 +764,7 @@ class CustomerView:
             return True
         else:
             return False
+        
     def getCustomer(self,custId,custName,phoneNumber):
         if(custId!=None or custName!=None or phoneNumber!=None):
             Session=sessionmaker(bind=engine)
@@ -693,3 +807,6 @@ class CustomerView:
             return t.filterTransactionByCustomer(custId)
         else:
             return False
+
+    def customerIsCreditWorthy(self,custId):
+        pass
