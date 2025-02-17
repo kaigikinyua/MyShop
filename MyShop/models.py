@@ -37,12 +37,21 @@ class ShiftModel(Base):
     logins=Column(Integer)
     isClosed=Column(Boolean)
 
+class SalesSettingsModel(Base):
+    __tablename__="SalesSettings"
+    id=Column(Integer,primary_key=True)
+    maxCustomerCredit=Column(Integer)
+    maxDiscountPercent=Column(Float)
+    valueAddedTaxPercent=Column(Float)
+    currencyTag=Column(String)
+    tillTagId=Column(String)
+
 class CustomerModel(Base):
     __tablename__="Customers"
     id=Column(Integer,primary_key=True)
     name=Column(String,primary_key=True)
     phoneNumber=Column(String,primary_key=True)
-
+    totalCreditOwed=Column(Integer,default=0)
 ##transactions
 class TransactionModel(Base):
     __tablename__='Transaction'
@@ -64,7 +73,18 @@ class PaymentModel(Base):
     time=Column(Float)
     bankAcc=Column(String)
     mpesaTransaction=Column(String)
+    paidForCreditId=Column(String,default=None)
 
+class CustomerCreditModel(Base):
+    __tablename__='CustomerCredit'
+    id=Column(Integer,primary_key=True)
+    customerId=Column(String)
+    transactionId=Column(String)
+    creditAmount=Column(String)
+    totalCreditPaid=Column(Integer,default=0)
+    creditDeadline=Column(Float)
+    fullyPaid=Column(Boolean,default=False)
+    time=Column(Float)
 
 class SoldItemsModel(Base):
     __tablename__='SoldItems'
