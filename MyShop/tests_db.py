@@ -4,7 +4,7 @@ sys.path.insert(0,'../')
 
 
 from utils import FormatTime
-from views import UserView,TransactionView,PaymentView
+from views import UserView,TransactionView,PaymentView,ProductsView
 
 class Tests_UserView(unittest.TestCase):
     def test_login(self):
@@ -89,7 +89,20 @@ class Tests_UserView(unittest.TestCase):
     
 class Test_ProductsView(unittest.TestCase):
     def test_addProduct(self):
-        pass
+        products=[
+            {'name':'Test Product 001','barCode':'000000001','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 002','barCode':'000000002','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 003','barCode':'000000003','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 004','barCode':'000000004','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 005','barCode':'000000005','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+        ]
+        i=1
+        productStates=[]
+        for p in products:
+            x=ProductsView()
+            pState=x.addProduct(i,p['name'],p['barCode'],p['tags'],p['desc'],p['bPrice'],p['sPrice'],p['returnContainers'])
+            i=i+1
+            productStates+=pState
     
 class Tests_TransactionView(unittest.TestCase):
     def test_createTransaction(self):
