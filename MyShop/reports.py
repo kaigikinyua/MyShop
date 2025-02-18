@@ -1,6 +1,6 @@
 import datetime
 from views import UserView,TransactionView,PaymentView,SoldItemsView
-
+from utils import Logging
 class Reports:
     #daily reports
     def generateXReport(self,dateTimeStamp):
@@ -8,13 +8,17 @@ class Reports:
         storeDetails={'storeId':'Main Store'}
         dateTime=f'Date: {datetime.datetime.date} Time: {datetime.datetime.time}'
         
-        mpesaSales={'amount':5000,'numOfTransactions':1}
-        cashSales={'amount':5000,'numOfTransactions':1}
-        cardSales={'amount':5000,'numOfTransactions':1}
-        openningFloat=0
-        grossSales,netSales,taxes=0,0,0
+        numberOfTransactions=0
 
-    
+        mpesaSales={'amount':50000,'numOfTransactions':1}
+        cashSales={'amount':20000,'numOfTransactions':2}
+        cardSales={'amount':16000,'numOfTransactions':3}
+        creditSales={'amount':3000,'numOfTransactions':4}
+        openningFloat=0
+        grossSales=mpesaSales['amount']+cashSales['amount']+cardSales['amount']+creditSales['amount']
+        cashInHand=grossSales-creditSales['amount']+openningFloat
+        netSales=0
+        taxes=0
 
         auth={
             'shiftId':'faslkdjfalk',
@@ -22,13 +26,6 @@ class Reports:
             'logins':6,
             'operatorId':1,
         }
-        sales={
-            'numberOfSales':5,
-            'cashSales':{'collected':cashSales['amount'],'float':openningFloat},
-            'bankSales':{'bank':5000,'card':3000},
-            'mpesaSales':10000,
-            'GrossSales':grossSales
-            }
         
         reportString=f'''
             {reportName} {dateTime}
@@ -38,14 +35,25 @@ class Reports:
             Num of Logins: {auth['logins']}
             -------------------------------------------------------------
             Sales:
-            Number of Sales : {sales['numberOfSales']}
-            Total Sales:
+            Number of Sales : ------------{numberOfTransactions}
+            Gross Sales:------------------{grossSales}
+            Credit Sales:------------------{creditSales['amount']}
+            Money at hand:-----------------{cashInHand}
+            Tax:----------------------------{taxes}
 
-            Cash(Float):{sales['cashSales']['float']}
-            Cash(Collected):{sales['cashSales']['collected']}
-            Total Cash: {sales['cashSales']['collected']+sales['cashSales']['float']}
+            Number of Cash Transactions: {cashSales['numOfTransactions']}
+            Cash(Float):-----------------{openningFloat}
+            Cash(Collected):-------------{cashSales['amount']}
+            Total Cash: -----------------{openningFloat+cashSales["amount"]}
 
-            Bank
+            Number of Bank Transactions: {cardSales['numOfTransactions']}
+            Bank(Collected):-------------{cardSales["amount"]}
+
+            Number of Mpesa Transactions: {mpesaSales['numOfTransactions']}
+            Mpesa Total Collected---------{mpesaSales['amount']}
+
+            Number of Credit Transactions: {creditSales['numOfTransactions']}
+            Total Credit ------------------{creditSales['amount']}
 
         '''
 
@@ -67,7 +75,6 @@ class Reports:
         stockSales=[
             {'productId':'Jin Whiskey 500ml','quantity':5},
         ]
-
 
     def generateStockReport(self,startDate,endDate):
         reportName='Stock Report'
@@ -111,6 +118,21 @@ class Reports:
 
     def printReport(self,reportData,outPutFile):
         pass
+
+class CalcSales:
+    @staticmethod
+    def calcPaymentTypeSold(startTimeStamp,endTimeStamp,salesType):
+        p=PaymentView()
+        payments=p.filterPaymentByPaymentType(startTimeStamp,endTimeStamp,salesType)
+        total=0
+        if(payments!=None):
+            numOfCashTransactions=len(payments)
+            total=p.calcTotal(payments)
+            if(total==0):
+                Logging.consoleLog(f"Error while calculating total {salesType} sales")
+        else:
+            Logging.consoleLog("Got None from PaymentView.filterPaymentByPaymentType()")
+        return total,numOfCashTransactions
 
 class CSV:
     @staticmethod
