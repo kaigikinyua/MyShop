@@ -1,6 +1,6 @@
-import unittest
+import unittest,sys
 from unittest import TestCase
-#sys.path.insert(0,'../')
+sys.path.insert(0,'../')
 
 from utils import FormatTime
 from views import UserView,TransactionView,PaymentView,ProductsView
@@ -87,58 +87,97 @@ class Tests_UserView(unittest.TestCase):
         TestCase.assertEqual(self,deleted3,False)
     
 class Test_ProductsView(unittest.TestCase):
-    def test_addProduct(self):
-        products=[
-            {'name':'Test Product 001','barCode':'000000001','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Test Product 002','barCode':'000000002','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Test Product 003','barCode':'000000003','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Test Product 004','barCode':'000000004','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Test Product 005','barCode':'000000005','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+    products=[
+            {'name':'Test Product 001','barCode':'500000001','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 002','barCode':'500000002','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':True},
+            {'name':'Test Product 003','barCode':'500000003','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Test Product 004','barCode':'500000004','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':True},
+            {'name':'Test Product 005','barCode':'500000005','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
         ]
-        i=1
+    idStart=10000000
+    def test_addProduct(self):
+        i=self.idStart
         productStates=[]
-        for p in products:
-            x=ProductsView()
+        x=ProductsView()
+        for p in self.products:
             pState=x.addProduct(i,p['name'],p['barCode'],p['tags'],p['desc'],p['bPrice'],p['sPrice'],p['returnContainers'])
             i=i+1
-            productStates+=pState
-    
-class Tests_TransactionView(unittest.TestCase):
-    def test_createTransaction(self):
-        t1={'succ':True,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
-        t2={'succ':False,'custId':'','sellerId':'0','tillId':'WareHouse','saleAmount':30000,'paidAmount':30000}
-        t3={'succ':True,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':15000,'paidAmount':15000}
-        all_transactions=[t1,t2,t3]
-        transactions=[]
-        counter=1
-        for t in all_transactions:
-            tr=TransactionView()
-            if(tr.fetchTransactionById(counter)==None):
-                transactions+=[t]
-            counter+=1
+            productStates.append(pState)
 
-        for t in transactions:
-            transaction=TransactionView()
-            rslt=transaction.createTransaction(t['custId'],t['sellerId'],t['tillId'],t['saleAmount'],t['paidAmount'])
+    def test_getProductsById(self):
+        i=self.idStart
+        products=[]
+        x=ProductsView()    
+        for p in self.products:
+            pState=x.getProductById(i)
+            i=i+1
+            self.assertNotEqual(self,pState,False)
+            products.append(pState)
+
+    def test_getProductsByBarCode(self):
+        i=self.idStart
+        products=[]
+        x=ProductsView()    
+        for p in self.products:
+            pState=x.getProductByBarCode(p['barCode'])
+            i=i+1
+            self.assertNotEqual(self,pState,False)
+            products.append(pState)
+
+    def test_deleteProduct(self):
+        i=self.idStart
+        deletedProductStates=[]
+        x=ProductsView()    
+        for p in self.products:
+            pState=x.deleteProduct(i)
+            i=i+1
+            deletedProductStates.append(pState)
+
+class Tests_TransactionView(unittest.TestCase):
+    t1={'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
+    t2={'succ':False,"id":None,'custId':'','sellerId':'0','tillId':'WareHouse','saleAmount':30000,'paidAmount':30000}
+    t3={'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':15000,'paidAmount':15000}
+    all_transactions=[t1,t2,t3]
+    def test_createTransaction(self):    
+        all_transactions=self.all_transactions
+        transactions=[]
+        tView=TransactionView()
+        counter=0
+        for t in all_transactions:
+            rslt,tId=tView.createTransaction(t['custId'],t['sellerId'],t['tillId'],t['saleAmount'])
             TestCase.assertEqual(self,t['succ'],rslt)
+            t["id"]=tId
+            all_transactions[counter]=t
+            counter=counter+1
 
     def test_fetchTransactionById(self):
         t=TransactionView()
         transaction=t.fetchTransactionById(1)
         print(transaction)
 
-    def fetchAllTransactions(self):
-        pass
-
+    def test_deleteTransaction(self):
+        tView=TransactionView()
+        all_transactions=[self.t1,self.t2,self.t3]
+        for t in all_transactions:
+            state,error=tView.deleteTransaction(t["id"])
+            TestCase.assertEqual(self,state,t['succ'])
+        
 class Tests_PaymentView(unittest.TestCase):
+    p1={'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'}
+    p2={'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''}
+    p3={'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'}
+    p4={'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
+    all_payments=[p1,p2,p3]
     def test_addPayment(self):
-        p1={'pMethod':'mpesa','pAmount':1000,'tId':'1','tNum':'fasdgasdg'}
-        p2={'pMethod':'cash','pAmount':5000,'tId':'1','tNum':''}
-        p3={'pMethod':'bank','pAmount':10000,'tId':'1','tNum':'34523452345'}
-        payments=[p1,p2,p3]
+        t=Tests_TransactionView.t1
+        tView=TransactionView()
+        tState,tId=tView.createTransaction(t['custId'],t['sellerId'],t['tillId'],t['saleAmount'])
+
+        paymentTime=FormatTime.now()
         p=PaymentView()
-        for payMent in payments:
-            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],payMent['tId'],payMent['tNum'])
+
+        for payMent in self.all_payments:
+            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],tId,payMent['tNum'],paymentTime)
             if(rslt==False):
                 print(f'Payment failed {payMent} -> {message}')
         payments=p.fetchTransactionPayments('0')
@@ -151,5 +190,8 @@ class Tests_PaymentView(unittest.TestCase):
         allTransactions=p.fetchAllPayments(None,None)
         rangeTransactions=p.fetchAllPayments(p1['startTime'],p1['endtime'])
         TestCase.assertEqual(self,len(allTransactions),len(rangeTransactions))        
+
+    def test_deletePayments(self):
+        pass
 if __name__=='__main__':
     unittest.main()

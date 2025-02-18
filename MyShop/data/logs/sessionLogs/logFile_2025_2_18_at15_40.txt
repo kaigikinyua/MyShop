@@ -1,0 +1,2 @@
+
+warn| 18/2/2025 15:40:0| Deleted user id=3 name=James level=cashier

@@ -265,10 +265,14 @@ class ProductsView:
         if(len(pName)>0 and len(barCode)>0 and bPrice!=None and sPrice!=None and returnContainers!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            p=ProductsModel(id=id,name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
-            session.add(p)
-            session.commit()
-            return True
+            noCollisionBarCode=session.query(ProductsModel).filter_by(barCode=barCode).one_or_none()
+            noCollisionId=session.query(ProductsModel).filter_by(id=id).one_or_none()
+            if(noCollisionBarCode==None and noCollisionId==None):
+                p=ProductsModel(id=id,name=pName,barCode=barCode,buyingPrice=bPrice,sellingPrice=sPrice,returnContainers=returnContainers,productTags=tags,desc=desc)
+                session.add(p)
+                session.commit()
+                return True
+            return False
         else:
             return False
     
@@ -279,7 +283,7 @@ class ProductsView:
         return result
     
     def getProductById(self,pId):
-        if(len(pId)>0):
+        if(pId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
             result=session.query(ProductsModel).filter_by(id=pId).one_or_none()
@@ -316,11 +320,16 @@ class ProductsView:
         return False,f'One or more required fields are empty: Pid={pId} name={pName}'
     
     def deleteProduct(self,pId):
-        if(len(pId)>0):
-            Session=sessionmaker()
+        if(pId!=None):
+            Session=sessionmaker(bind=engine)
             session=Session()
-            result=session.query(ProductsModel).delete(productId=pId)
-            session.commit()
+            p=session.query(ProductsModel).filter_by(id=pId).one_or_none()
+            if(p!=None):
+                session.delete(p)
+                session.commit()
+            else:
+                return False,f'There is no product that has product id {pId}'
+            Logging.consoleLog('warn',f'Deleted product with pid {pId}')
             return True,''
         else:
             return False,'Product id is empty Pid={pId}'
@@ -456,6 +465,9 @@ class PaymentView:
                     payment.mpesaTransaction=transactionCredentials
                 elif(paymentMethod=='bank'):
                     payment.bankAcc=transactionCredentials
+                elif(paymentMethod=='cash'):
+                    payment.mpesaTransaction='None;Cash'
+                    payment.bankAcc='None;Cash'
                 else:
                     return False,f'Payment method {paymentMethod} is not implemented in PaymentView.addPayment()'
                 payment.amountPayed=paymentAmount
