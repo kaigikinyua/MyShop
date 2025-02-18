@@ -1,5 +1,0 @@
-
-warn| 18/2/2025 16:5:1| Deleted transaction[id:6,transactionId:WareHouse1739883901.027898,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739883901.027898]
-warn| 18/2/2025 16:5:1| Deleted transaction[id:7,transactionId:WareHouse1739883901.1097,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739883901.1097]
-warn| 18/2/2025 16:5:1| Deleted user id=3 name=James level=cashier
-warn| 18/2/2025 16:5:2| Deleted user id=3 name=James level=cashier
