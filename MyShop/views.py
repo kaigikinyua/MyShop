@@ -366,15 +366,18 @@ class TransactionView:
         
     def rollBackTransaction(self,tId,paymentList,busketList):
         payment=PaymentView()
-        product=ProductsView()
-
-        deleteState,pMessage,failedToDelete=payment.deletePaymentList(paymentList,tId)
-        deleteTransactionState,tMessage=self.deleteTransaction(tId)
-        if(deleteState==False):
-            errorMessage+=f' {pMessage}'
-        if(deleteTransactionState==False):
-            errorMessage+=f' {tMessage}'
-        return False,errorMessage
+        product=SoldItemsView()
+        message=""
+        delPaymentState,delPaymentMessage,failedToDelete=payment.deletePaymentList(paymentList,tId)
+        deletedProductsState,delProductsMessage=product.rollBackSoldItems(tId,busketList)
+        delTransactionState,delTransactionMessage=self.deleteTransaction(tId)
+        if(delPaymentState==True and delTransactionState==True and deletedProductsState==True):
+            return True,f'Rolled back successfull'
+        if(delPaymentState==False):
+            message+=delPaymentMessage+'\n'
+        if(delTransactionState==False or deletedProductsState==False):
+            message+=delTransactionMessage+'\n'+delProductsMessage
+        return False,message
 
     def fetchTransactionById(self,tId):
         if(tId!=None):
@@ -490,14 +493,10 @@ class PaymentView:
                     if(pState==False):
                         allPaymentsDone=False
                         errorMessage=pmessage
-                else:
-                    #handle customer credit here
-                    #check credit worthyness and max credit setting
-
-                    pass
             if(allPaymentsDone):
                 return True,"Transaction success"
             else:
+                Logging.logToFile(f"One or more payments failed to be added to the database {errorMessage}")
                 return False,f"One or more payments failed to be added to the database {errorMessage}"
         else:
             return False,"None Parameter passed to function addPaymentList(paymentList,tId)"
@@ -525,7 +524,7 @@ class PaymentView:
                 state,message=self.deletePayment(tId,payment)
                 if(state!=True):
                     failedToDelete+=p
-            if(failedToDelete.length()==0):
+            if(len(failedToDelete)==0):
                 return True,'Deleted all payments',failedToDelete
             else:
                 return False,f'Failed to delete all payments',failedToDelete
@@ -552,7 +551,16 @@ class PaymentView:
             #diff>0 - customer needs to top up
             #diff<0 -customer has paid excess
             return diff
-            
+
+    def calcCreditInPayment(self,paymentList):
+        if(paymentList!=None and len(paymentList)>0):
+            total=0
+            for p in paymentList:
+                if(p["paymentType"]=='credit'):
+                    total=total+p['amount']
+            return total
+        return -1,
+
     def fetchTransactionPayments(self,tId):
         if(tId!=None):
             Session=sessionmaker(bind=engine)
@@ -569,6 +577,20 @@ class PaymentView:
             return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime).all()
         else:
             return session.query(PaymentModel).all()
+
+    def filterPaymentByPaymentType(self,startTime,endTime,paymentMethod):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        if(startTime!=None and endTime!=None):
+            return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime,paymentMethod=paymentMethod).all()
+        else:
+            return None
+
+    def calcTotal(self,payments):
+        total=0
+        for p in payments:
+            total=total+p.amountPayed
+        return total
 
 class CustomerCreditView:
     def payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId):
@@ -593,7 +615,7 @@ class CustomerCreditView:
                         session.commit()
                         return True,f'Customer credit updated successfully'
                     else:
-                        return False,f'System admin should RollBack Payment [Method={paymentMethod} amount={amount} TransactionId={tId} Cred={transactionCredentials} CreditCred={creditCredentials}]'
+                        return False,f'System admin should RollBack Payment [Method={paymentMethod} amount={amount} TransactionId={tId} Cred={transactionCredentials}]'
                 else:
                     return False,f'Customer Credit Failed to add\n{paymentMessage}'
             else:
@@ -644,6 +666,69 @@ class CustomerCreditView:
             return totalDebt,transactionIds
         return False,'None parameter passed to calcTotalCustomerCredit(self,custId)'
 
+    def calcTotalCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        unpaidCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
+        total=0
+        for credit in unpaidCredit:
+            total=total+(credit.creditAmount-credit.totalCreditPaid)
+        return total
+    
+    def calcCreditSalesWithinPeriod(self,startTime,endTime):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        unpaidCredit=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=False).all()
+        total=0
+        for credit in unpaidCredit:
+            total=total+(credit.creditAmount-credit.totalCreditPaid)
+        return total
+
+    def fetchUnpaidCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
+        return allCredit
+    
+    def fetchUnpaidCreditByCustomer(self,custId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False,customerId=custId).all()
+        return allCredit
+
+    def createCreditReportFromList(self,unpaidCreditList):
+        unpaidCredit=unpaidCreditList
+        c=CustomerView()
+        p=PaymentView()
+        sItem=SoldItemsView()
+        report=[]
+        for credit in unpaidCredit:
+            customer=c.getCustomer(credit.customerId)
+            soldItems=sItem.fetchSoldItemsByTransaction(credit.transactionId)
+            payments=p.fetchTransactionPayments(credit.transactionId)
+            r={
+                'name':customer.name,
+                'system id':customer.id,
+                'phone':customer.phoneNumber,
+                'credit':credit.creditAmount,
+                'paid':credit.totalCreditPaid,
+                'deadline':credit.creditDeadline,
+                'payments':payments,
+                'products':soldItems
+                }
+            report.append(r)
+        return report
+
+    def isCustomerCreditWorthy(self,custId):
+        if(custId!=None):
+            totalCredit=self.calcTotalCustomerCredit(custId)
+            sSettings=SaleSettingsView.fetchSettings()
+            if(totalCredit<sSettings.maxCustomerCredit):
+                return True,sSettings.maxCustomerCredit-totalCredit
+            else:
+                return False,0
+        return False,'None paramenter passed to CustomerCreditView.isCustomerCreditWorthy()'
+
 class SoldItemsView:
     def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
         if(tId!=None and productId!=None and quantity!=None and actualSellingPrice!=None and itemsCollected!=None):
@@ -667,6 +752,29 @@ class SoldItemsView:
         else:
             return False,'None parameter passed to addSoldItem(tId,productId,quantity,actualSellingPrice,itemsCollected)'
     
+    def deleteSoldItem(self,tId,productId,barCode):
+        if(tId!=None and productId!=None and barCode!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            sp=session.query(SoldItemsModel).filter_by(transactionId=tId,productId=productId,barCode=barCode).one_or_none()
+            if(sp!=None):
+                p={
+                    "id":sp.id,
+                    "transactionId":sp.transactionId,
+                    "productId":sp.productId,
+                    "barCode":sp.barCode,
+                    "quantity":sp.quantity,
+                    "soldPrice":sp.soldPrice,
+                    "expectedSellingPrice":sp.expectedSellingPrice,
+                    "itemsCollected":sp.itemsCollected,
+                    "time":sp.time
+                    }
+                session.delete(sp)
+                session.commit()
+                Logging.logToFile('warn',f'Deleted Sold Item {p}')
+            return False,f'Sold Product from transaction {tId} was not saved to database transactionId={tId} productId={productId} barCode={barCode}'
+        return False,'None parameter passed to SoldItemsView.deleteSoldItem(self,tId,productId,barCode)'
+
     def addSoldItemsList(self,tId,soldItemsList,itemsCollected):
         if(tId!=None and len(soldItemsList)>0 and itemsCollected!=None):
             error=False
@@ -686,8 +794,28 @@ class SoldItemsView:
         else:
             return False,'None passed as a parameter to addSoldItemsList(tId,soldItemsList,itemsCollected)'
 
+    def rollBackSoldItems(self,tId,soldItemsList):
+        if(tId!=None and len(soldItemsList)>0):
+            error=False
+            message=""
+            for item in soldItemsList:
+                pView=ProductsView()
+                product=pView.getProductByBarCode(item['barCode'])
+                if(product!=False):
+                    deletedItemState,deletedItemMessage=self.deleteSoldItem(tId,product.id,product.barCode)
+                    if(deletedItemState==False):
+                        error=True
+                        message=message+deletedItemMessage
+            if(error==False):
+                return True,'Rolled back all the products'
+            else:
+                return False,message
+
     def fetchSoldItemsByTransaction(self,tId):
-        pass
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        soldItems=session.query(SoldItemsModel).filter_by(transactionId=tId).all()
+        return soldItems
 
     def fetchSoldItemsByDate(self,timeBegin,timeEnd):
         #timeBegin=year month day hour=00 minute=00 second=00
@@ -710,8 +838,9 @@ class SaleSettingsView:
         if(id!=None,maxCredit!=None,discount!=None,vat!=None,currency!=None,tillTag!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            settings=session.add(SalesSettingsModel,id=id,maxCustomerCredit=maxCredit,maxDiscountPercent=discount,valueAddedTaxPercent=vat,currencyTag=currency,tillTagId=tillTag)
-            session.commit(settings)
+            settings=SalesSettingsModel(id=id,maxCustomerCredit=maxCredit,maxDiscountPercent=discount,valueAddedTaxPercent=vat,currencyTag=currency,tillTagId=tillTag)
+            session.add(settings)
+            session.commit()
             return True,'Settings added Successfully'
         return False,'Passed a None or null parameter to addSalesSettings(self,id,maxCredit,discount,vat,currency,tillTag)'
 
@@ -734,6 +863,14 @@ class SaleSettingsView:
             return True
         return False
 
+    @staticmethod
+    def fetchSettings():
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        s=session.query(SalesSettingsModel).filter_by(id=1).one_or_none()
+        return s
+
+
 class BranchesView:
     def addBranch(self,branchName,location,branchPhone,tillNumber,manager):
         pass
@@ -755,28 +892,25 @@ class StockView:
 class CustomerView:
     def addCustomer(self,custName,phoneNumber):
         if(len(custName)>0 and len(phoneNumber)>0):
-            Session=sessionmaker(bind=engine)
-            session=Session()
-            c=CustomerModel()
-            c.name=custName
-            c.phoneNumber=phoneNumber
-            session.commit()
-            return True
+            if(self.customerAlreadyExists(phoneNumber)==False):
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                c=CustomerModel()
+                c.name=custName
+                c.phoneNumber=phoneNumber
+                session.commit()
+                return True
+            return False,'Customer Phone Number Already Exists'
         else:
             return False
         
-    def getCustomer(self,custId,custName,phoneNumber):
-        if(custId!=None or custName!=None or phoneNumber!=None):
+    def getCustomer(self,custId):
+        if(custId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            if(custId!=None):
-                return session.query(CustomerModel).filter_by(id=custId).all()
-            elif(custName!=None):
-                return session.query(CustomerModel).filter_by(name=custName).all()
-            elif(phoneNumber!=None):
-                return session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
+            return session.query(CustomerModel).filter_by(id=custId).one_or_none()
         else:
-            return False
+            return False,'Passed a None Parameter to CustomerView.getCustomer()'
         
     def getAllCustomers(self):
         Session=sessionmaker(bind=engine)
@@ -808,5 +942,10 @@ class CustomerView:
         else:
             return False
 
-    def customerIsCreditWorthy(self,custId):
-        pass
+    def customerAlreadyExists(phoneNumber):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        pNumberExists=session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
+        if(len(pNumberExists)>0):
+            return True
+        return False

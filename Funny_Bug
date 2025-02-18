@@ -1,0 +1,32 @@
+On Running
+python --version
+
+It displays [ Python 3.11.6 ]
+
+On running pip --version
+
+It displays
+
+pip 24.3.1 from C:\Users\UserName\AppData\Local\Programs\Python\Python313\Lib\site-packages\pip (python 3.13)
+
+Running python --help 
+The first line is funny because it displays
+
+usage: C:\Program Files\Inkscape\bin\python.exe [option] ... [-c cmd | -m mod | file | -] [arg] ...
+
+This might indicate that the PATH to python has been changed somehow when I installed inkscape?
+
+I re run the 'inkscape-1.3.2-installer' and there was a PYTHON checkbox that is checked by default so I unchecked it.
+By the way I re run the Inkscape set up to uninstall the program first.
+
+I ran python --version again and this time it displayed
+
+Python 3.13.2
+
+I ran pip --version it displayed 
+pip 24.3.1 from C:\Users\UserName\AppData\Local\Programs\Python\Python313\Lib\site-packages\pip (python 3.13)
+
+Got to the python shell and imported the modules with the error and they worked as they should
+Then I ran my script and it worked as it should
+
+Moral of the story 'READ THE INSTALLER MANUAL' it is easy to shoot yourself in the foot. Also I might want to look into virtual python environments, probably could have saved myself a day of debugging my mess.

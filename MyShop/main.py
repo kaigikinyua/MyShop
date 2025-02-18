@@ -1,5 +1,4 @@
 import eel
-
 from users import User,Cashier
 
 pages=["index.html","till.html","admin.html"]
@@ -34,8 +33,6 @@ def makeSale(busketList,paymentList,tillId,cashier,custId):
 def customerCreditWorthy(custId,custPhone,amount):
     print("Assessing customer credit worthyness")
     return False
-
-
 
 class FetchData:
     @staticmethod
@@ -117,8 +114,6 @@ class AdminActions:
     @staticmethod
     def updateStock():
         pass
-
-
 
 if __name__=="__main__":
     fetchData=FetchData()

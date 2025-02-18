@@ -213,7 +213,7 @@ function sendTransactionToBackend(){
     var counterId=document.getElementById("counterID").value
     var customerId=document.getElementById("customerId").value
     if(customerId.length==0){
-        customerId='0'
+        customerId='null'
     }
     Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
 }

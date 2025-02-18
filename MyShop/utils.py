@@ -79,7 +79,7 @@ class Logging:
     def logToFile(type,message):
         logFilePath=Settings.logFile()
         time=FormatTime.nowStandardTime()
-        line=f'{type}| {time}| {message}'
+        line=f'\n{type}| {time}| {message}'
         File.writeToFile(logFilePath,line)
 
 class JsonFile:
@@ -124,20 +124,62 @@ class File:
         
 class CSV:
     @staticmethod
-    def formatCsv(headers,listObjects,filterListObjectsIndex):
-        headersText=CSV.addRow(headers)
-        data=''
-        for object in listObjects:
-            arr=[]
-            for index in filterListObjectsIndex:
-                arr+=object[index]
-            data+=CSV.addRow(arr)
-        return headersText+data
+    def readCSVFile(pathToFile):
+        data=[]
+        infile=open(pathToFile)
+        reader=CSV.reader(infile)
+        for row in reader:
+            data.append(row)
+        infile.close()
+        return data
+    
+    @staticmethod
+    def writeCSVFile(pathToFile):
+        pass
+        #do some reaserch on csv.writer
 
     @staticmethod
-    def addRow(headers):
-        line=""
+    def removeCSVHeaders(data):
+        return data[0],data[1:len(data)]
+
+    @staticmethod
+    def getColumn(headers=None,columnName='',data=[]):
+        i=0
+        headerIndex=0
+        headerString=""
         for header in headers:
-            line+=f'{header},\n'
-        return line
+            if(header.lower()==columnName.lower()):
+                headerIndex=i
+                headerString=header
+                break
+            i=i+1
+        columnData=[]
+        for row in data:
+            columnData.append(row[headerIndex])
+        return headerString,columnData
     
+    @staticmethod
+    def getRow(data=[],rowIndex=0,removedHeaders=True):
+        if(removedHeaders==False):
+            h,data=CSV.removeHeaders(data)
+        if(len(data)<=rowIndex):
+            return data[rowIndex]
+        else:
+            print("Array out of bounds index")
+        return None
+
+    @staticmethod
+    def createCsv(headers=[],data=[],autoIndexRows=True):
+        csvData=[]
+        if(autoIndexRows):
+            if(len(headers)==len(data[0])):
+                headers.insert('Index',0)
+            rowIndex=1
+            for row in data:
+                row.insert(rowIndex,0)
+                csvData.append(row)
+            csvData.insert(headers,0)
+        else:
+            csvData.append(headers)
+            csvData.append(data)
+        return csvData

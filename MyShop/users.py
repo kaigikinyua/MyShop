@@ -1,4 +1,5 @@
-from views import UserView,TransactionView,PaymentView,ProductsView,SoldItemsView
+from views import UserView,TransactionView,PaymentView
+from views import ProductsView,SoldItemsView,CustomerCreditView
 from utils import Logging
 class User:
     def login(self,username,password):
@@ -40,29 +41,62 @@ class Cashier(User):
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
         if(authAction):
-            transaction=TransactionView()
             payment=PaymentView()
-            soldProduct=SoldItemsView()
-
-            #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
-            saleAmount=transaction.calcTotalAmount(paymentList)
-            
-            tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
-            pState,pMessage=payment.addPaymentList(paymentList,tId)
-            sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
-
-            if(tState and pState and sPState):
-                return True,"Success in adding Transaction,Payments and SoldItems"
-            else:
-                #RollBack Contigency [delete transaction, delete payments,deleteSoldProducts]
-                rollBackState,rollBackMessage=transaction.rollBackTransaction(tId,paymentList,busketList)
-                errorMessage=f"Error while adding Transaction,Payments and Sold Items\nTransaction Error {tId}\n\nPayment Error {pMessage}\n\nSoldProduct Error {sPMessage}"
-                if(rollBackState!=True):
-                    errorMessage+=f"\n\nRollBackError {rollBackMessage}"
-                return False,errorMessage
+            customerCreditRequest=payment.calcCreditInPayment(paymentList)
+            if(customerCreditRequest>0 and customerCreditRequest!=-1):
+                max_credit=self.maximumCustomerCredit(custId)
+                if(customerCreditRequest>max_credit):
+                    return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                
+                saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
+                if(saleResult==True):
+                    return True,"Sale is successfull"
+                else:
+                    errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
+                    return False,errorMessage
         return False,"User level is not cashier"
 
-    
+    def maximumCustomerCredit(self,customerId):
+        if(customerId=='null'):
+            return False
+        c=CustomerCreditView()
+        creditWorthy,maxAmount=c.isCustomerCreditWorthy(customerId)
+        if(creditWorthy):
+            return maxAmount
+        return 0
+
+    def handleSale(self,busketList,paymentList,tillId,cashierId,custId):
+        payment=PaymentView()
+        transaction=TransactionView()
+        soldProduct=SoldItemsView()
+        #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
+        saleAmount=transaction.calcTotalAmount(paymentList)
+        
+        tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
+        pState,pMessage=payment.addPaymentList(paymentList,tId)
+        sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
+        if(tState and pState and sPState):
+                return True
+        else:
+            logMessage=f'''
+                RollBack required while making sale busketList={busketList} paymentList={paymentList} tillId={tillId} cashierId={cashierId} customerId={custId}"\n
+                TransactionView.createTransaction() Errors=> state {tState} message {tId}"\n
+                PaymentView.addPaymentList() Errors=> state {pState} message {pMessage}\n
+                SoldItemsView.addSoldItemsList() Errors=> state {sPState} message {sPMessage}
+            '''
+            Logging.logToFile('error',logMessage)
+            return tId
+        
+    def handleSaleRollBack(self,busketList,paymentList,tId):
+        t=TransactionView()
+        rollBackState,rollBackMessage=t.rollBackTransaction(tId,paymentList,busketList)
+        if(rollBackState==True):
+            Logging.consoleLog('warn','Isseue with adding sale to database but completed database rollback successfully')
+            return True,'Successfully did the database rollback'
+        else:
+            Logging.consoleLog('err',rollBackMessage)
+            return False,rollBackMessage
+
     def payCreditSale(saleID,amountPayed,paymentMethod):
         pass
     
