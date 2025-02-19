@@ -166,11 +166,11 @@ class ShiftView:
     def shiftIsOpen(shiftId):
         Session=sessionmaker(bind=engine)
         session=Session()
-        openShifts=session.query(ShiftModel).filter_by(shiftId=shiftId,isClosed=False)
-        if(len(openShifts)==1):
+        openShifts=session.query(ShiftModel).filter_by(shiftId=shiftId,isClosed=False).all()
+        if(openShifts!=None and len(openShifts)==1):
             return True
-        elif(len(openShifts)==0):
-            Logging.consoleLog('warn',f'There is no open shift by shiftId {shiftId}')
+        elif(openShifts!=None and len(openShifts)==0):
+            Logging.consoleLog('warn',f'There is no open shift by shiftId {shiftId} {openShifts}')
         elif(len(openShifts)>1):
             Logging.consoleLog('err',f'There is more than one shift with id {shiftId}')
         return False
@@ -204,7 +204,7 @@ class ShiftView:
         if(settings!=None):
             tillId=settings.tillId
         else:
-            tillId=Settings.tillId
+            tillId=Settings.tillId()
         return f'{tillId}{timeStamp}'
 
     @staticmethod

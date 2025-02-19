@@ -1,4 +1,5 @@
 import datetime,json
+
 class Settings:
     dataBaseUrl="sqlite:///data/databases/current/myshop.db"
     configFileUrl="./data/configs/config.json"
@@ -17,9 +18,4 @@ class Settings:
     
     @staticmethod
     def tillId():
-        """f=open(Settings.configFileUrl,'r')
-        data=f.readlines()
-        f.close()
-        jData=json.loads(str(data))
-        return jData["tillId"]"""
-        return "ErrorSettings"
+        return "ErrorSettingTillId"

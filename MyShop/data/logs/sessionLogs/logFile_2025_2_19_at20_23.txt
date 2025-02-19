@@ -1,3 +1,0 @@
-
-warn| 19/2/2025 20:23:46| Deleted user id=4 name=James level=cashier
-warn| 19/2/2025 20:23:46| Deleted user id=4 name=James level=cashier
