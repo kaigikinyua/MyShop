@@ -36,6 +36,8 @@ class ShiftModel(Base):
     closingId=Column(Integer)
     logins=Column(Integer)
     isClosed=Column(Boolean)
+    startTime=Column(Float)
+    endTime=Column(Float,default=None)
 
 class SalesSettingsModel(Base):
     __tablename__="SalesSettings"

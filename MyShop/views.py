@@ -192,6 +192,7 @@ class ShiftView:
             shift=session.query(ShiftModel).filter_by(shiftId=shiftId)
             if(shift!=None):
                 shift.isClosed=True
+                shift.endTime=FormatTime.now()
                 session.commit()
                 return True,'Shift is now closed'
             return None,f'Shift by shift id {shiftId} could not be found'
@@ -205,8 +206,25 @@ class ShiftView:
             tillId=settings.tillId
         else:
             tillId=Settings.tillId()
-        return f'{tillId}{timeStamp}'
+        return f'{tillId}|{timeStamp}'
 
+    @staticmethod
+    def getOpenShiftTime():
+        shift=ShiftView.getOpenShifts()
+        if(shift!=None and len(shift)==1):
+            startTime=shift[0].startTime
+            endTime=shift[0].endTime
+            if(endTime==None):
+                endTime=FormatTime.now()
+            return startTime,endTime
+
+    @staticmethod
+    def getOpenShiftObj():
+        shifts=ShiftView.getOpenShifts()
+        if(len(shifts)==1):
+            return shifts[0]
+        else:
+            return None
     @staticmethod
     def addLogin(shiftId):
         Session=sessionmaker(bind=engine)
@@ -266,7 +284,21 @@ class ShiftView:
             Session=sessionmaker(bind=engine)
             session=Session()
             sDate=FormatTime.getDateToday()
-            shift=ShiftModel(shiftId=shiftId,shiftDate=sDate,startingAmount=0,closingAmount=0,openningId=openningId,closingId=0,logins=1,isClosed=isClosed)
+            sTime=shiftId.split('|')[1]
+            eTime=None
+            shift=ShiftModel(
+                shiftId=shiftId,
+                shiftDate=sDate,
+                startingAmount=0,
+                closingAmount=0,
+                openningId=openningId,
+                closingId=0,
+                logins=1,
+                isClosed=isClosed,
+                startTime=sTime,
+                endTime=eTime    
+            )
+            
             session.add(shift)
             session.commit()
             return True,shiftId
@@ -690,7 +722,7 @@ class PaymentView:
         else:
             return session.query(PaymentModel).all()
 
-    def filterPaymentByPaymentType(self,startTime,endTime,paymentMethod):
+    def fetchPaymentsByTimeAndPaymentMethod(self,startTime,endTime,paymentMethod):
         Session=sessionmaker(bind=engine)
         session=Session()
         if(startTime!=None and endTime!=None):
@@ -818,6 +850,12 @@ class CustomerCreditView:
             return credit
         return []
 
+    def fetchCreditWithinPeriod(self,startTime,endTime,paid):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        creditSales=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=paid).all()
+        return creditSales
+
     def calcTotalCreditByCustomer(self,creditList):
         if(len(creditList)>0):
             paidTotal=0
@@ -860,12 +898,9 @@ class CustomerCreditView:
             total=total+(credit.creditAmount-credit.totalCreditPaid)
         return total
 
-    def calcCreditSalesWithinPeriod(self,startTime,endTime):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        unpaidCredit=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=False).all()
+    def calcTotalCreditFromCreditList(self,creditList):
         total=0
-        for credit in unpaidCredit:
+        for credit in creditList:
             total=total+(credit.creditAmount-credit.totalCreditPaid)
         return total
 
