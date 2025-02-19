@@ -32,6 +32,7 @@ class TestData:
     customerData={'name':'TestCustomer','phone':'07564115X','id':None,'credit':0}
     transactionData=[
         {
+            #everything ok should work
             'succ':True,
             "id":None,
             'custId':customerData['id'],
@@ -40,10 +41,10 @@ class TestData:
             'saleAmount':20000,
             'paidAmount':18000,
             'paymentList':[
-                {'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'},
-                {'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''},
-                {'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'},
-                {'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
+                {'succ':True,'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'},
+                {'succ':True,'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''},
+                {'succ':True,'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'},
+                {'succ':True,'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
             ],
             'busketList':[
                 {'barCode':products[0]['barCode'],'quantity':10,'price':products[0]['bPrice']},
@@ -59,25 +60,27 @@ class TestData:
             "id":None,'custId':'',
             'sellerId':'3',
             'tillId':'WareHouse',
-            'saleAmount':30000,
+            'saleAmount':-30000,
             'paidAmount':30000,
             'paymentList':[
-                {'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'},
-                {'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''},
-                {'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'},
-                {'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
+                #should fail because of buggy payment list
+                {'pMethod':'mpesa','pAmount':None,'tId':None,'tNum':'LKFJASLKDF;07265461'},
+                {'pMethod':'','pAmount':5000,'tId':None,'tNum':''},
+                {'pMethod':'bank','pAmount':-10000,'tId':None,'tNum':'34523452345;KCB'},
+                {'pMethod':'credit','pAmount':4000000000,'tId':None,'tNum':'11/11/2030;1'}
             ],
             'busketList':[
-                {'barCode':products[0]['barCode'],'quantity':10,'price':products[0]['bPrice']},
-                {'barCode':products[1]['barCode'],'quantity':15,'price':products[1]['bPrice']},
-                {'barCode':products[2]['barCode'],'quantity':12,'price':products[2]['bPrice']},
-                {'barCode':products[3]['barCode'],'quantity':5,'price':products[3]['bPrice']},
-                {'barCode':products[4]['barCode'],'quantity':1,'price':products[4]['bPrice']},
-                {'barCode':products[0]['barCode'],'quantity':1,'price':products[0]['bPrice']},
+                #should fail because of buggy busket list
+                {'barCode':products[0]['barCode'],'quantity':None,'price':products[0]['bPrice']},
+                {'barCode':products[1]['barCode'],'quantity':'','price':products[1]['bPrice']},
+                {'barCode':products[2]['barCode'],'quantity':-12,'price':products[2]['bPrice']},
+                {'barCode':products[3]['barCode'],'quantity':5,'price':-1*products[3]['bPrice']},
+                {'barCode':products[4]['barCode'],'quantity':0,'price':products[4]['bPrice']},
+                {'barCode':-1*products[0]['barCode'],'quantity':1,'price':products[0]['bPrice']},
             ]
         },
         {
-            'succ':True,
+            'succ':False,
             "id":None,
             'custId':'1',
             'sellerId':'3',
@@ -305,9 +308,9 @@ class Test_CustomerView(unittest.TestCase):
         TestCase.assertEqual(self,customerExists,False)
 
 class Tests_TransactionView(unittest.TestCase):
-    t1={'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
-    t2={'succ':False,"id":None,'custId':'','sellerId':'0','tillId':'WareHouse','saleAmount':30000,'paidAmount':30000}
-    t3={'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':15000,'paidAmount':15000}
+    t1=TestData.transactionData[0]
+    t2=TestData.transactionData[1]
+    t3=TestData.transactionData[2]
     all_transactions=[t1,t2,t3]
     def test_createTransaction(self):    
         all_transactions=self.all_transactions
@@ -334,10 +337,9 @@ class Tests_TransactionView(unittest.TestCase):
             TestCase.assertEqual(self,state,t['succ'])
         
 class Tests_PaymentView(unittest.TestCase):
-    p1={'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'}
-    p2={'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''}
-    p3={'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'}
-    p4={'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
+    p1=TestData.transactionData[0]['paymentList']
+    p2=TestData.transactionData[1]['paymentList']
+    p3=TestData.transactionData[2]['paymentList']
     all_payments=[p1,p2,p3]
     def test_addPayment(self):
         t=Tests_TransactionView.t1
