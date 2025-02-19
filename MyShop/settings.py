@@ -5,6 +5,11 @@ class Settings:
     mode="DEBUG" #[DEBUG|PROD]
     
     @staticmethod
+    def getDataBaseUrl():
+        if(Settings.mode!='DEBUG'):
+            Settings.dataBaseUrl="sqlite:///data/databases/prod/myshop.db"
+        return "sqlite:///data/databases/debug/myshop.db"
+    @staticmethod
     def logFile():
         sessionLogDir=f"./data/logs/sessionLogs/"
         dTimeObj=datetime.datetime.now()
@@ -17,4 +22,4 @@ class Settings:
         f.close()
         jData=json.loads(str(data))
         return jData["tillId"]"""
-        return "MainStore"
+        return "ErrorSettings"
