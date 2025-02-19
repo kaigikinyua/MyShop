@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 
 from settings import Settings
 
-dbUrl=Settings.dataBaseUrl
+dbUrl=Settings.getDataBaseUrl()
 engine=create_engine(dbUrl)
 Base=declarative_base()
 
@@ -36,18 +36,30 @@ class ShiftModel(Base):
     closingId=Column(Integer)
     logins=Column(Integer)
     isClosed=Column(Boolean)
+    startTime=Column(Float)
+    endTime=Column(Float,default=None)
+
+class SalesSettingsModel(Base):
+    __tablename__="SalesSettings"
+    id=Column(Integer,primary_key=True)
+    tillId=Column(String)
+    maxCustomerCredit=Column(Integer)
+    maxDiscountPercent=Column(Float)
+    valueAddedTaxPercent=Column(Float)
+    currencyTag=Column(String)
+    tillTagId=Column(String)
 
 class CustomerModel(Base):
     __tablename__="Customers"
     id=Column(Integer,primary_key=True)
-    name=Column(String,primary_key=True)
-    phoneNumber=Column(String,primary_key=True)
-
+    name=Column(String)
+    phoneNumber=Column(String)
+    totalCreditOwed=Column(Integer,default=0)
 ##transactions
 class TransactionModel(Base):
     __tablename__='Transaction'
     id=Column(Integer,primary_key=True)
-    #transactionId=Column(String,primary_key=True)
+    transactionId=Column(String)
     customerId=Column(String)
     sellerId=Column(String)
     tillId=Column(String)
@@ -64,13 +76,25 @@ class PaymentModel(Base):
     time=Column(Float)
     bankAcc=Column(String)
     mpesaTransaction=Column(String)
+    paidForCreditId=Column(String,default=None)
 
+class CustomerCreditModel(Base):
+    __tablename__='CustomerCredit'
+    id=Column(Integer,primary_key=True)
+    customerId=Column(String)
+    transactionId=Column(String)
+    creditAmount=Column(String)
+    totalCreditPaid=Column(Integer,default=0)
+    creditDeadline=Column(Float)
+    fullyPaid=Column(Boolean,default=False)
+    time=Column(Float)
 
 class SoldItemsModel(Base):
     __tablename__='SoldItems'
     id=Column(Integer,primary_key=True)
     transactionId=Column(String)
     productId=Column(String)
+    barCode=Column(String)
     quantity=Column(Integer)
     soldPrice=Column(Integer)
     expectedSellingPrice=Column(Integer)
@@ -90,7 +114,7 @@ class CollectedItemModel(Base):
 ##Products and stock
 class ProductsModel(Base):
     __tablename__='Products'
-    productId=Column(Integer,primary_key=True)
+    id=Column(Integer,primary_key=True)
     name=Column(String)
     barCode=Column(String,primary_key=True)
     productTags=Column(String)

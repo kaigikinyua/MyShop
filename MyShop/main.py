@@ -1,5 +1,4 @@
 import eel
-
 from users import User,Cashier
 
 pages=["index.html","till.html","admin.html"]
@@ -20,6 +19,20 @@ def logOut(userId):
     u=User()
     u.logout(int(userId))
     return {"state":True}
+
+@eel.expose
+def makeSale(busketList,paymentList,tillId,cashier,custId):
+    print("Making Sale")
+    c=Cashier()
+    state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
+    if(state==False):
+        return {"state":False,"message":"Could Not complete sale"}
+    return {"state":True}
+
+@eel.expose
+def customerCreditWorthy(custId,custPhone,amount):
+    print("Assessing customer credit worthyness")
+    return False
 
 class FetchData:
     @staticmethod
@@ -44,10 +57,7 @@ class CashierActions:
     @staticmethod
     def declareClosingAmount():
         pass
-    
-    @staticmethod
-    def makeSale():
-        print("Making a sale")
+
     @staticmethod
     def payCreditSale():
         print("paying credit sale")
@@ -105,20 +115,11 @@ class AdminActions:
     def updateStock():
         pass
 
-
-
 if __name__=="__main__":
-    cashier=CashierActions()
-    admin=AdminActions()
     fetchData=FetchData()
     
-    #all functions
+    # #all functions
     eel._expose("getAllProducts",fetchData.getAllProducts)
     
-    #cashier functions
-    eel._expose("makeSale",cashier.makeSale)
-    
-    #adminactions
-    eel._expose("deleteProduct",admin.deleteProduct)
 
     eel.start("login.html",port=4040)

@@ -1,5 +1,0 @@
-{
-    "mode":"devMode",
-    "logging":"./data/logs/current/logs.json",
-    "socket":"4040"
-}

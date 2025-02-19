@@ -1,0 +1,2 @@
+
+warn| 19/2/2025 22:21:10| Deleted user id=3 name=jimmy1 level=cashier
