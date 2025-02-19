@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 
 from settings import Settings
 
-dbUrl=Settings.dataBaseUrl
+dbUrl=Settings.getDataBaseUrl()
 engine=create_engine(dbUrl)
 Base=declarative_base()
 
@@ -40,6 +40,7 @@ class ShiftModel(Base):
 class SalesSettingsModel(Base):
     __tablename__="SalesSettings"
     id=Column(Integer,primary_key=True)
+    tillId=Column(String)
     maxCustomerCredit=Column(Integer)
     maxDiscountPercent=Column(Float)
     valueAddedTaxPercent=Column(Float)

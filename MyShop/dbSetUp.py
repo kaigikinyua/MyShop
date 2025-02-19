@@ -45,13 +45,14 @@ class SaleSettingsSetUp:
         discount=5
         vat=16
         currency='Kenyan Shillings;Ksh'
-        tillId='WareHouse'
+        tillId='MainWareHouse'
+        tillTag='WareHouse'
 
         s=SaleSettingsView()
-        state,settings=s.getSalesSettings()
-        if(state==True):
+        settings=SaleSettingsView.getSalesSettings()
+        if(settings!=None):
             s.deleteSalesSettings()    
-        s.addSalesSettings(id,maxCredit,discount,vat,currency,tillId)
+        s.addSalesSettings(id,tillId,maxCredit,discount,vat,currency,tillTag)
 
 class TransactionsSetUp:
     transactions=[
@@ -75,8 +76,8 @@ def addAllSetUps():
     ProductsSetUp.createProducts()
     SaleSettingsSetUp.addSalesSettings()
 
-def removeAllSetUps():
-    print("Method not yet implemented")
+def backupdb():
+    pass
 
 def addSpecificSetUp(setUp):
     implementedArgs=['users','products','salessettings']
@@ -96,7 +97,7 @@ if __name__=="__main__":
     if Settings.mode=="DEBUG":
         if(systemArguments[0]=='all'):
             addAllSetUps()
-        elif(systemArguments[0]=='rollback'):
-            removeAllSetUps()
+        elif(systemArguments[0]=='backup'):
+            backupdb()
         else:
             addSpecificSetUp(systemArguments[0])
