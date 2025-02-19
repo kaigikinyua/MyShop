@@ -24,14 +24,11 @@ class UserView:
             session.add(auth)
             session.commit()
             
-            shiftId=ShiftView.getOpenShiftId()
-            if(shiftId==False):
-                shiftId=ShiftView.openShift(u[0].id)
-            if(shiftId!=False):
-                ShiftView.addLogin(shiftId)
-
-            return True,token,u[0].userLevel,shiftId
-        return False,'Wrong username or password',0,0
+            shiftId=ShiftView.handleShiftOnLogOn(u[0].id)
+            if(shiftId!=False and shiftId!=None):
+                return True,token,u[0].userLevel,shiftId
+            return False,None,None,'multiple shifts'
+        return False,None,None,'Wrong username or password'
 
     #logs out the user so a new token should be added on next login
     def logout(self,uid):
@@ -151,21 +148,15 @@ class UserView:
 class ShiftView:
     @staticmethod
     def openShift(openningId=0):
-        Logging.consoleLog('succ',"Openning Shift")
-        openShifts=ShiftView.checkOpenShifts()
-        if(openShifts!=False):
-            if(openShifts==None):
-                sId=ShiftView.createShiftId()
-                Session=sessionmaker(bind=engine)
-                session=Session()
-                sDate=FormatTime.getDateToday()
-                shift=ShiftModel(shiftId=sId,shiftDate=sDate,startingAmount=0,closingAmount=0,openningId=openningId,closingId=0,logins=1,isClosed=False)
-                session.add(shift)
-                session.commit()
-                return sId
-            else:
-                Logging.consoleLog('warn',f'Shift {openShifts} is not yet closed')
-                return openShifts
+        openShifts=ShiftView.getOpenShifts()
+        if(openShifts==None):
+            sId=ShiftView.createShiftId()
+            sId=ShiftView.createShift(sId,openningId,True)
+            return sId
+        elif(len(openShifts)==1):
+            shifts=ShiftView.getOpenShifts()
+            Logging.consoleLog('warn',f'Shift {openShifts} is not yet closed')
+            return shifts
         else:
             Logging.consoleLog('err','More than one shift is open')
             return False        
@@ -184,39 +175,35 @@ class ShiftView:
         return False
     
     @staticmethod
-    def getOpenShiftId():
+    def getOpenShifts():
         Session=sessionmaker(bind=engine)
         session=Session()
         openShifts=session.query(ShiftModel).filter_by(isClosed=False).all()
-        if(len(openShifts)==1):
-            return openShifts[0].shiftId
-        elif(len(openShifts)==0):
-            Logging.consoleLog('warn',f'There is no open shift')
-        elif(len(openShifts)>1):
-            Logging.consoleLog('err',f'There is more than one shift opened')
-        return False
-    
-    @staticmethod
-    def checkOpenShifts():
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        openShifts=session.query(ShiftModel).filter_by(isClosed=False).all()
-        if(len(openShifts)==1):
-            return openShifts[0].shiftId
-        elif(len(openShifts)==0):
+        if(len(openShifts)<=0):
             return None
-        elif(len(openShifts)>1):
-            return False #Error more than one shift is open
+        return openShifts
 
     @staticmethod
-    def closeShift(closingAmount=0,closingId=0):
-        closId=closingId
-        closAmount=closingAmount
+    def closeShift(shiftId):
+        if(shiftId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId)
+            if(shift!=None):
+                shift.isClosed=True
+                session.commit()
+                return True,'Shift is now closed'
+            return None,f'Shift by shift id {shiftId} could not be found'
+        return False,'None parameter passed to ShiftView.closeShift()'
     
     @staticmethod
     def createShiftId():
         timeStamp=FormatTime.now()
-        tillId=Settings.tillId()
+        settings=SaleSettingsView.getSalesSettings()
+        if(settings!=None):
+            tillId=settings.tillId
+        else:
+            tillId=Settings.tillId
         return f'{tillId}{timeStamp}'
 
     @staticmethod
@@ -229,6 +216,18 @@ class ShiftView:
             session.commit()
             return True
         return False
+
+    @staticmethod
+    def handleShiftOnLogOn(userId):
+        openShifts=ShiftView.getOpenShifts()
+        shiftId=None
+        if(len(openShifts)==0):
+            shiftId=ShiftView.openShift(userId)
+        elif(len(openShifts)==1):
+            ShiftView.addLogin(shiftId)
+        else:
+            return False
+        return shiftId
 
     @staticmethod
     def declareStartingAmount(startingAmount,shiftId):
@@ -259,6 +258,31 @@ class ShiftView:
         elif(len(shiftId)==0):
             Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
         return False
+
+    @staticmethod
+    def createShift(shiftId,openningId,isClosed):
+        if(shiftId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            sDate=FormatTime.getDateToday()
+            shift=ShiftModel(shiftId=shiftId,shiftDate=sDate,startingAmount=0,closingAmount=0,openningId=openningId,closingId=0,logins=1,isClosed=isClosed)
+            session.add(shift)
+            session.commit()
+            return True,shiftId
+        return False,'None Parameter passed to ShiftView.createShift()'
+    
+    @staticmethod
+    def deleteShift(shiftId):
+        if(shiftId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId).one_or_none()
+            if(shift!=None):
+                session.delete(shift)
+                session.commit()
+                return True,'Shift deleted successfully'
+            return False,f'No shift by {shiftId} was found'
+        return False,f'None parameter passed to ShiftView.deleteShift()'
 
 class ProductsView:
     def addProduct(self,id,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
@@ -605,6 +629,7 @@ class PaymentView:
         return total
 
 class CustomerCreditView:
+
     def payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId):
         if(paymentMethod!=None and amount!=None and tId!=None):
             creditBalance=self.creditBalance(custId,tId)
@@ -677,36 +702,55 @@ class CustomerCreditView:
                 transactionIds+=debt.transactionId
             return totalDebt,transactionIds
         return False,'None parameter passed to calcTotalCustomerCredit(self,custId)'
-
-    def calcTotalCredit(self):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        unpaidCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
-        total=0
-        for credit in unpaidCredit:
-            total=total+(credit.creditAmount-credit.totalCreditPaid)
-        return total
     
-    def calcCreditSalesWithinPeriod(self,startTime,endTime):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        unpaidCredit=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=False).all()
-        total=0
-        for credit in unpaidCredit:
-            total=total+(credit.creditAmount-credit.totalCreditPaid)
-        return total
-
-    def fetchUnpaidCredit(self):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
-        return allCredit
+    def isCustomerCreditWorthy(self,custId):
+        if(custId!=None):
+            totalCredit=self.calcTotalCustomerCredit(custId)
+            sSettings=SaleSettingsView.fetchSettings()
+            if(totalCredit<sSettings.maxCustomerCredit):
+                return True,sSettings.maxCustomerCredit-totalCredit
+            else:
+                return False,0
+        return False,'None paramenter passed to CustomerCreditView.isCustomerCreditWorthy()'
     
+    def fetchCreditById(self,custId,creditId):
+        if(custId!=None and creditId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            credit=session.query(CustomerCreditModel).filter_by(id=creditId,customerId=custId).one_or_none() 
+            if(credit!=None):
+                return credit
+        return None
+
+    def fetchCreditByCustomer(self,custId,creditState=False):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=creditState,customerId=custId).all()
+        if(len(allCredit)>0):
+            return allCredit
+        return None    
+
     def fetchUnpaidCreditByCustomer(self,custId):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False,customerId=custId).all()
-        return allCredit
+        credit=self.fetchCreditByCustomer(custId,False)
+        if(credit!=None):
+            return credit
+        return []
+    
+    def fetchPaidCreditByCustomer(self,custId):
+        credit=self.fetchCreditByCustomer(custId,True)
+        if(credit!=None):
+            return credit
+        return []
+
+    def calcTotalCreditByCustomer(self,creditList):
+        if(len(creditList)>0):
+            paidTotal=0
+            unPaidTotal=0
+            for c in creditList:
+                paidTotal=paidTotal+creditList.totalCreditPaid
+                unPaidTotal=unPaidTotal+creditList.creditAmount
+            return paidTotal,unPaidTotal
+        return 0,0
 
     def createCreditReportFromList(self,unpaidCreditList):
         unpaidCredit=unpaidCreditList
@@ -731,15 +775,35 @@ class CustomerCreditView:
             report.append(r)
         return report
 
-    def isCustomerCreditWorthy(self,custId):
-        if(custId!=None):
-            totalCredit=self.calcTotalCustomerCredit(custId)
-            sSettings=SaleSettingsView.fetchSettings()
-            if(totalCredit<sSettings.maxCustomerCredit):
-                return True,sSettings.maxCustomerCredit-totalCredit
-            else:
-                return False,0
-        return False,'None paramenter passed to CustomerCreditView.isCustomerCreditWorthy()'
+    def calcTotalCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        unpaidCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
+        total=0
+        for credit in unpaidCredit:
+            total=total+(credit.creditAmount-credit.totalCreditPaid)
+        return total
+
+    def calcCreditSalesWithinPeriod(self,startTime,endTime):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        unpaidCredit=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=False).all()
+        total=0
+        for credit in unpaidCredit:
+            total=total+(credit.creditAmount-credit.totalCreditPaid)
+        return total
+
+    def fetchUnpaidCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
+        return allCredit
+    
+    def fetchPaidCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=True).all()
+        return allCredit
 
 class SoldItemsView:
     def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
@@ -846,24 +910,25 @@ class SoldItemsView:
         pass
 
 class SaleSettingsView:
-    def addSalesSettings(self,id,maxCredit,discount,vat,currency,tillTag):
+    def addSalesSettings(self,id,tillId,maxCredit,discount,vat,currency,tillTag):
         if(id!=None,maxCredit!=None,discount!=None,vat!=None,currency!=None,tillTag!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            settings=SalesSettingsModel(id=id,maxCustomerCredit=maxCredit,maxDiscountPercent=discount,valueAddedTaxPercent=vat,currencyTag=currency,tillTagId=tillTag)
+            settings=SalesSettingsModel(id=id,tillId=tillId,maxCustomerCredit=maxCredit,maxDiscountPercent=discount,valueAddedTaxPercent=vat,currencyTag=currency,tillTagId=tillTag)
             session.add(settings)
             session.commit()
             return True,'Settings added Successfully'
         return False,'Passed a None or null parameter to addSalesSettings(self,id,maxCredit,discount,vat,currency,tillTag)'
 
-    def getSalesSettings(self):
+    @staticmethod
+    def getSalesSettings():
         Session=sessionmaker(bind=engine)
         session=Session()
         settings=None
         settings=session.query(SalesSettingsModel).filter_by(id=1).one_or_none()
         if(settings!=None):
-            return True,settings
-        return False,settings 
+            return settings
+        return None 
 
     def deleteSalesSettings(self):
         state,settings=self.getSalesSettings()
@@ -881,7 +946,6 @@ class SaleSettingsView:
         session=Session()
         s=session.query(SalesSettingsModel).filter_by(id=1).one_or_none()
         return s
-
 
 class BranchesView:
     def addBranch(self,branchName,location,branchPhone,tillNumber,manager):

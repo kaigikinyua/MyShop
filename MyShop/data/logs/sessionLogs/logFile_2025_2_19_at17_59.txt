@@ -1,0 +1,9 @@
+
+warn| 19/2/2025 17:59:22| Deleted transaction[id:4,transactionId:WareHouse1739977162.661232,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739977162.661232]
+warn| 19/2/2025 17:59:22| Deleted transaction[id:5,transactionId:WareHouse1739977162.751654,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739977162.751654]
+warn| 19/2/2025 17:59:23| Deleted user id=3 name=James level=cashier
+warn| 19/2/2025 17:59:23| Deleted user id=3 name=James level=cashier
+warn| 19/2/2025 17:59:53| Deleted transaction[id:5,transactionId:WareHouse1739977193.591542,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739977193.591542]
+warn| 19/2/2025 17:59:53| Deleted transaction[id:6,transactionId:WareHouse1739977193.67268,customerId:1,sellerId:3,tillId:WareHouse,paidAmount:0,time:1739977193.67268]
+warn| 19/2/2025 17:59:54| Deleted user id=4 name=James level=cashier
+warn| 19/2/2025 17:59:54| Deleted user id=4 name=James level=cashier
