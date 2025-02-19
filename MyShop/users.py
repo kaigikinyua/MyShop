@@ -1,14 +1,20 @@
 from views import UserView,TransactionView,PaymentView
-from views import ProductsView,SoldItemsView,CustomerCreditView
+from views import ProductsView,SoldItemsView,CustomerCreditView,ShiftView
 from utils import Logging
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
             u=UserView()
-            auth,token,userLevel,shiftId=u.login(username,password)
+            auth,token,userLevel=u.login(username,password)
             if(auth):
-                return True,token,userLevel,shiftId
-            return False,token,None,None
+                userObject=u.getUser(username)
+                shiftId=ShiftView.handleShiftOnLogOn(userObject.id)
+                if(shiftId!=False and shiftId!=None):
+                    return True,token,userLevel,shiftId
+                else:
+                    return False,None,None,'MultipleShifts'
+            else:
+                return False,None,None,'Wrong username or password'
         else:
             return False,'Username should be more than 5 characters and Password should 8 or more characters',None
 

@@ -23,12 +23,8 @@ class UserView:
             auth=AuthModel(uid=u[0].id,time=time,token=token,active=True)
             session.add(auth)
             session.commit()
-            
-            shiftId=ShiftView.handleShiftOnLogOn(u[0].id)
-            if(shiftId!=False and shiftId!=None):
-                return True,token,u[0].userLevel,shiftId
-            return False,None,None,'multiple shifts'
-        return False,None,None,'Wrong username or password'
+            return True,token,u[0].userLevel
+        return False,None,'Wrong username or password'
 
     #logs out the user so a new token should be added on next login
     def logout(self,uid):
@@ -52,7 +48,9 @@ class UserView:
         user=self.getUser(username)
         activeSessions=session.query(AuthModel).filter_by(uid=user.id,active=True).all()
         session.close()
-        return activeSessions
+        if(activeSessions!=None and len(activeSessions)>0):
+            return activeSessions
+        return []
     
     #check whether the user is authenticated
     def is_authenticated(self,uid):
@@ -67,9 +65,9 @@ class UserView:
     def getUser(self,username):
         Session=sessionmaker(bind=engine)
         session=Session()
-        users=session.query(UserModel).filter_by(name=username).one_or_none()
-        if(users!=None):
-            return users
+        user=session.query(UserModel).filter_by(name=username).one_or_none()
+        if(user!=None):
+            return user
         else:
             return None
     
@@ -85,11 +83,14 @@ class UserView:
     
     #creates a new user while checking for name collisions
     def addUser(self,username,userpassword,userLevel):
-        if(len(username)>1 and len(userpassword)>5 and userLevel!=None):
+        if(username!=None and userpassword!=None and userLevel!=None):
+            if(len(username)<4 or len(userpassword)<8):
+                return False,'Username is less than 4 characters or password is less than 8 characters'
             Session=sessionmaker(bind=engine)
             session=Session()
             collision_name=session.query(UserModel).filter_by(name=username).all()
-            if(len(collision_name)>0):
+            
+            if(collision_name!=None and len(collision_name)>0):
                 return False,'User name collision'
             else:
                 ulevel=UserModel.usrLevelChoices[userLevel]
@@ -109,7 +110,7 @@ class UserView:
             if(user!=None):
                 user.userLevel=UserModel.usrLevelChoices[userLevel]
                 session.commit()
-                Logging.logToFile("warn",f"Updated user id={uid} name={user.name} level to {userLevel}")
+                Logging.consoleLog("warn",f"Updated user id={uid} name={user.name} level to {userLevel}")
                 return True,f'Updated user level to {userLevel}'
             else:
                 session.close()
@@ -137,10 +138,10 @@ class UserView:
                 session.delete(user)
                 session.commit()
                 Logging.logToFile('warn',f'Deleted user id={user.id} name={user.name} level={user.userLevel}')
-                return True,'Deleted user with id of {uId}'
+                return True,f'Deleted user with id of {uId}'
             else:
-                return False,'There is no user by id {uId}'
-        return False,'User id to be deleted cannot be empty'
+                return False,f'There is no user by id {uId}'
+        return False,f'User id to be deleted cannot be empty'
 
     def permitAction(self,userToken):
         pass
@@ -180,7 +181,7 @@ class ShiftView:
         session=Session()
         openShifts=session.query(ShiftModel).filter_by(isClosed=False).all()
         if(len(openShifts)<=0):
-            return None
+            return []
         return openShifts
 
     @staticmethod

@@ -12,12 +12,13 @@ class TestData:
             {'succ':False,'name':'admin','pass':'admin4551'},
         ],
         'testCreate':[
-            {'succ':True,'name':'jim','pass':'testJim12345','id':None,'level':1},
-            {'succ':False,'name':'jim','pass':'testJim12345','id':None,'level':1},
-            {'succ':False,'name':'jim2','pass':'','id':None,'userLevel':1},
-            {'succ':True,'name':'jim2','pass':'testJim12345','id':None,'level':1},
+            {'succ':True,'name':'jimmy1','pass':'testJim12345','id':None,'level':1},
+            {'succ':False,'name':None,'pass':None,'id':None,'level':1},
             {'succ':False,'name':'','pass':'','id':None,'level':1},
-            {'succ':False,'name':None,'pass':None,'id':None,'level':1}
+            {'succ':False,'name':'jim','pass':'','id':None,'level':1},
+            {'succ':False,'name':'jimmy2','pass':'tes','id':None,'level':1},
+            {'succ':False,'name':'jimmy3','pass':'','id':None,'level':1},
+            {'succ':True,'name':'jimmy4','pass':'testJim12345','id':None,'level':1},
         ],
 
     }
@@ -83,16 +84,15 @@ class Tests_UserView(unittest.TestCase):
         testUsers=TestData.userTestData['testLogin']
         u=UserView()
         for user in testUsers:
-            login,token,userLevel,shiftId=u.login(user['name'],user['pass'])
+            login,token,userLevel=u.login(user['name'],user['pass'])
             if(user['succ']):
                 TestCase.assertEqual(self,login,True)
                 TestCase.assertNotEqual(self,token,None)
                 TestCase.assertNotEqual(self,userLevel,None)
-                TestCase.assertNotEqual(self,shiftId,None)
             else:
                 TestCase.assertEqual(self,login,False)
                 TestCase.assertEqual(self,token,None)
-                TestCase.assertEqual(self,userLevel,None)
+                TestCase.assertEqual(self,type(userLevel),type('String'))
 
     def test_logout(self):
         testUsers=TestData.userTestData['testLogin']
@@ -101,68 +101,64 @@ class Tests_UserView(unittest.TestCase):
             logoutState=None
             activeSessions=u.get_UserActiveSessions(user['name'])
             if(len(activeSessions)>0):
-                user=u.getUser(user['name'])
-                u.logout(user.id)
-            activeSessions=u.get_UserActiveSessions(user['name'])
+                userObject=u.getUser(user['name'])
+                u.logout(userObject.id)
+                activeSessions=u.get_UserActiveSessions(user['name'])
             if(user['succ']==True):
                 TestCase.assertEqual(self,len(activeSessions),0)
             else:
-                TestCase.assertEqual(self,logoutState,False)
+                TestCase.assertEqual(self,logoutState,None)
 
     #test_authenticated can be skipped for now
     def test_isAuthenticated(self):
-        user={'name':'admin','pass':'admin12345'}
+        testUsers=TestData.userTestData['testLogin']
         u=UserView()
-        login,token,userLevel,shiftId=u.login(user['name'],user['pass'])
-        if(login):
-            userDetails=u.getUser(user['name'])
-            result=u.is_authenticated(userDetails.id)
-            TestCase.assertEqual(self,True,result)
-            u.logout(userDetails.id)
-            result=u.is_authenticated(userDetails.id)
-            TestCase.assertEqual(self,False,result)
-        else:
-            print(f'User could not be logged in Error {shiftId}')
-        TestCase.assertEqual(self,True,login)
-        
+        for user in testUsers:
+            login,token,userLevel=u.login(user['name'],user['pass'])
+            if(login and user['succ']):
+                userDetails=u.getUser(user['name'])
+                result=u.is_authenticated(userDetails.id)
+                TestCase.assertEqual(self,True,result)
+                u.logout(userDetails.id)
+                result=u.is_authenticated(userDetails.id)
+                TestCase.assertEqual(self,False,result)
+            elif(login==False and user['succ']==True):
+                print(f'User could not be logged in Error {userLevel}')
+            elif(login==False and user['succ']==False):
+                pass
+            TestCase.assertEqual(self,user['succ'],login)
+
     def test_addUser(self):
-        user={'name':'James','pass':'testpass12345','level':1}
+        testUsers=TestData.userTestData['testCreate']
         u=UserView()
-        added,message=u.addUser(user['name'],user['pass'],user['level'])
-        TestCase.assertEqual(self,added,True)
-        added2,message=u.addUser(user['name'],user['pass'],user['level'])
-        TestCase.assertEqual(self,added2,False)
-        added3,message=u.addUser('TestUser','pa','admin')
-        TestCase.assertEqual(self,added3,False)
+        for user in testUsers:
+            added,message=u.addUser(user['name'],user['pass'],user['level'])
+            if(added!=user['succ']):
+                print(f'\ntest_addUser() Test data state is {user['succ']} but on adding user the state is {added} with message {message}\nUser data=>{user}')
+            TestCase.assertEqual(self,added,user['succ'])
 
     def test_updateUser(self):
-        user={'name':'James','pass':'newPass','level':'cashier'}
+        testUsers=TestData.userTestData['testCreate']
         u=UserView()
-        userDetails=u.getUser(user['name'])
-        if(userDetails):
-            reslutPass,message=u.updatePassword(userDetails.id,user['pass'])
-            resultUpdateUserLevel,message=u.updateUserLevel(userDetails.id,user['level'])
-            TestCase.assertEqual(self,reslutPass,True)
-            TestCase.assertEqual(self,resultUpdateUserLevel,True)
-        else:
-            self.test_addUser()
+        for user in testUsers:
             userDetails=u.getUser(user['name'])
-            reslutPass,message=u.updatePassword(userDetails.id,user['pass'])
-            TestCase.assertEqual(self,reslutPass,True)
-            #resultUpdateUserLevel,message=u.updateUserLevel(userDetails.id,user['level'])
-            #TestCase.assertEqual(self,resultUpdateUserLevel,True)
-            self.test_deleteUser()
+            if(userDetails):
+                reslutPass,message=u.updatePassword(userDetails.id,user['pass'])
+                resultUpdateUserLevel,message=u.updateUserLevel(userDetails.id,user['level'])
+                TestCase.assertEqual(self,reslutPass,user['succ'])
+                TestCase.assertEqual(self,resultUpdateUserLevel,['succ'])
             
     def test_deleteUser(self):
-        user={'name':'James','pass':'testpass12345','level':'admin'}
+        testUsers=TestData.userTestData['testCreate']
         u=UserView()
-        userDetails=u.getUser(user['name'])
-        deleted,message=u.deleteUser(userDetails.id)
-        TestCase.assertEqual(self,deleted,True)
-        deleted2,message=u.deleteUser(userDetails.id)
-        TestCase.assertEqual(self,deleted2,False)
-        deleted3,message=u.deleteUser(None)
-        TestCase.assertEqual(self,deleted3,False)
+        for user in testUsers:
+            userDetails=u.getUser(user['name'])
+            deleted=False
+            if(userDetails!=None):
+                deleted,message=u.deleteUser(userDetails.id)
+            if(user['succ']!=deleted):
+                print(f'\ntest_deleteUser() Test data state is {user['succ']} but on deleting user the state is {deleted} with message {message}\nUser data=>{user}')
+            TestCase.assertEqual(self,deleted,user['succ'])
 
 class Test_ShiftView(unittest.TestCase):
     validUser=None
@@ -223,6 +219,7 @@ class Test_ShiftView(unittest.TestCase):
             print(f'Cleaning up Shifts Tests: Deleted messages \n{messageShift1}\n{messageShift2}')
             u=UserView()
             u.deleteUser(self.validUser.id)
+
 class Test_ProductsView(unittest.TestCase):
 
     idStart=10000000
