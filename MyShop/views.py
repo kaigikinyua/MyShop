@@ -359,6 +359,81 @@ class ProductsView:
         else:
             return False,'Product id is empty Pid={pId}'
 
+class CustomerView:
+    def addCustomer(self,custName,phoneNumber):
+        if(len(custName)>0 and len(phoneNumber)>0):
+            if(self.customerAlreadyExists(phoneNumber)==False):
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                customer=CustomerModel(name=custName,phoneNumber=phoneNumber,totalCreditOwed=0)
+                session.add(customer)
+                session.commit()
+                #session.close()
+                return True
+            return False,'Customer Phone Number Already Exists'
+        else:
+            return False
+        
+    def getCustomer(self,custId):
+        if(custId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            return session.query(CustomerModel).filter_by(id=custId).one_or_none()
+        else:
+            return False,'Passed a None Parameter to CustomerView.getCustomer()'
+
+    def getCustomerByPhoneNumber(self,phone):
+        if(phone!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            cust=session.query(CustomerModel).filter_by(phoneNumber=phone).one_or_none()
+            return cust
+        else:
+            return False,'Passed a None Parameter to CustomerView.getCustomerByPhoneNumber()'
+
+    def getAllCustomers(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        return session.query(CustomerModel).all()
+
+    def updateCustomerDetails(self,custId,custName,phoneNumber):
+        if(custId!=None and len(custName)>0 and len(phoneNumber)>0):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            c=session.query(CustomerModel).filter(id=custId)
+            c.name=custName
+            c.phoneNumber=phoneNumber
+            session.commit()
+            return True
+        else:
+            return False
+        
+    def deleteCustomer(self,custId):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        result=session.query(CustomerModel).filter_by(id=custId).one_or_none()
+        if(result!=None):
+            session.delete(result)
+            session.commit()
+            return True
+        return False
+    
+    def getCustomerTransactions(self,custId):
+        if(custId!=None):
+            t=TransactionView()
+            return t.filterTransactionByCustomer(custId)
+        else:
+            return False
+
+    def customerAlreadyExists(self,phoneNumber):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        pNumberExists=session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
+        if(len(pNumberExists)>0):
+            #print(pNumberExists[0].phoneNumber)
+            return True
+        return False
+
 class TransactionView:
     def createTransaction(self,custId,sellerId,tillId,saleAmount):
         if(len(custId)>0 and len(sellerId)>0 and len(tillId)>0):
@@ -965,64 +1040,3 @@ class StockView:
 
     def calcItemInStock(pId):
         pass
-
-class CustomerView:
-    def addCustomer(self,custName,phoneNumber):
-        if(len(custName)>0 and len(phoneNumber)>0):
-            if(self.customerAlreadyExists(phoneNumber)==False):
-                Session=sessionmaker(bind=engine)
-                session=Session()
-                c=CustomerModel()
-                c.name=custName
-                c.phoneNumber=phoneNumber
-                session.commit()
-                return True
-            return False,'Customer Phone Number Already Exists'
-        else:
-            return False
-        
-    def getCustomer(self,custId):
-        if(custId!=None):
-            Session=sessionmaker(bind=engine)
-            session=Session()
-            return session.query(CustomerModel).filter_by(id=custId).one_or_none()
-        else:
-            return False,'Passed a None Parameter to CustomerView.getCustomer()'
-        
-    def getAllCustomers(self):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        return session.query(CustomerModel).all()
-
-    def updateCustomerDetails(self,custId,custName,phoneNumber):
-        if(custId!=None and len(custName)>0 and len(phoneNumber)>0):
-            Session=sessionmaker(bind=engine)
-            session=Session()
-            c=session.query(CustomerModel).filter(id=custId)
-            c.name=custName
-            c.phoneNumber=phoneNumber
-            session.commit()
-            return True
-        else:
-            return False
-        
-    def deleteCustomer(self,custId):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        result=session.query(CustomerModel).delete(id=custId)
-        return True
-    
-    def getCustomerTransactions(self,custId):
-        if(custId!=None):
-            t=TransactionView()
-            return t.filterTransactionByCustomer(custId)
-        else:
-            return False
-
-    def customerAlreadyExists(phoneNumber):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        pNumberExists=session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
-        if(len(pNumberExists)>0):
-            return True
-        return False

@@ -50,8 +50,8 @@ class SalesSettingsModel(Base):
 class CustomerModel(Base):
     __tablename__="Customers"
     id=Column(Integer,primary_key=True)
-    name=Column(String,primary_key=True)
-    phoneNumber=Column(String,primary_key=True)
+    name=Column(String)
+    phoneNumber=Column(String)
     totalCreditOwed=Column(Integer,default=0)
 ##transactions
 class TransactionModel(Base):

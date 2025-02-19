@@ -130,7 +130,6 @@ class Cashier(User):
     def genZReport():
         pass
 
-
 class Admin(Cashier):
     #admin user actions
     def addUser(self,username,password,userLevel):

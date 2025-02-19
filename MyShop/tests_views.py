@@ -3,7 +3,7 @@ from unittest import TestCase
 sys.path.insert(0,'../')
 
 from utils import FormatTime
-from views import UserView,ShiftView,TransactionView,PaymentView,ProductsView
+from views import UserView,ShiftView,CustomerView,TransactionView,PaymentView,ProductsView
 
 class TestData:
     userTestData={
@@ -76,7 +76,29 @@ class TestData:
                 {'barCode':products[0]['barCode'],'quantity':1,'price':products[0]['bPrice']},
             ]
         },
-        {'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':15000,'paidAmount':15000}
+        {
+            'succ':True,
+            "id":None,
+            'custId':'1',
+            'sellerId':'3',
+            'tillId':'WareHouse',
+            'saleAmount':15000,
+            'paidAmount':15000,
+            'paymentList':[
+                {'pMethod':'mpesa','pAmount':1000,'tId':None,'tNum':'LKFJASLKDF;07265461'},
+                {'pMethod':'cash','pAmount':5000,'tId':None,'tNum':''},
+                {'pMethod':'bank','pAmount':10000,'tId':None,'tNum':'34523452345;KCB'},
+                {'pMethod':'credit','pAmount':4000,'tId':None,'tNum':'11/11/2030;1'}
+            ],
+            'busketList':[
+                {'barCode':products[0]['barCode'],'quantity':10,'price':products[0]['bPrice']},
+                {'barCode':products[1]['barCode'],'quantity':15,'price':products[1]['bPrice']},
+                {'barCode':products[2]['barCode'],'quantity':12,'price':products[2]['bPrice']},
+                {'barCode':products[3]['barCode'],'quantity':5,'price':products[3]['bPrice']},
+                {'barCode':products[4]['barCode'],'quantity':1,'price':products[4]['bPrice']},
+                {'barCode':products[0]['barCode'],'quantity':1,'price':products[0]['bPrice']},
+            ]
+        }
     ]
 
 class Tests_UserView(unittest.TestCase):
@@ -259,6 +281,28 @@ class Test_ProductsView(unittest.TestCase):
             pState=x.deleteProduct(i)
             i=i+1
             deletedProductStates.append(pState)
+
+class Test_CustomerView(unittest.TestCase):
+    
+    def test_CRUD_Ops_Customer(self):
+        customer=TestData.customerData
+        c=CustomerView()
+        createdCustomer=c.addCustomer(customer['name'],customer['phone'])
+        TestCase.assertTrue(self,createdCustomer,True)
+        cust=c.getCustomerByPhoneNumber(customer['phone'])
+        TestCase.assertNotEqual(self,cust,None)
+        TestCase.assertNotEqual(self,cust,False)
+        cust=c.getCustomer(cust.id)
+        TestCase.assertNotEqual(self,cust,None)
+        TestCase.assertNotEqual(self,cust,False)
+        allCustomers=c.getAllCustomers()
+        TestCase.assertNotEqual(self,allCustomers,[])
+        customerExists=c.customerAlreadyExists(customer['phone'])
+        TestCase.assertEqual(self,customerExists,True)
+        deletedCustomer=c.deleteCustomer(cust.id)
+        TestCase.assertEqual(self,deletedCustomer,True)
+        customerExists=c.customerAlreadyExists(customer['phone'])
+        TestCase.assertEqual(self,customerExists,False)
 
 class Tests_TransactionView(unittest.TestCase):
     t1={'succ':True,"id":None,'custId':'1','sellerId':'3','tillId':'WareHouse','saleAmount':20000,'paidAmount':18000}
