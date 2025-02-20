@@ -1,5 +1,5 @@
 $backgroundColor:gray;
-
+$accentColor:lightgreen;
 
 *{
     padding:0px;
@@ -14,19 +14,44 @@ button,input{
     margin:5px;
     outline: none;
     border-radius: 10px;
-    border:none;
+    border:1px rgba(0,0,0,1);
 }
 button.longButton, button.submit{
     position: relative;
+    border:1px 1px $accentColor;
     width: 90%;
+}
+
+.iconBtn{
+    text-align: center;
+    font-size: 1.2em;
+    background:none;
+    text-align: center;
+    padding:2px;
+}
+.iconBtn:hover{
+    font-size: 1.3em;
+    color:$accentColor;
+    background-color: lighten($color: $backgroundColor, $amount: 90);
+    transition-duration: 0.5s;
 }
 
 input{
     position: relative;
     width:90%;
-    background-color: lighten($color: $backgroundColor, $amount: 100);
+    background-color: lighten($color: $backgroundColor, $amount: 40);
+}
+input:hover{
+    background-color:lighten($backgroundColor,80);
+    border:3px $accentColor;
+    transition-duration: 0.5s;
 }
 //re-useable Containers
+.two_columns{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
 .listView :nth-child(odd){
     background-color: rgba(0,0,0,0.05);
 }
@@ -46,6 +71,22 @@ input{
         color:white;
         font-weight: bold;
     } 
+}
+
+ul.searchBox{
+    max-height: 100px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    li.item{
+        position: relative;
+        width: 100%;
+        padding: 5px;
+        margin:3px;
+    }
+    li.clickable:hover{
+        background-color: lighten($color: $backgroundColor, $amount: 60);
+        transition-duration: 1s;
+    }
 }
 
 

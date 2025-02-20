@@ -31,7 +31,10 @@ class User:
     def authUserLevelAction(self,userId,targetLevel):
         uLevel=self.getUserLevel(userId)
         if(targetLevel==uLevel):
+            Logging.consoleLog('succ',f'User access level is correct')
             return True
+        else:
+            Logging.consoleLog('error',f'User level is {uLevel} and it should be {targetLevel}')
         return False
 
     def authenticated(self,userToken):
@@ -54,7 +57,32 @@ class User:
             branchesList.append(i)
         return branchesList
 
+    def fetchAllProducts(self):
+        pV=ProductsView()
+        products=pV.getAllProducts()
+        pList=[]
+        for i in products:
+            pList+=[{'id':i.id,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
+        return pList
+    
+    def fetchAllTransactions(self):
+        tObject=TransactionView()
+        transactionObj=tObject.getAllTransactions()
+        transactionsList=[]
+        for t in transactionObj:
+            transactionsList.append({
+                'id':t.id,
+                'transactionId':t.transactionId,
+                'custId':t.customerId,
+                'sellerId':t.sellerId,
+                'tillId':t.tillId,
+                'saleAmount':t.saleAmount,
+                'paidAmount':t.paidAmount
+            })
+        return transactionsList
+
 class Cashier(User):
+
     def declareStartingAmount(startingAmount):
         pass
 
@@ -63,20 +91,27 @@ class Cashier(User):
     
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
+        print(authAction)
         if(authAction):
             payment=PaymentView()
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
-            if(customerCreditRequest>0 and customerCreditRequest!=-1):
+            if(customerCreditRequest>=0):
                 max_credit=self.maximumCustomerCredit(custId)
                 if(customerCreditRequest>max_credit):
+                    Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
                     return False,'Customer is only eligable for a maximum credit of {max_credit}'
                 
                 saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
                 if(saleResult==True):
+                    Logging.consoleLog('succ','Sale made successfully')
                     return True,"Sale is successfull"
                 else:
                     errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
+                    Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
                     return False,errorMessage
+            else:
+                Logging.consoleLog('error',f'Transaction credit request is {customerCreditRequest}:Negative value')
+        Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
         return False,"User level is not cashier"
 
     def maximumCustomerCredit(self,customerId):
@@ -107,7 +142,7 @@ class Cashier(User):
                 PaymentView.addPaymentList() Errors=> state {pState} message {pMessage}\n
                 SoldItemsView.addSoldItemsList() Errors=> state {sPState} message {sPMessage}
             '''
-            Logging.logToFile('error',logMessage)
+            Logging.consoleLog('error',logMessage)
             return tId
         
     def handleSaleRollBack(self,busketList,paymentList,tId):
@@ -119,18 +154,9 @@ class Cashier(User):
         else:
             Logging.consoleLog('err',rollBackMessage)
             return False,rollBackMessage
-
+    
     def payCreditSale(saleID,amountPayed,paymentMethod):
         pass
-    
-    def fetchAllProducts(self):
-        pV=ProductsView()
-        products=pV.getAllProducts()
-        pList=[]
-        for i in products:
-            pList+=[{'id':i.id,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
-        print(pList)
-        return pList
 
     def receiveStock(items,uid):
         pass

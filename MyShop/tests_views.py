@@ -372,5 +372,21 @@ class Tests_CustomerCreditView(unittest.TestCase):
     def test_addCredit(self):
         pass
 
+    def test_creditBalance(self):
+        pass
+
+    def test_calcTotalCustomerCredit(self):
+        pass
+
+    def test_isCustomerCreditWorthy(self):
+        pass
+
+    def test_fetchCreditById(self):
+        pass
+
+    def test_fetchCreditByCustomer(self):
+        pass
+    
+
 if __name__=='__main__':
     unittest.main()

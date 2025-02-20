@@ -38,11 +38,11 @@ div.inline{
 }
 
 
-div.itemList{
+.itemList{
     padding:10px;
     height:70vh;
     overflow-y:scroll;
-    div.item{
+    .item{
         padding:5px;
     }
 }
@@ -58,4 +58,13 @@ div.dash{
     grid-template-columns: 1fr 1fr 1fr;
     padding:5px;
     margin-top:10px;
+}
+div.uiPanel{
+    margin-top:5px;
+    padding:5px;
+    background:lighten(lightgray,10);
+    h3{
+        font-weight: lighter;
+        font-size: 1.1em;
+    }
 }

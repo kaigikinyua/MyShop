@@ -12,7 +12,6 @@ def login(username,password):
     u=User()
     auth,message,userLevel,shiftId=u.login(username,password)
     branchesList=u.getBranchesList()
-    Logging.consoleLog('message',f'Login state {auth} message {message}')
     if(auth):
         return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId,'branches':branchesList}    
     return {"auth":auth,"message":message,"userLevel":None,"shiftId":None,'branches':None}
@@ -30,7 +29,7 @@ def makeSale(busketList,paymentList,tillId,cashier,custId):
     c=Cashier()
     state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
     if(state==False):
-        return {"state":False,"message":"Could Not complete sale"}
+        return {"state":False,"message":f"Could Not complete sale: Error=> {message}"}
     return {"state":True}
 
 @eel.expose
@@ -48,11 +47,17 @@ class FetchData:
 
     @staticmethod
     def getProductsAndBranches():
-        c=Cashier()
-        productList=c.fetchAllProducts()
         u=User()
+        productList=u.fetchAllProducts()
         brancheList=u.getBranchesList()
         return {'products':productList,'branches':brancheList}
+
+    @staticmethod
+    def getAllTransactions():
+        u=User()
+        transactionList=u.fetchAllTransactions()
+        Logging.consoleLog('message',f'Getting All Transactions {transactionList}')
+        return {'transactions':transactionList}
 
 class CashierActions:
     @staticmethod
@@ -128,6 +133,6 @@ if __name__=="__main__":
     
     # #all functions
     eel._expose("getProductsAndBranches",fetchData.getProductsAndBranches)
-    
+    eel._expose("getAllTransactions",fetchData.getAllTransactions)
 
     eel.start("login.html",port=4040)

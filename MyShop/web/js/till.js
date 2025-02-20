@@ -296,6 +296,10 @@ function displayClosingAmount(){
 }
 
 
+function addItemToItemCode(barCode){
+    
+}
+
 class Render{
     static renderItems(items){
         var list=document.getElementById('itemList')
@@ -329,11 +333,15 @@ class Render{
         document.getElementById('quantity').value=1
     }
     static renderSearchBoxProducts(products){
-        let parent=document.getElementById('searchItemCode')
+        let parent=document.getElementById('allProductsBox')
         products.forEach(p=>{
-            var container=document.createElement('ul')
-            container.innerHTML="<li>"+p['name']+" "+p['barCode']+"</li>"
-            container.classList.add('listView')
+            var container=document.createElement('li')
+            container.innerHTML+="<button class='iconBtn'>+</button>"+p['name']+" @ Ksh"+p['sPrice']+" code="+p['barCode']
+            container.addEventListener('click',()=>{
+                var itemCodeInput=document.getElementById('itemCode')
+                itemCodeInput.value=p['barCode']
+            })
+            container.classList.add('item')
             parent.appendChild(container)
         })
     }
@@ -348,6 +356,15 @@ class Render{
             defaultid=defaultid+1
         });
     }
+    static renderTransactionSearchBox(transactions){
+        var selectBox=document.getElementById('miniTransactionBox')
+        transactions.forEach(p=>{
+            var container=document.createElement('li')
+            container.innerHTML+="<button class='iconBtn'>+</button>"+p['transactionId']+" "+p['saleAmount']
+            container.classList.add('item')
+            selectBox.appendChild(container)
+        })
+    }
 }
 
 class FetchData{
@@ -357,7 +374,12 @@ class FetchData{
     }
 
     static async customerCreditWorthy(custIdName,custPhoneNumber,amount){
-        var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)
+        var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)()
+        return response
+    }
+
+    static async getAllTransactions(){
+        var response=await eel.getAllTransactions()()
         return response
     }
 }
@@ -432,8 +454,12 @@ function setUpUser(){
 setTimeout(async ()=>{
     setUpUser()
     response=await FetchData.getProductsAndBranches()
+    tResponse=await FetchData.getAllTransactions()
     productsList=response['products']
     branches=response['branches']
+    console.log(tResponse)
     Render.renderSearchBoxProducts(productsList)
     Render.renderBranchesToSelectBox(branches)
+    Render.renderTransactionSearchBox(tResponse['transactions'])
+
 },1000)

@@ -30,12 +30,11 @@
                 </div>
                 <div class="inline">
                     <button onclick="addItem()" onkeypress="searchItem()">Add Product</button>
-                    <button id="searchItem">Search Product</button>
                 </div>
             </div>
             <div class="itemList listView" id="itemList">
             </div>
-            <div class="inline boldFont"><h3>Total(KSH)</h3><h3 id="basketTotal">0</h3></div>
+            <div class="inline boldFont"><h3>Total(KSH) = </h3><h3 id="basketTotal">0</h3></div>
             <div class="itemListActions">
                 <button onclick="voidTransaction()">Void Transaction</button>
                 <button onclick="displayPaymentBox()">Pay</button>
@@ -43,44 +42,52 @@
             </div>
         </div>
         <div class="tillFunctionButtons">
-            <div>
-                <h3>Transaction</h3>
-                <div>
-                    <input type="text" id="transactionId"/>
-                    <button class="success">Get Transaction</button>
-                    <button class="cool">Search Transaction</button>
-                </div>
-            </div>
-            <div>
+            <div class="uiPanel">
                 <h3>Customer Service Desk</h3>
                 <div class="dash">
-                    <button class="success">Register Customer</button>
-                    <button class="cool">Check credit</button>
-                    <button class="cool">Get Transactions</button>
-                    <button class="cool">Pay Credit</button>
+                    <button class="success">Register</button>
+                    <button class="success">Check credit</button>
+                    <button class="cool">Transactions</button>
+                    <button class="danger">Pay Credit</button>
                 </div>
             </div>
-            <div class="dash">
-                <h3>Reports and Sales</h3>
-                <button class="minLenBtn cool">Reports</button>
-                <button class="minLenBtn cool">Sales</button>
-                <button class="minLenBtn cool">Price Enquiry</button>
+            <div class="uiPanel">
+                <h3>Cashier Actions</h3>
+                <div class="dash">
+                    <button class="minLenBtn danger" onclick="displayStartingAmount()">Starting Amount</button>
+                    <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
+                    <button class="minLenBtn cool">Reports</button>
+                    <button class="minLenBtn cool">Sales</button>
+                    <button class="minLenBtn success" onclick="logOut()">LogOut</button>
+                    <button class="minLenBtn danger">Close Shift</button>
+                </div>
             </div>
-            <div class="dash">
-                <h3>Shift Actions</h3>
-                <button class="minLenBtn cool" onclick="displayStartingAmount()">Starting Amount</button>
-                <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
-                <button class="minLenBtn success" onclick="logOut()">LogOut</button>
-            </div>
-            <div class="dash">
+            <div class="uiPanel">
                 <h3>Stock Actions</h3>
-                <button class="minLenBtn cool">Receive Stock</button>
-                <button class="minLenBtn danger">Dispatch Stock</button>
-                <button class="minLenBtn success">Stock Take</button>
+                <div class="dash">
+                    <button class="minLenBtn cool">Receive Stock</button>
+                    <button class="minLenBtn danger">Dispatch Stock</button>
+                    <button class="minLenBtn success">Stock Take</button>
+                </div>
             </div>
-            <div class="dash" style="display: block;">
-                <h3>Product List</h3>
-                <div id="searchItemCode"></div>
+            <div class="uiPanel">
+                <h3>All products</h3>
+                <div class="dash" style="display: block;">
+                    <div>
+                        <input type="text" placeholder="Product name or barcode" id="searchAllProducts"/>
+                    </div>
+                    <ul id="allProductsBox" class="searchBox"></ul>
+                </div>
+            </div>
+            <div class="uiPanel">
+                <h3>Transactions History</h3>
+                <div class="dash">
+                    <div>
+                        <input type="text" placeholder="Search Transaction" id="'searchTransactions"/>
+                        <input type="date" placeholder="Transaction Date" id="searchTransactionDate"/>
+                    </div>
+                </div>
+                <div id="miniTransactionBox"></div>
             </div>
         </div>
     </div>

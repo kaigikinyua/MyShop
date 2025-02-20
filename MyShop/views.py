@@ -776,7 +776,6 @@ class CustomerCreditView:
                     payment=session.query(PaymentModel).filter_by(time=paymentTime,transactionId=tId,amountPayed=amount).one_or_none()
                     if(payment!=None):
                         payment.paidForCreditId=creditId
-                        session.commit()
                         customerCredit=session.query(CustomerCreditModel).filter_by(customerId=custId,transactionId=tId,id=creditId).one_or_none()
                         credit=customerCredit.totalCreditPaid+amount
                         customerCredit.totalCreditPaid=credit
