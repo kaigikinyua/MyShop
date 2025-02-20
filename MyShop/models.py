@@ -131,26 +131,30 @@ class BranchesModel(Base):
     branchPhone=Column(String)
     tillNumber=Column(String)
     managerName=Column(String)
-    managerPhoneNumber=Column(String)
+    managerPhone=Column(String)
 
 class StockModel(Base):
     __tablename__='Stock'
     stockId=Column(Integer,primary_key=True)
     branchId=Column(Integer)
     productId=Column(String)
+    barCode=Column(String)
     stockType=Column(String)
     quantity=Column(String)
     authorId=Column(Integer)
     time=Column(Float)
 
-class StockDispatchReceivingModel(Base):
-    __tablename__='DispatchAndReceiving'
+class StockHistory(Base):
+    __tablename__='StockHistory'
     id=Column(Integer,primary_key=True)
-    stockId=Column(Integer)
-    dispatcher=Column(Integer)
-    receiver=Column(Integer)
-    received=Column(Boolean)
-    rejected=Column(Boolean)
+    stockType=Column(String)
+    userId=Column(String)
+    branchId=Column(String)
+    userStateMent=Column(String)
+    productId=Column(String)
+    barCode=Column(String)
+    quantity=Column(String)
+    time=Column(Float)
 
 class StockTakeModel(Base):
     __tablename__='StockTake'
