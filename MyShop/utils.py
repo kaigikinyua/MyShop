@@ -69,7 +69,7 @@ class FormatTime:
 class Logging:
     @staticmethod
     def consoleLog(color,message):
-        colors={'err':'','succ':'','warn':'','norm':''}
+        colors={'err':'','error':'','succ':'','warn':'','norm':''}
         if(Settings.mode=='DEBUG'):
             print(message)
         else:

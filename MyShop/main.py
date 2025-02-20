@@ -1,5 +1,7 @@
 import eel
+from utils import Logging
 from users import User,Cashier
+
 
 pages=["index.html","till.html","admin.html"]
 
@@ -9,9 +11,11 @@ eel.init("web")
 def login(username,password):
     u=User()
     auth,message,userLevel,shiftId=u.login(username,password)
+    branchesList=u.getBranchesList()
+    Logging.consoleLog('message',f'Login state {auth} message {message}')
     if(auth):
-        return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId}    
-    return {"auth":auth,"message":message,"userLevel":None,"shiftId":None}
+        return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId,'branches':branchesList}    
+    return {"auth":auth,"message":message,"userLevel":None,"shiftId":None,'branches':None}
 
 @eel.expose
 def logOut(userId):
@@ -41,10 +45,14 @@ class FetchData:
     @staticmethod
     def fetchTransaction():
         pass
+
     @staticmethod
-    def getAllProducts():
+    def getProductsAndBranches():
         c=Cashier()
-        return c.fetchAllProducts()
+        productList=c.fetchAllProducts()
+        u=User()
+        brancheList=u.getBranchesList()
+        return {'products':productList,'branches':brancheList}
 
 class CashierActions:
     @staticmethod
@@ -119,7 +127,7 @@ if __name__=="__main__":
     fetchData=FetchData()
     
     # #all functions
-    eel._expose("getAllProducts",fetchData.getAllProducts)
+    eel._expose("getProductsAndBranches",fetchData.getProductsAndBranches)
     
 
     eel.start("login.html",port=4040)

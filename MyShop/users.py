@@ -1,5 +1,5 @@
 from views import UserView,TransactionView,PaymentView
-from views import ProductsView,SoldItemsView,CustomerCreditView,ShiftView
+from views import ProductsView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging
 class User:
     def login(self,username,password):
@@ -36,6 +36,23 @@ class User:
 
     def authenticated(self,userToken):
         pass
+
+    def getBranchesList(self):
+        branchesList=[]
+        branch=BranchesView()
+        branchesObj=branch.getAllBranches()
+        for b in branchesObj:
+            i={
+                'id':b.branchId,
+                'name':b.branchName,
+                'location':b.location,
+                'phone':b.branchPhone,
+                'tillNumber':b.tillNumber,
+                'managerName':b.managerName,
+                'managerPhone':b.managerPhone
+            }
+            branchesList.append(i)
+        return branchesList
 
 class Cashier(User):
     def declareStartingAmount(startingAmount):

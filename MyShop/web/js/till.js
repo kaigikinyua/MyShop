@@ -1,5 +1,7 @@
 //var items=[]
 var productsList=[]
+var branches=[]
+
 var customerBusket=[]
 var busketTotalPrice=0
 var payments=[]
@@ -294,11 +296,6 @@ function displayClosingAmount(){
 }
 
 
-function setUpUser(){
-    Auth.renderShiftId()
-}
-
-
 class Render{
     static renderItems(items){
         var list=document.getElementById('itemList')
@@ -340,17 +337,25 @@ class Render{
             parent.appendChild(container)
         })
     }
-}
-
-class Product{
-    static getProduct(){}
+    static renderBranchesToSelectBox(branches){
+        var selectBox=document.getElementById('counterID')
+        var defaultid=0
+        branches.forEach(b=>{
+            var opt=document.createElement('option')
+            opt.value=b['id']
+            opt.innerHTML=b['name']
+            selectBox.appendChild(opt)
+            defaultid=defaultid+1
+        });
+    }
 }
 
 class FetchData{
-    static async getAllProducts(){
-        var products=await eel.getAllProducts()()
-        return products
+    static async getProductsAndBranches(){
+        var response=await eel.getProductsAndBranches()()
+        return response
     }
+
     static async customerCreditWorthy(custIdName,custPhoneNumber,amount){
         var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)
         return response
@@ -419,8 +424,16 @@ class Auth{
         return splitToken[splitToken.length-1]
     }
 }
+
+function setUpUser(){
+    Auth.renderShiftId()
+}
+
 setTimeout(async ()=>{
     setUpUser()
-    productsList=await FetchData.getAllProducts()
+    response=await FetchData.getProductsAndBranches()
+    productsList=response['products']
+    branches=response['branches']
     Render.renderSearchBoxProducts(productsList)
+    Render.renderBranchesToSelectBox(branches)
 },1000)
