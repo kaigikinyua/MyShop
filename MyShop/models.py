@@ -147,7 +147,10 @@ class StockModel(Base):
 class StockHistory(Base):
     __tablename__='StockHistory'
     id=Column(Integer,primary_key=True)
-    stockType=Column(String)
+    stockReceipt=Column(String)#transactionId,dispatchId,invoiceNumber
+    stockAction=Column(String)
+    stockActionList=['restock','return','sale']
+    stockDelta=Column(Integer)#either -1[sale,dispatch] or +1[restock,return] 
     userId=Column(String)
     branchId=Column(String)
     userStateMent=Column(String)
@@ -183,7 +186,6 @@ class BusinessCostsModel(Base):
     costTimeline=Column(String)
     desc=Column(String)
     paid=Column(Boolean)
-
 
 if __name__=="__main__":
     Base.metadata.create_all(engine)
