@@ -1,6 +1,6 @@
 from views import UserView,TransactionView,PaymentView
 from views import ProductsView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
-from utils import Logging
+from utils import Logging,FormatTime
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -77,17 +77,32 @@ class User:
                 'sellerId':t.sellerId,
                 'tillId':t.tillId,
                 'saleAmount':t.saleAmount,
-                'paidAmount':t.paidAmount
+                'paidAmount':t.paidAmount,
+                'sellDate':FormatTime.dateTimeToStandardTime(t.time),
+                'soldItems':self.fetchTransactionSoldItems(t.id)
             })
         return transactionsList
+
+    def fetchTransactionSoldItems(self,tId):
+        if(tId!=None):
+            s=SoldItemsView()
+            soldItemsObj=s.fetchSoldItemsByTransaction(tId)
+            soldItems=[]
+            p=ProductsView()
+            for i in soldItemsObj:
+                product=p.getProductByBarCode(i.barCode)
+                soldItems.append({'id':i.id,'tId':i.transactionId,'barCode':i.barCode,'name':product.name,'quantity':i.quantity,'soldPrice':i.soldPrice,'discount':i.discountPercent})
+            return soldItems
+        else:
+            return []
 
 class Cashier(User):
 
     def declareStartingAmount(startingAmount):
-        pass
+        return True,'Declare Starting Amount Not implemented'
 
     def declareClosingAmount(closingAmount):
-        pass
+        return True,'Declare Closing Amount Not implemented'
     
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
@@ -155,7 +170,7 @@ class Cashier(User):
             Logging.consoleLog('err',rollBackMessage)
             return False,rollBackMessage
     
-    def payCreditSale(saleID,amountPayed,paymentMethod):
+    def payCreditSale(self,transactionId,amountPayed,paymentList):
         pass
 
     def receiveStock(items,uid):

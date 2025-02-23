@@ -831,13 +831,13 @@ class CustomerCreditView:
             transactionIds=[]
             for debt in debtList:
                 totalDebt=totalDebt+(debt.creditAmount-debt.totalCreditPaid)
-                transactionIds+=debt.transactionId
+                transactionIds.append(debt.transactionId)
             return totalDebt,transactionIds
         return False,'None parameter passed to calcTotalCustomerCredit(self,custId)'
     
     def isCustomerCreditWorthy(self,custId):
         if(custId!=None):
-            totalCredit=self.calcTotalCustomerCredit(custId)
+            totalCredit,creditTransactions=self.calcTotalCustomerCredit(custId)
             sSettings=SaleSettingsView.fetchSettings()
             if(totalCredit<sSettings.maxCustomerCredit):
                 return True,sSettings.maxCustomerCredit-totalCredit

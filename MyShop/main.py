@@ -18,10 +18,12 @@ def login(username,password):
 
 @eel.expose
 def logOut(userId):
-    print("logging out")
     u=User()
-    u.logout(int(userId))
-    return {"state":True}
+    logOut=u.logout(int(userId))
+    if(logOut):
+        return {"state":True}
+    else:
+        return {"state":False}
 
 @eel.expose
 def makeSale(busketList,paymentList,tillId,cashier,custId):
@@ -60,38 +62,48 @@ class FetchData:
         return {'transactions':transactionList}
 
 class CashierActions:
-    @staticmethod
-    def getAllProducts():
-        c=Cashier()
-        c.fetchAllProducts()
-    @staticmethod
-    def declareStartingAmount():
-        pass
-    @staticmethod
-    def declareClosingAmount():
-        pass
 
     @staticmethod
-    def payCreditSale():
-        print("paying credit sale")
+    def declareStartingAmount(shiftId,startingAmount):
+        c=Cashier()
+        state,message=c.declareStartingAmount(shiftId,startingAmount)
+        if(state):
+            return {'state':True,'message':message}
+        else:
+            return {'state':False,'message':message}
+        
+    @staticmethod
+    def declareClosingAmount(shiftId,closingAmount):
+        c=Cashier()
+        state,message=c.declareClosingAmount(shiftId,closingAmount)
+        if(state):
+            return {'state':True,'message':message}
+        else:
+            return {'state':False,'message':message}
+
+    @staticmethod
+    def payCustomerCredit(tId,custId,amount,paymentList):
+        c=Cashier()
+        c.payCreditSale(tId,custId,amount,paymentList)
 
     @staticmethod
     def receiveStock():
-        pass
-    @staticmethod
-    def despatchStock():
         pass
 
     @staticmethod
     def stockTake():
         pass
 
+    @staticmethod
+    def despatchStock():
+        pass
 
     @staticmethod
-    def genXReport():
+    def genXReport(shiftId):
         pass
+
     @staticmethod
-    def genZReport():
+    def genZReport(shiftId):
         pass
 
 class AdminActions:
@@ -99,6 +111,7 @@ class AdminActions:
     @staticmethod
     def addUser():
         pass
+
     @staticmethod
     def deleteUser():
         pass
@@ -121,18 +134,23 @@ class AdminActions:
     @staticmethod
     def addStock():
         pass
+    
     @staticmethod
     def deleteStock():
         pass
+
     @staticmethod
     def updateStock():
         pass
 
 if __name__=="__main__":
     fetchData=FetchData()
-    
+    cashierActions=CashierActions()
     # #all functions
     eel._expose("getProductsAndBranches",fetchData.getProductsAndBranches)
     eel._expose("getAllTransactions",fetchData.getAllTransactions)
-
+    
+    eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
+    eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
+    
     eel.start("login.html",port=4040)

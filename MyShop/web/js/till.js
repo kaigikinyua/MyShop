@@ -360,8 +360,11 @@ class Render{
         var selectBox=document.getElementById('miniTransactionBox')
         transactions.forEach(p=>{
             var container=document.createElement('li')
-            container.innerHTML+="<button class='iconBtn'>+</button>"+p['transactionId']+" "+p['saleAmount']
+            container.innerHTML+="<div>SellDate: "+p['sellDate']+" SaleAmount: "+p['saleAmount']+"<div>"
             container.classList.add('item')
+            container.addEventListener('click',(event)=>{
+                Transaction.displayTransaction(p)
+            })
             selectBox.appendChild(container)
         })
     }
@@ -397,8 +400,38 @@ class Shift{
 class Transaction{
     static getTransaction(transactionId){}
     static loadTransaction(transaction){}
-    static getTransactions(){}
+    static displayTransaction(transaction){
+        showPopUp("")
+        var popUpPanel=document.getElementById('popUpPanel')
+        var header=document.createElement("h3")
+        header.classList.add("header")
+        header.innerHTML="Transaction"
+
+        var transactionContainer=document.createElement('div')
+        var transactionInnerHtml=document.createElement('div')
+        transactionInnerHtml.innerHTML='<h3>Transaction ID: '+transaction['id']+'</h3>'
+        transactionInnerHtml.innerHTML='<h3>Sell Date: '+transaction['sellDate']+'</h3>'
+        transactionInnerHtml.innerHTML+='<p>Sale Amount: '+transaction['saleAmount']+'</p>'
+        transactionInnerHtml.innerHTML+='<p>Paid Amount: '+transaction['paidAmount']+'</p>'
+        var soldItems=document.createElement('table')
+        soldItems.innerHTML='<th><td>Item Name </td><td>Quantity</td> <td>Total</td></th>'
+        transaction['soldItems'].forEach(item=>{
+            soldItems.innerHTML+='<tr><td>'+item['name']+'</td><td>'+item['quantity']+'</td><td>'+item['quantity']*item['soldPrice']+'</td></tr>'
+        });
+        transactionInnerHtml.appendChild(soldItems)
+        transactionContainer.appendChild(transactionInnerHtml)
+        var cancel=document.createElement("button")
+        cancel.innerHTML="Cancel"
+        cancel.classList.add("minLenBtn")
+        cancel.classList.add("cool")
+        cancel.onclick=closePopUp
+        popUpPanel.appendChild(header)
+        popUpPanel.appendChild(transactionContainer)
+        popUpPanel.appendChild(cancel)
+    }
+    
     static getAllTransactions(){}
+
     static async sendTransactionToBackend(busket,payments,counterId,custId){
         console.log("Sending transaction to the backend")
         var cashierId=Auth.getUserId()
@@ -411,6 +444,7 @@ class Transaction{
             notificationBubble("Transaction Failed",0,5)
         }
     }
+
     static clearTransactionFromUi(){
         Render.clearAllItems()
         customerBusket=[]
