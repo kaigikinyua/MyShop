@@ -139,17 +139,16 @@ class StockModel(Base):
     branchId=Column(Integer)
     productId=Column(String)
     barCode=Column(String)
-    stockType=Column(String)
     quantity=Column(String)
     authorId=Column(Integer)
     time=Column(Float)
 
-class StockHistory(Base):
+class StockHistoryModel(Base):
     __tablename__='StockHistory'
     id=Column(Integer,primary_key=True)
     stockReceipt=Column(String)#transactionId,dispatchId,invoiceNumber
     stockAction=Column(String)
-    stockActionList=['restock','return','sale']
+    stockActionList={'receiving':1,'disptach':-1,'sale':-1,'return':1,'openning':1,'closing':1}
     stockDelta=Column(Integer)#either -1[sale,dispatch] or +1[restock,return] 
     userId=Column(String)
     branchId=Column(String)
@@ -174,9 +173,12 @@ class EmptiesModel(Base):
     id=Column(Integer,primary_key=True)
     transactionId=Column(String)
     productId=Column(String)
-    goodCondition=Column(Integer)
-    damaged=Column(Integer)
-    timeLastUpdate=Column(Float)
+    barCode=Column(String)
+    quantity=Column(Integer)
+    quantityReturned=Column(Integer,default=0)
+    returned=Column(Boolean,default=False)
+    takenDate=Column(Float)
+    returnedDate=Column(Float)
 
 class BusinessCostsModel(Base):
     __tablename__='Costs'

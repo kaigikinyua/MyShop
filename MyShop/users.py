@@ -129,6 +129,9 @@ class Cashier(User):
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
         return False,"User level is not cashier"
 
+    def reduceStockAfterSale(self,busketList,cashierId):
+        pass
+
     def maximumCustomerCredit(self,customerId):
         if(customerId=='null'):
             return False

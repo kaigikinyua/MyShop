@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel
+from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,StockModel,EmptiesModel,StockHistoryModel
 from models import PaymentModel,CustomerModel,SoldItemsModel,SalesSettingsModel,CustomerCreditModel,BranchesModel
 
 from utils import FormatTime,Logging
@@ -23,6 +23,7 @@ class UserView:
             auth=AuthModel(uid=u[0].id,time=time,token=token,active=True)
             session.add(auth)
             session.commit()
+            session.close()
             return True,token,u[0].userLevel
         return False,None,'Wrong username or password'
 
@@ -36,6 +37,7 @@ class UserView:
             for sess in activeSessions:
                 sess.active=False
                 session.commit()
+                session.close()
                 #Logging.consoleLog('succ',f'logging out {sess}')
             return True
         else:
@@ -58,7 +60,9 @@ class UserView:
         session=Session()
         auth=session.query(AuthModel).filter_by(uid=uid,active=True).all()
         if(len(auth)>0):
+            session.close()
             return True
+        session.close()
         return False
 
     #gets the user from the UserModel using username
@@ -252,33 +256,49 @@ class ShiftView:
 
     @staticmethod
     def declareStartingAmount(startingAmount,shiftId):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        shift=session.query(ShiftModel).filter_by(shiftId=shiftId,startingAmount=0).all()
-        if(len(shift)==1):
-            shift[0].startingAmount=startingAmount
-            session.commit()
-            return True
-        elif(len(shift)>1):
-            Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose starting amount=0')
-        elif(len(shiftId)==0):
-            Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose starting amount is 0')
-        return False
+        message=''
+        if(startingAmount>=0 and shiftId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,startingAmount=0).all()
+            if(len(shift)==1):
+                shift[0].startingAmount=startingAmount
+                session.commit()
+                session.close()
+                return True,'Declared starting amount'
+            elif(len(shift)>1):
+                Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose starting amount=0')
+                message=f'There is more than one shift with shift id {shiftId} whose starting amount=0'
+            elif(len(shiftId)==0):
+                Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose starting amount is 0')
+                message=f'There is no shift with the shift id {shiftId} whose starting amount is 0'
+        else:
+            message=f'None type or non-negative type passed to Shift.declareStartingAmount(): statringAmount={startingAmount} shiftId={shiftId}'
+            Logging.consoleLog('error',message)
+        return False,message
 
     @staticmethod
     def declareClosingAmount(closingAmount,shiftId):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        shift=session.query(ShiftModel).filter_by(shiftId=shiftId,closingAmount=0).all()
-        if(len(shift)==1):
-            shift[0].closingAmount=closingAmount
-            session.commit()
-            return True
-        elif(len(shift)>1):
-            Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose closing amount=0')
-        elif(len(shiftId)==0):
-            Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
-        return False
+        message=''
+        if(closingAmount>=0 and shiftId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,closingAmount=0).all()
+            message=''
+            if(len(shift)==1):
+                shift[0].closingAmount=closingAmount
+                session.commit()
+                session.close()
+                return True,'Declared Closing Amount'
+            elif(len(shift)>1):
+                Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose closing amount=0')
+                message=f'There is more than one shift with shift id {shiftId} whose closing amount=0'
+            elif(len(shiftId)==0):
+                Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
+                message=f'There is no shift with shift id {shiftId} whose closing amount=0'
+        else:
+            message=f'None type or non-negative type passed to Shift.declareStartingAmount(): closingAmount={closingAmount} shiftId={shiftId}'
+        return False,message
 
     @staticmethod
     def createShift(shiftId,openningId,isClosed):
@@ -303,6 +323,7 @@ class ShiftView:
             
             session.add(shift)
             session.commit()
+            session.close()
             return True,shiftId
         return False,'None Parameter passed to ShiftView.createShift()'
     
@@ -315,6 +336,7 @@ class ShiftView:
             if(shift!=None):
                 session.delete(shift)
                 session.commit()
+                session.close()
                 return True,'Shift deleted successfully'
             return False,f'No shift by {shiftId} was found'
         return False,f'None parameter passed to ShiftView.deleteShift()'
@@ -324,6 +346,7 @@ class ShiftView:
         Session=sessionmaker(bind=engine)
         session=Session()
         openShifts=session.query(ShiftModel).all()
+        session.close()
         return openShifts
     
 class ProductsView:
@@ -493,6 +516,7 @@ class TransactionView:
                 session=Session()
                 session.add(t)
                 session.commit()
+                session.close()
                 return True,t.transactionId
             else:
                 return False,"Either saleamount or paidamount could not be typecasted to integer"
@@ -507,6 +531,7 @@ class TransactionView:
             if(t!=None):
                 session.delete(t)
                 session.commit()
+                session.close()
                 transactionString=f'[id:{t.id},transactionId:{t.transactionId},customerId:{t.customerId},sellerId:{t.sellerId},tillId:{t.tillId},paidAmount:{t.paidAmount},time:{t.time}]'
                 Logging.logToFile('warn',f'Deleted transaction{transactionString}')
                 return True,'Deleted transaction with tranactionId{tId}'
@@ -534,6 +559,7 @@ class TransactionView:
             Session=sessionmaker(bind=engine)
             session=Session()
             transactions=session.query(TransactionModel).filter_by(transactionId=tId).first()
+            session.close()
             return transactions
         return None
     
@@ -542,6 +568,7 @@ class TransactionView:
             Session=sessionmaker(bind=engine)
             session=Session()
             transactions=session.query(TransactionModel).filter(TransactionModel.time>=startDate,TransactionModel.time<=endDate)
+            session.close()
             return transactions
         else:
             Logging.consoleLog('error','None Type passed to TransactionView.filterTransactionByPeriod(startDate,endDate)')
@@ -551,7 +578,9 @@ class TransactionView:
         if(len(custId)>0):
             Session=sessionmaker(bind=engine)
             session=Session()
-            return session.query(TransactionModel).filter_by(customerId=custId).all()
+            customerTransasctions=session.query(TransactionModel).filter_by(customerId=custId).all()
+            session.close()
+            return customerTransasctions
         else:
             return False
         
@@ -1104,23 +1133,218 @@ class SaleSettingsView:
 
 class StockView:
 
-    def addProductToStock(self,branchId,productId,barCode,stockType,quantity,authorId,time):
-        pass
+    def addProductToStock(self,branchId,productId,barCode,quantity,authorId,time):
+        message=''
+        if(branchId!=None and productId!=None and barCode!=None and  quantity!=None and authorId!=None and time!=None):
+            pByBarCode=self.getProductByBarCode(barCode)
+            pByProductId=self.getProductById(productId)
+            if(pByBarCode==None and pByProductId==None):
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                product=ProductsModel(
+                    branchId=branchId,
+                    productId=productId,
+                    barCode=barCode,
+                    quantity=quantity,
+                    authorId=authorId,
+                    time=time
+                )
+                session.add(product)
+                session.commit()
+                session.close()
+            else:
+                message='Product already exists hence could not be added'
+        else:
+            message='None type passed to StockView.addProductToStock()'
+            Logging.consoleLog('error',message)
+        return False,message
     
-    def restockItem(self,userId,productId,barCode,deltaChange):
-        pass
-
-    def getProductStockCount(self,productId,barCode):
-        pass
+    def getProductByBarCode(self,barCode):
+        if(barCode!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            product=session.query(StockModel).filter_by(barCode=barCode).one_or_none()
+            session.close()
+            return product
+        return False
     
-    def addStockState(self,branchId,pId,stockType,quantity,authorId):
-        stockTypes=['Receiving','Dispatch','Openning','Closing']
-        pass
+    def getProductById(self,productId):
+        if(productId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            product=session.query(StockModel).filter_by(productId=productId).one_or_none()
+            session.close()
+            return product
+        return False
+    
+    def addItems(self,userId,productId,barCode,addQuantity):
+        message=''
+        state=False
+        if(userId!=None and productId!=None and barCode!=None and addQuantity>=1):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            product=session.query(StockModel).filter_by(productId=productId,barCode=barCode).one_or_none()
+            if(product!=None):
+                currQuantity=product.quantity
+                product.quantity=currQuantity+addQuantity
+                session.add(product)
+                session.commit()
+                session.close()
+                state=True
+                message=f'Restocked item Pid={productId} barCode={barCode} with additional={addQuantity}'
+            else:
+                message=f'Product with barCode {barCode} and productId {productId} could not be found in StockModel'
+        else:
+            message='None type passed to StockView.addItems()'
+        return state,message
 
-    def calcItemInStock(pId):
-        pass
+    def removeItems(self,userId,productId,barCode,removeQuantity):
+        message=''
+        state=False
+        if(userId!=None and productId!=None and barCode!=None and removeQuantity>=1):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            product=session.query(StockModel).filter_by(productId=productId,barCode=barCode).one_or_none()
+            if(product!=None):
+                currQuantity=product.quantity
+                product.quantity=currQuantity-removeQuantity
+                session.add(product)
+                session.commit()
+                session.close()
+                state=True
+                message=f'RemovedItems from Pid={productId} barCode={barCode} with quantityRemoved={removeQuantity}'
+            else:
+                message=f'Product with barCode {barCode} and productId {productId} could not be found in StockModel'
+        else:
+            message='None type passed to StockView.removeItems()'
+        return state,message
+
+    def getProductFromStockModel(self,productId,barCode):
+        state=False
+        message=''
+        if(productId!=None and barCode!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            product=session.query(StockModel).filter_by(productId=productId,barCode=barCode).one_or_none()
+            session.close()
+            return product,'retrieved successfully'
+        else:
+            message='None Type passed to StockView.getProductsStockCount()'
+        return state,message
+
+class StockHistoryView:
+    @staticmethod
+    def getDelta(stockAction,quantity):
+        actions=StockHistoryModel.stockActionList
+        try:
+            delta=actions[stockAction]*quantity
+            return delta
+        except KeyError:
+            return False
+        
+    @staticmethod
+    def addStockHistory(stockReceipt,stockAction,branchId,productId,barCode,quantity,authorId):
+        message=''
+        if(branchId!=None and productId!=None and barCode!=None and quantity!=None and authorId!=None):
+            stockDelta=StockHistoryView.getDelta(stockAction,quantity)
+            if(stockDelta!=False):
+                Session=sessionmaker(bind=engine)
+                session=Session()
+                time=FormatTime.now()
+                product=StockHistoryModel(
+                    stockReceipt=stockReceipt,
+                    stockAction=StockHistoryModel.stockActionList[stockAction],
+                    stockDelta=StockHistoryModel.getDelta(stockAction,quantity),
+                    userId=authorId,
+                    branchId=branchId,
+                    productId=productId,
+                    barCode=barCode,
+                    quantity=quantity,
+                    time=time,
+                )
+                session.add(product)
+                session.commit()
+                session.close()
+            else:
+                message=f'There is no stock action by the name {stockAction} valid stock actions are {StockHistoryModel.stockActionList}'
+        else:
+            message='None type passed to StockHistoryView.addStockHistory()'
+            Logging.consoleLog('error',message)
+        return False,message
+
+    @staticmethod
+    def getStockHistory(startDate=0,endDate=0):
+        stockHistory=[]
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        if(startDate>0 and endDate>0):
+            stockHistory=session.query(StockHistoryModel).filter(StockHistoryModel.time>=startDate, StockHistoryModel.time<=endDate)
+        else:
+            stockHistory=session.query(StockHistoryModel).all()
+        return stockHistory
+
+class EmptiesView:
+    
+    @staticmethod
+    def productsWithEmpties(productsList,returnDate):
+        emptiesList=[]
+        if(productsList!=None):
+            pObj=ProductsView()
+            for p in productsList:
+                product=pObj.getProductByBarCode(p['barCode'])
+                if(product!=None and product!=False and product.returnContainers==True):
+                    empty={'productId':product.id,'barCode':product.barCode,'returnDate':returnDate,'quantity':p['quantity']}
+                    emptiesList.append(empty)
+        return emptiesList
+
+    @staticmethod
+    def addEmpties(transactionId,emptiesList):
+        if(transactionId!=None and emptiesList!=None):
+            time=FormatTime.now()
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            for p in emptiesList:
+                empty=EmptiesModel(
+                    transactionId=transactionId,
+                    productId=p['productId'],
+                    barCode=p['barCode'],
+                    returned=False,
+                    takenDate=time,
+                    quantityReturned=0,
+                    returnDate=p['returnDate']
+                )
+                session.add(empty)
+                session.commit()
+            session.close()
+            return True
+        else:
+            return False
+    
+    @staticmethod
+    def addReturned(transactionId,productId,barCode,quantityReturned):
+        if(transactionId!=None and productId!=None and barCode!=None and quantityReturned>=1):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            #there may be a querry collision since a customer can take the same product with empties in the same transaction
+            empty=session.query(EmptiesModel).filter_by(transactionId=transactionId,productId=productId,barCode=barCode,returned=False).first()
+            empty.quantityReturned=empty.quantityReturned+quantityReturned
+            session.add(empty)
+            session.commit()
+            session.close()
+            return True
+        return False
+
+    @staticmethod
+    def fetchEmptiesFromTransaction(transactionId):
+        if(transactionId!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            empties=session.query(EmptiesModel).filter_by(transactionId=transactionId).all()
+            return empties
+        return False
 
 class BranchesView:
+
     def addBranch(self,branchName,location,branchPhone,tillNumber,managerName,managerPhone):
         if(branchName!=None and location!=None and branchPhone!=None and tillNumber!=None and managerName!=None and managerPhone!=None):
             Session=sessionmaker(bind=engine)

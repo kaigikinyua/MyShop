@@ -239,10 +239,14 @@ function displayStartingAmount(){
     submit.classList.add("danger")
     submit.onclick=(()=>{
         var sAmount=document.getElementById("sAmountDeclaration").value
-        if(sAmount!=undefined && sAmount!=null && sAmount!=""){
-            Shift.declareStartingAmount(sAmount)
-            closePopUp()
-            notificationBubble("Declared starting amount",1,3)
+        if(sAmount!=undefined && sAmount!=null && sAmount!="" && sAmount>=0){
+            var result=Shift.declareStartingAmount(sAmount)
+            if(result){
+                closePopUp()
+                notificationBubble("Declared starting amount",1,3)
+            }else{
+                notificationBubble("Error in declaring starting amount",2,4)
+            }
         }else{
             notificationBubble("Please fill in the starting amount",2,3)
         }
@@ -275,7 +279,7 @@ function displayClosingAmount(){
     submit.classList.add("danger")
     submit.onclick=(()=>{
         var cAmount=document.getElementById("cAmountDeclaration").value
-        if(cAmount!=undefined && cAmount!=null && cAmount!=""){
+        if(cAmount!=undefined && cAmount!=null && cAmount!="" && cAmount>=0){
             Shift.declareClosingAmount(sAmount)
             closePopUp()
             notificationBubble("Declared closing amount",1,3)
@@ -385,16 +389,44 @@ class FetchData{
         var response=await eel.getAllTransactions()()
         return response
     }
+
+    static async declareStartingAmount(shiftId,amount){
+        var response=await eel.declareStartingAmount(shiftId,amount)()
+        return response  
+    }
+    static async declareClosingAmount(shiftId,amount){
+        var response=await eel.declareClosingAmount(shiftId,amount)()
+        return response
+    }
 }
 class Shift{
     static declareStartingAmount(amount){
-        console.log("Starting amount is "+amount)
+        var shiftId=Auth.getShiftId()
+        if(amount!=null && amount!=undefined){
+            var response=FetchData.declareStartingAmount(shiftId,amount)
+            if(response['state']==true){
+                notificationBubble(response['message'],1,2)
+                return true
+            }else{
+                notificationBubble(response['message'],2,4)    
+                return false
+            }
+        }else{
+            notificationBubble("ShiftId or Starting amout is empty",2,4)
+        }
     }
     static declareClosingAmount(amount){
-        console.log("Closing amount is "+amount)
+        var shiftId=Auth.getShiftId()
+        if(amount!=null && amount!=undefined){
+            FetchData.declareClosingAmount(shiftId,amount)
+        }else{
+            notificationBubble("ShiftId or Closing amout is empty",2,4)
+        }
     }
     openShift(){}
     closeShift(){}
+    printXReport(){}
+    printZReport(){}
 }
 
 class Transaction{
@@ -462,15 +494,9 @@ class Transaction{
         document.getElementById("basketTotal").innerHTML=busketTotalPrice
     }
 }
-
-class Reports{
-    static generateXReport(){}
-    static generateZReport(){}
-}
-
 class Auth{
     static renderShiftId(){
-        var shiftId=localStorage.getItem('shiftId')
+        var shiftId=Auth.getShiftId()
         var x=document.getElementById("shiftId")
         x.innerHTML="Shift "+shiftId+" | "
     }
@@ -478,6 +504,12 @@ class Auth{
         var token=localStorage.getItem('token')
         var splitToken=token.split(':')
         return splitToken[splitToken.length-1]
+    }
+    static getShiftId(){
+        var shiftId=localStorage.getItem('shiftId')
+        if(shiftId!=null && shiftId!=undefined){
+            return shiftId
+        }else{return 'UnknownShiftId'}
     }
 }
 
