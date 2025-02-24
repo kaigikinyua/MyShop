@@ -260,18 +260,15 @@ class ShiftView:
         if(startingAmount>=0 and shiftId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,startingAmount=0).all()
-            if(len(shift)==1):
-                shift[0].startingAmount=startingAmount
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,startingAmount=-1).one_or_none()
+            if(shift!=None):
+                shift.startingAmount=startingAmount
                 session.commit()
                 session.close()
                 return True,'Declared starting amount'
-            elif(len(shift)>1):
-                Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose starting amount=0')
-                message=f'There is more than one shift with shift id {shiftId} whose starting amount=0'
-            elif(len(shiftId)==0):
-                Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose starting amount is 0')
-                message=f'There is no shift with the shift id {shiftId} whose starting amount is 0'
+            else:
+                session.close()
+                return False,f'No shift with shift id {shiftId} and starting amount {-1}'
         else:
             message=f'None type or non-negative type passed to Shift.declareStartingAmount(): statringAmount={startingAmount} shiftId={shiftId}'
             Logging.consoleLog('error',message)
@@ -283,19 +280,16 @@ class ShiftView:
         if(closingAmount>=0 and shiftId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,closingAmount=0).all()
+            shift=session.query(ShiftModel).filter_by(shiftId=shiftId,closingAmount=-1).one_or_none()
             message=''
-            if(len(shift)==1):
-                shift[0].closingAmount=closingAmount
+            if(shift!=None):
+                shift.closingAmount=closingAmount
                 session.commit()
                 session.close()
                 return True,'Declared Closing Amount'
-            elif(len(shift)>1):
-                Logging.consoleLog(f'There is more than one shift with shift id {shiftId} whose closing amount=0')
-                message=f'There is more than one shift with shift id {shiftId} whose closing amount=0'
-            elif(len(shiftId)==0):
-                Logging.consoleLog(f'There is no shift with the shift id {shiftId} whose closing amount is 0')
-                message=f'There is no shift with shift id {shiftId} whose closing amount=0'
+            else:
+                session.close()
+                return False,f'No shift with shift id {shiftId} and closing amount {-1}'
         else:
             message=f'None type or non-negative type passed to Shift.declareStartingAmount(): closingAmount={closingAmount} shiftId={shiftId}'
         return False,message
@@ -311,8 +305,8 @@ class ShiftView:
             shift=ShiftModel(
                 shiftId=shiftId,
                 shiftDate=sDate,
-                startingAmount=0,
-                closingAmount=0,
+                startingAmount=-1,
+                closingAmount=-1,
                 openningId=openningId,
                 closingId=0,
                 logins=1,
@@ -1081,8 +1075,8 @@ class SoldItemsView:
         if(tId!=None and len(soldItemsList)>0 and itemsCollected!=None):
             error=False
             message=""
+            pView=ProductsView()
             for item in soldItemsList:
-                pView=ProductsView()
                 product=pView.getProductByBarCode(item['barCode'])
                 if(product!=False):
                     soldItemState,soldItemMessage=self.addSoldItem(tId,product.id,product.barCode,item['quantity'],item["price"],itemsCollected)
@@ -1306,6 +1300,7 @@ class StockHistoryView:
         
     @staticmethod
     def addStockHistory(stockReceipt,stockAction,branchId,productId,barCode,quantity,authorId):
+        state=False
         message=''
         if(branchId!=None and productId!=None and barCode!=None and quantity!=None and authorId!=None):
             stockDelta=StockHistoryView.getDelta(stockAction,quantity)
@@ -1327,12 +1322,14 @@ class StockHistoryView:
                 session.add(product)
                 session.commit()
                 session.close()
+                state=True
+                message='Stock History added successfully'
             else:
                 message=f'There is no stock action by the name {stockAction} valid stock actions are {StockHistoryModel.stockActionList}'
         else:
             message='None type passed to StockHistoryView.addStockHistory()'
-            Logging.consoleLog('error',message)
-        return False,message
+        Logging.consoleLog('message',message)
+        return state,message
 
     @staticmethod
     def getStockHistory(startDate=0,endDate=0):

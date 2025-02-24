@@ -1,5 +1,5 @@
 from views import UserView,TransactionView,PaymentView
-from views import ProductsView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
+from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
 class User:
     def login(self,username,password):
@@ -98,11 +98,31 @@ class User:
 
 class Cashier(User):
 
-    def declareStartingAmount(startingAmount):
-        return True,'Declare Starting Amount Not implemented'
+    def declareStartingAmount(self,userId,shiftId,startingAmount):
+        auth=super().authUserLevelAction(userId,"cashier")
+        if(auth):
+            state=False
+            message=''        
+            if(shiftId!=None and startingAmount!=None):
+                state,message=ShiftView.declareStartingAmount(shiftId,startingAmount)
+            else:
+                message='None type passed to Cashier.declareStartingAmount()'
+        else:
+            message='User level permision Access Denied'
+        return state,message
 
-    def declareClosingAmount(closingAmount):
-        return True,'Declare Closing Amount Not implemented'
+    def declareClosingAmount(self,userId,shiftId,closingAmount):
+        auth=super().authUserLevelAction(userId,"cashier")
+        if(auth):
+            state=False
+            message=''        
+            if(shiftId!=None and closingAmount!=None):
+                state,message=ShiftView.declareClosingAmount(shiftId,closingAmount)
+            else:
+                message='None type passed to Cashier.declareClosingAmount()'
+        else:
+            message='User level permision Access Denied'
+        return state,message
     
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
@@ -149,7 +169,14 @@ class Cashier(User):
         pState,pMessage=payment.addPaymentList(paymentList,tId)
         sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
         if(tState and pState and sPState):
+            addStockToHist,addStockToHistmsg=self.addStockHistory(tId,'sale',tillId,busketList,cashierId)
+            reducedStock,reducedStockmsg=self.reduceStockAfterSale(busketList,cashierId)
+            if(addStockToHist and reducedStock):
                 return True
+            else:
+                Logging.consoleLog('error',addStockToHistmsg)
+                Logging.consoleLog('error',reducedStockmsg)
+                return False
         else:
             logMessage=f'''
                 RollBack required while making sale busketList={busketList} paymentList={paymentList} tillId={tillId} cashierId={cashierId} customerId={custId}"\n
@@ -197,22 +224,76 @@ class Cashier(User):
         Logging.consoleLog('message',message)
         return state,message
     
+    def addStockHistory(self,receipt,stockAction,branchId,busketList,userId):
+        state=False
+        message=''
+        if(receipt!=None and stockAction!=None and branchId!=None and busketList!=None and userId!=None):
+            pView=ProductsView()
+            error=False
+            sHMessage=''
+            for i in busketList:
+                product=pView.getProductByBarCode(i['barCode'])
+                sHState,sHMessage=StockHistoryView.addStockHistory(receipt,stockAction,branchId,product.id,product.barCode,i['quantity'],userId)
+                if(sHState==False):
+                    error=True
+            if(error==True):
+                message=sHMessage
+            else:
+                state=True
+        else:
+            message='None type passed to Cashier.addStockHistory()'
+        return state,message
+
     def reduceStockAfterSale(self,busketList,cashierId):
-        pass
+        state=False
+        message=''
+        if(busketList!=None and cashierId!=None):
+            sV=StockView()
+            pView=ProductsView()
+            error=False
+            for i in busketList:
+                product=pView.getProductByBarCode(i['barCode'])
+                removedItem,rmessage=sV.removeItems(cashierId,product.id,product.barCode,i['quantity'])
+                if(removedItem!=True):
+                    error=True
+                    message=rmessage
+            if(error==False):
+                state=True
+                message='removed stock after sale'
+        else:
+            message='None type passed to Cashier.reduceStockAfterSale()'
+        return state,message
 
-    def addStockHistory(self,receipt,stockAction,branchId,productId,barCode,quantity,userId):
-        pass
-
-    def receiveStock(items,uid):
-        pass
-
-    def stockTake():
-        pass
+    def receiveStock(self,busketList,cashierId):
+        state=False
+        message=''
+        if(busketList!=None and cashierId!=None):
+            sV=StockView()
+            pView=ProductsView()
+            error=False
+            for i in busketList:
+                product=pView.getProductByBarCode(i['barCode'])
+                removedItem,rmessage=sV.addItems(cashierId,product.id,product.barCode,i['quantity'])
+                if(removedItem!=True):
+                    error=True
+                    message=rmessage
+            if(error==False):
+                state=True
+                message='received stock'
+        else:
+            message='None type passed to Cashier.receiveStock()'
+        return state,message
 
     def genXReport():
         pass
 
     def genZReport():
+        pass
+
+    def genCreditReport():
+        pass
+    
+    def stockTake():
         pass
 
 class Admin(Cashier):
@@ -277,7 +358,7 @@ class Admin(Cashier):
         pass
 
     #admin stock actions
-    def addStock():
+    def editStock(self):
         pass
 
     def deleteStock():
