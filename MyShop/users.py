@@ -268,24 +268,28 @@ class Cashier(User):
             message='None type passed to Cashier.reduceStockAfterSale()'
         return state,message
 
-    def receiveStock(self,busketList,cashierId):
+    def receiveStock(self,cashierId,busketList):
         state=False
         message=''
-        if(busketList!=None and cashierId!=None):
-            sV=StockView()
-            pView=ProductsView()
-            error=False
-            for i in busketList:
-                product=pView.getProductByBarCode(i['barCode'])
-                removedItem,rmessage=sV.addItems(cashierId,product.id,product.barCode,i['quantity'])
-                if(removedItem!=True):
-                    error=True
-                    message=rmessage
-            if(error==False):
-                state=True
-                message='received stock'
+        auth=super().authUserLevelAction(cashierId,'cashier')
+        if(auth):
+            if(busketList!=None and cashierId!=None):
+                sV=StockView()
+                pView=ProductsView()
+                error=False
+                for i in busketList:
+                    product=pView.getProductByBarCode(i['barCode'])
+                    removedItem,rmessage=sV.addItems(cashierId,product.id,product.barCode,i['quantity'])
+                    if(removedItem!=True):
+                        error=True
+                        message=rmessage
+                if(error==False):
+                    state=True
+                    message='received stock'
+            else:
+                message='None type passed to Cashier.receiveStock()'
         else:
-            message='None type passed to Cashier.receiveStock()'
+            message='Access Denied User level not permited to receive stock'
         return state,message
 
     def genXReport():

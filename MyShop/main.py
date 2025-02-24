@@ -64,18 +64,18 @@ class FetchData:
 class CashierActions:
 
     @staticmethod
-    def declareStartingAmount(shiftId,startingAmount):
+    def declareStartingAmount(userId,shiftId,startingAmount):
         c=Cashier()
-        state,message=c.declareStartingAmount(shiftId,startingAmount)
+        state,message=c.declareStartingAmount(userId,shiftId,startingAmount)
         if(state):
             return {'state':True,'message':message}
         else:
             return {'state':False,'message':message}
         
     @staticmethod
-    def declareClosingAmount(shiftId,closingAmount):
+    def declareClosingAmount(userId,shiftId,closingAmount):
         c=Cashier()
-        state,message=c.declareClosingAmount(shiftId,closingAmount)
+        state,message=c.declareClosingAmount(userId,shiftId,closingAmount)
         if(state):
             return {'state':True,'message':message}
         else:
@@ -87,7 +87,7 @@ class CashierActions:
         c.payCreditSale(tId,custId,amount,paymentList)
 
     @staticmethod
-    def receiveStock():
+    def receiveStock(userId,busketList):
         pass
 
     @staticmethod
