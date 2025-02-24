@@ -349,25 +349,29 @@ class Tests_PaymentView(unittest.TestCase):
         paymentTime=FormatTime.now()
         p=PaymentView()
 
-        for payMent in self.all_payments:
-            rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],tId,payMent['tNum'],paymentTime)
-            if(rslt==False):
-                print(f'Payment failed {payMent} -> {message}')
+        for payMentList in self.all_payments:
+            for payMent in payMentList:
+                rslt,message=p.addPayment(payMent['pMethod'],payMent['pAmount'],tId,payMent['tNum'],paymentTime)
+                if(rslt==False):
+                    print(f'Payment failed {payMent} -> {message}')
         payments=p.fetchTransactionPayments('0')
         TestCase.assertGreaterEqual(self,len(payments),0)
     
-    def test_fetchAllPayments(self):
+    def test_fetchAllPaymentsWithinPeriod(self):
         p1={'startTime':FormatTime.toTimeStamp(2024,10,3,0,0,0),'endtime':FormatTime.now()}
         #p2={'startTime':[2024,10,3,0,0,0],'endtime':FormatTime.now()}
         p=PaymentView()
-        allTransactions=p.fetchAllPayments(None,None)
-        rangeTransactions=p.fetchAllPayments(p1['startTime'],p1['endtime'])
+        allTransactions=p.fetchAllPaymentsWithinPeriod(None,None)
+        rangeTransactions=p.fetchAllPaymentsWithinPeriod(p1['startTime'],p1['endtime'])
         TestCase.assertEqual(self,len(allTransactions),len(rangeTransactions))        
 
     def test_deletePayments(self):
         pass
 
 class Tests_CustomerCreditView(unittest.TestCase):
+
+    def test_payCredit(self):
+        pass
 
     def test_addCredit(self):
         pass
@@ -387,6 +391,17 @@ class Tests_CustomerCreditView(unittest.TestCase):
     def test_fetchCreditByCustomer(self):
         pass
     
+class Tests_StockView(unittest.TestCase):
+    pass
+
+class StockHistoryView(unittest.TestCase):
+    pass
+
+class EmptiesView(unittest.TestCase):
+    pass
+
+class BranchesView(unittest.TestCase):
+    pass
 
 if __name__=='__main__':
     unittest.main()

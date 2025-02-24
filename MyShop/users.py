@@ -170,19 +170,40 @@ class Cashier(User):
             Logging.consoleLog('err',rollBackMessage)
             return False,rollBackMessage
     
+    def checkForCreditInPayMentList(self,paymentList):
+        if(paymentList!=None):
+            for payment in paymentList:
+                if(payment['paymentType']=='credit'):
+                    return True
+        return False
+
+    def payCreditSale(self,tId,custId,creditId,paymentList):
+        state=False
+        message=''
+        if(tId!=None and custId!=None and creditId!=None and paymentList!=None):
+            creditInPaymentList=self.checkForCreditInPayMentList(paymentList)
+            if(creditInPaymentList==False):
+                c=CustomerCreditView()
+                creditState,message=c.payCredit(custId,creditId,tId,paymentList)
+                if(creditState==True):
+                    state=True
+                    message='Paid credit successfully'
+                else:
+                    message='Error while paying credit'
+            else:
+                message='You cannot pay credit with another credit.Please use Mpesa,Bank or Cash'
+        else:
+            message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCredit()'
+        Logging.consoleLog('message',message)
+        return state,message
+    
     def reduceStockAfterSale(self,busketList,cashierId):
         pass
 
     def addStockHistory(self,receipt,stockAction,branchId,productId,barCode,quantity,userId):
         pass
-    
-    def payCreditSale(self,transactionId,amountPayed,paymentList):
-        pass
 
     def receiveStock(items,uid):
-        pass
-
-    def despatchStock(items,uid):
         pass
 
     def stockTake():
@@ -252,14 +273,16 @@ class Admin(Cashier):
             message='You do not have the required access level to Admin.deleteProduct()'
         return state,message
 
-    def updateProduct():
+    def updateProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
         pass
 
     #admin stock actions
     def addStock():
         pass
+
     def deleteStock():
         pass
+    
     def updateStock():
         pass
 
