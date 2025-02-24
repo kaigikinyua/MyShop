@@ -204,23 +204,27 @@ class Cashier(User):
                     return True
         return False
 
-    def payCreditSale(self,tId,custId,creditId,paymentList):
+    def payCreditSale(self,userId,tId,custId,creditId,paymentList):
         state=False
         message=''
-        if(tId!=None and custId!=None and creditId!=None and paymentList!=None):
-            creditInPaymentList=self.checkForCreditInPayMentList(paymentList)
-            if(creditInPaymentList==False):
-                c=CustomerCreditView()
-                creditState,message=c.payCredit(custId,creditId,tId,paymentList)
-                if(creditState==True):
-                    state=True
-                    message='Paid credit successfully'
+        auth=super().authUserLevelAction(userId,'cashier')
+        if(auth):
+            if(tId!=None and custId!=None and creditId!=None and paymentList!=None):
+                creditInPaymentList=self.checkForCreditInPayMentList(paymentList)
+                if(creditInPaymentList==False):
+                    c=CustomerCreditView()
+                    creditState,message=c.payCredit(custId,creditId,tId,paymentList)
+                    if(creditState==True):
+                        state=True
+                        message='Paid credit successfully'
+                    else:
+                        message='Error while paying credit'
                 else:
-                    message='Error while paying credit'
+                    message='You cannot pay credit with another credit.Please use Mpesa,Bank or Cash'
             else:
-                message='You cannot pay credit with another credit.Please use Mpesa,Bank or Cash'
+                message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCredit()'
         else:
-            message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCredit()'
+            message='Access Denied user level not permited to payCreditSale'
         Logging.consoleLog('message',message)
         return state,message
     
@@ -292,7 +296,7 @@ class Cashier(User):
 
     def genCreditReport():
         pass
-    
+
     def stockTake():
         pass
 
