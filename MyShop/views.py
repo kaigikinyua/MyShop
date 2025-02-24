@@ -361,6 +361,7 @@ class ProductsView:
                 session.add(p)
                 session.commit()
                 return True
+            Logging.consoleLog('error','Id or BarCode collision detected while trying to add product')
             return False
         else:
             return False
@@ -416,10 +417,12 @@ class ProductsView:
             if(p!=None):
                 session.delete(p)
                 session.commit()
+                session.close()
+                Logging.consoleLog('warn',f'Deleted product with pid {pId}')
+                return True
             else:
-                return False,f'There is no product that has product id {pId}'
-            Logging.consoleLog('warn',f'Deleted product with pid {pId}')
-            return True,''
+                Logging.consoleLog(f'There is no product that has product id {pId}')
+            return False,''
         else:
             return False,'Product id is empty Pid={pId}'
 

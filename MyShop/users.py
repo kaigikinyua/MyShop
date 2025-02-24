@@ -129,9 +129,6 @@ class Cashier(User):
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
         return False,"User level is not cashier"
 
-    def reduceStockAfterSale(self,busketList,cashierId):
-        pass
-
     def maximumCustomerCredit(self,customerId):
         if(customerId=='null'):
             return False
@@ -172,6 +169,12 @@ class Cashier(User):
         else:
             Logging.consoleLog('err',rollBackMessage)
             return False,rollBackMessage
+    
+    def reduceStockAfterSale(self,busketList,cashierId):
+        pass
+
+    def addStockHistory(self,receipt,stockAction,branchId,productId,barCode,quantity,userId):
+        pass
     
     def payCreditSale(self,transactionId,amountPayed,paymentList):
         pass
@@ -216,10 +219,39 @@ class Admin(Cashier):
         pass
 
     #admin product actions
-    def addProduct():
-        pass
-    def deleteProduct():
-        pass
+    def addProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+        auth=super().authUserLevelAction(uid,'admin')
+        message=''
+        state=False
+        if(auth):
+            p=ProductsView()
+            addedProduct=p.addProduct(pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers)
+            if(addedProduct):
+                state=True
+                message='Added Product successfully'
+            else:
+                message='Error while adding product'
+        else:
+            message='You do not have the required access level to Admin.addProduct()'
+        Logging.consoleLog('message',message)
+        return state,message
+        
+    def deleteProduct(self,uid,pid):
+        auth=super().authUserLevelAction(uid,'admin')
+        state=False
+        message=''
+        if(auth):
+            p=ProductsView()
+            deletedProduct=p.deleteProduct(pid)
+            if(deletedProduct==True):
+                state=True
+                message='Product deleted succussfully'
+            else:
+                message='Error while deleting product'
+        else:
+            message='You do not have the required access level to Admin.deleteProduct()'
+        return state,message
+
     def updateProduct():
         pass
 
