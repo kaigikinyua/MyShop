@@ -255,7 +255,7 @@ class ShiftView:
         return shiftId
 
     @staticmethod
-    def declareStartingAmount(startingAmount,shiftId):
+    def declareStartingAmount(shiftId,startingAmount):
         message=''
         if(startingAmount>=0 and shiftId!=None):
             Session=sessionmaker(bind=engine)
@@ -275,7 +275,7 @@ class ShiftView:
         return False,message
 
     @staticmethod
-    def declareClosingAmount(closingAmount,shiftId):
+    def declareClosingAmount(shiftId,closingAmount):
         message=''
         if(closingAmount>=0 and shiftId!=None):
             Session=sessionmaker(bind=engine)

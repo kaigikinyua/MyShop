@@ -65,21 +65,28 @@ class CashierActions:
 
     @staticmethod
     def declareStartingAmount(userId,shiftId,startingAmount):
-        c=Cashier()
-        state,message=c.declareStartingAmount(userId,shiftId,startingAmount)
-        if(state):
-            return {'state':True,'message':message}
-        else:
-            return {'state':False,'message':message}
+        if(userId!=None and shiftId!=None and startingAmount!=None):
+            Logging.consoleLog('message',int(startingAmount))
+            c=Cashier()
+            sA=int(startingAmount)
+            state,message=c.declareStartingAmount(userId,shiftId,sA)
+            if(state==True):
+                return {'state':True,'message':message}
+            else:
+                return {'state':False,'message':message}
+        return {'state':False,'message':'Please fill in all the fields'}
         
     @staticmethod
     def declareClosingAmount(userId,shiftId,closingAmount):
-        c=Cashier()
-        state,message=c.declareClosingAmount(userId,shiftId,closingAmount)
-        if(state):
-            return {'state':True,'message':message}
+        if(userId!=None and shiftId!=None and closingAmount!=None):   
+            c=Cashier()
+            state,message=c.declareClosingAmount(userId,shiftId,int(closingAmount))
+            if(state==True):
+                return {'state':True,'message':message}
+            else:
+                return {'state':False,'message':message}
         else:
-            return {'state':False,'message':message}
+            return {'state':False,'message':'Please fill in all the fields'}
 
     @staticmethod
     def payCustomerCredit(userId,tId,custId,creditId,paymentList):

@@ -240,6 +240,7 @@ function displayStartingAmount(){
     submit.onclick=(()=>{
         var sAmount=document.getElementById("sAmountDeclaration").value
         if(sAmount!=undefined && sAmount!=null && sAmount!="" && sAmount>=0){
+            sAmount=parseInt(sAmount)
             var result=Shift.declareStartingAmount(sAmount)
             if(result){
                 closePopUp()
@@ -280,7 +281,7 @@ function displayClosingAmount(){
     submit.onclick=(()=>{
         var cAmount=document.getElementById("cAmountDeclaration").value
         if(cAmount!=undefined && cAmount!=null && cAmount!="" && cAmount>=0){
-            Shift.declareClosingAmount(sAmount)
+            Shift.declareClosingAmount(cAmount)
             closePopUp()
             notificationBubble("Declared closing amount",1,3)
         }else{
@@ -390,24 +391,26 @@ class FetchData{
         return response
     }
 
-    static async declareStartingAmount(shiftId,amount){
-        var response=await eel.declareStartingAmount(shiftId,amount)()
+    static async declareStartingAmount(userId,shiftId,amount){
+        var response=await eel.declareStartingAmount(userId,shiftId,amount)()
         return response  
     }
-    static async declareClosingAmount(shiftId,amount){
-        var response=await eel.declareClosingAmount(shiftId,amount)()
+    static async declareClosingAmount(userId,shiftId,amount){
+        var response=await eel.declareClosingAmount(userId,shiftId,amount)()
         return response
     }
 }
 class Shift{
-    static declareStartingAmount(amount){
+    static async declareStartingAmount(amount){
         var shiftId=Auth.getShiftId()
         if(amount!=null && amount!=undefined){
-            var response=FetchData.declareStartingAmount(shiftId,amount)
+            var userId=getUserId()
+            var response=await FetchData.declareStartingAmount(userId,shiftId,amount)
             if(response['state']==true){
                 notificationBubble(response['message'],1,2)
                 return true
             }else{
+                console.log(response['message'])
                 notificationBubble(response['message'],2,4)    
                 return false
             }
@@ -418,7 +421,8 @@ class Shift{
     static declareClosingAmount(amount){
         var shiftId=Auth.getShiftId()
         if(amount!=null && amount!=undefined){
-            FetchData.declareClosingAmount(shiftId,amount)
+            var userId=getUserId()
+            FetchData.declareClosingAmount(userId,shiftId,amount)
         }else{
             notificationBubble("ShiftId or Closing amout is empty",2,4)
         }

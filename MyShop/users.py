@@ -100,9 +100,9 @@ class Cashier(User):
 
     def declareStartingAmount(self,userId,shiftId,startingAmount):
         auth=super().authUserLevelAction(userId,"cashier")
-        if(auth):
-            state=False
-            message=''        
+        state=False
+        message='' 
+        if(auth):       
             if(shiftId!=None and startingAmount!=None):
                 state,message=ShiftView.declareStartingAmount(shiftId,startingAmount)
             else:
