@@ -281,8 +281,10 @@ function displayClosingAmount(){
     submit.onclick=(()=>{
         var cAmount=document.getElementById("cAmountDeclaration").value
         if(cAmount!=undefined && cAmount!=null && cAmount!="" && cAmount>=0){
-            Shift.declareClosingAmount(cAmount)
-            closePopUp()
+            var state=Shift.declareClosingAmount(cAmount)
+            if(state==true){
+                closePopUp()
+            }
             notificationBubble("Declared closing amount",1,3)
         }else{
             notificationBubble("Please fill in the closing amount",2,3)
@@ -300,10 +302,10 @@ function displayClosingAmount(){
     popUpPanel.appendChild(cancel)
 }
 
+function registerCustomerPanel(){
 
-function addItemToItemCode(barCode){
-    
 }
+
 
 class Render{
     static renderItems(items){
@@ -422,7 +424,14 @@ class Shift{
         var shiftId=Auth.getShiftId()
         if(amount!=null && amount!=undefined){
             var userId=getUserId()
-            FetchData.declareClosingAmount(userId,shiftId,amount)
+            var response=FetchData.declareClosingAmount(userId,shiftId,amount)
+            if(response['state']==true){
+                notificationBubble(response['message'],1,2)
+                return true
+            }else{
+                notificationBubble(response['message'],2,4)
+                return false
+            }
         }else{
             notificationBubble("ShiftId or Closing amout is empty",2,4)
         }
