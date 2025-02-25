@@ -422,18 +422,18 @@ class ProductsView:
 
 class CustomerView:
     def addCustomer(self,custName,phoneNumber):
-        if(len(custName)>0 and len(phoneNumber)>0):
+        if(custName!=None and phoneNumber!=None):
             if(self.customerAlreadyExists(phoneNumber)==False):
                 Session=sessionmaker(bind=engine)
                 session=Session()
                 customer=CustomerModel(name=custName,phoneNumber=phoneNumber,totalCreditOwed=0)
                 session.add(customer)
                 session.commit()
-                #session.close()
-                return True
+                session.close()
+                return True,'Customer Added successfully'
             return False,'Customer Phone Number Already Exists'
         else:
-            return False
+            return False,'None type passed to CustomerView.addCustomer()'
         
     def getCustomer(self,custId):
         if(custId!=None):

@@ -1,4 +1,4 @@
-from views import UserView,TransactionView,PaymentView
+from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
 class User:
@@ -292,6 +292,11 @@ class Cashier(User):
             message='Access Denied User level not permited to receive stock'
         return state,message
 
+    def registerCustomer(self,custName,custPhone):
+        c=CustomerView()
+        state,message=c.addCustomer(custName,custPhone)
+        return state,message
+    
     def genXReport(self,userId):
         pass
 

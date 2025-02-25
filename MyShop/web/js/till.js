@@ -232,6 +232,7 @@ function displayStartingAmount(){
     var sAmount=document.createElement("input")
     sAmount.placeholder='Starting Amount'
     sAmount.id="sAmountDeclaration"
+    sAmount.type='number'
     var submit=document.createElement("button")
     submit.innerHTML="Submit"
     //submit.classList.add("submit")
@@ -273,6 +274,7 @@ function displayClosingAmount(){
     var cAmount=document.createElement("input")
     cAmount.placeholder='Closing Amount'
     cAmount.id="cAmountDeclaration"
+    cAmount.type='number'
     var submit=document.createElement("button")
     submit.innerHTML="Submit"
     //submit.classList.add("submit")
@@ -303,7 +305,53 @@ function displayClosingAmount(){
 }
 
 function registerCustomerPanel(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Register Customer"
+    
+    var inputs=document.createElement('div')
+    var custNameInput=document.createElement("input")
+    custNameInput.placeholder='Customer Name'
+    custNameInput.id="custNameInput"
+    
+    var custPhoneInput=document.createElement("input")
+    custPhoneInput.placeholder='Customer Phone Number'
+    custPhoneInput.type='number'
+    custPhoneInput.id='custPhoneInput'
+    inputs.appendChild(custNameInput)
+    inputs.appendChild(custPhoneInput)
 
+    var submit=document.createElement("button")
+    submit.innerHTML="Submit"
+    //submit.classList.add("submit")
+    submit.classList.add("minLenBtn")
+    submit.classList.add("danger")
+    submit.onclick=(()=>{
+        var cName=document.getElementById('custNameInput').value
+        var cPhone=document.getElementById('custPhoneInput').value
+        if(cName!=undefined && cName!=null && cPhone!=undefined && cPhone!=null){
+            var state=Customer.registerCustomer(cName,cPhone)
+            if(state==true){
+                closePopUp()
+            }
+        }else{
+            notificationBubble('Please fill in the customer name and phone number',2,4)
+        }
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(inputs)
+    popUpPanel.appendChild(submit)
+    popUpPanel.appendChild(cancel)
 }
 
 
@@ -441,6 +489,20 @@ class Shift{
     printXReport(){}
     printZReport(){}
 }
+class Customer{
+    static async registerCustomer(custName,custPhone){
+        var response=await eel.registerCustomer(custName,custPhone)()
+        if(response['state']==true){
+            notificationBubble(response['message'],1,2)
+            closePopUp()
+            return true
+        }else{
+            notificationBubble(response['message'],2,4)
+            return false
+        }
+    }
+}
+
 
 class Transaction{
     static getTransaction(transactionId){}

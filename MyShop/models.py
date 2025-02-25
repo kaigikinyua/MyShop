@@ -55,6 +55,7 @@ class CustomerModel(Base):
     name=Column(String)
     phoneNumber=Column(String)
     totalCreditOwed=Column(Integer,default=0)
+    #registrationDate=Column(Float)
 ##transactions
 class TransactionModel(Base):
     __tablename__='Transaction'

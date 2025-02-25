@@ -89,6 +89,17 @@ class CashierActions:
             return {'state':False,'message':'Please fill in all the fields'}
 
     @staticmethod
+    def registerCustomer(custName,custPhone):
+        state=False
+        message=''
+        if(custName!=None and custPhone!=None):
+            c=Cashier()
+            state,message=c.registerCustomer(custName,custPhone)
+        else:
+            message='Please fill in the customer name and customer phone'
+        return {'state':state,'message':message}
+    
+    @staticmethod
     def payCustomerCredit(userId,tId,custId,creditId,paymentList):
         c=Cashier()
         state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
@@ -162,5 +173,6 @@ if __name__=="__main__":
     
     eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
-    
+    eel._expose("registerCustomer",cashierActions.registerCustomer)
+
     eel.start("login.html",port=4040)
