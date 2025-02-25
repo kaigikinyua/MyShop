@@ -292,16 +292,16 @@ class Cashier(User):
             message='Access Denied User level not permited to receive stock'
         return state,message
 
-    def genXReport():
+    def genXReport(self,userId):
         pass
 
-    def genZReport():
+    def genZReport(self,userId):
         pass
 
-    def genCreditReport():
+    def genCreditReport(self,userId):
         pass
 
-    def stockTake():
+    def stockTake(self,userId):
         pass
 
 class Admin(Cashier):

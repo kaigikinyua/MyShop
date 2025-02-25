@@ -82,12 +82,23 @@ class CashierActions:
             return {'state':False,'message':message}
 
     @staticmethod
-    def payCustomerCredit(tId,custId,amount,paymentList):
+    def payCustomerCredit(userId,tId,custId,creditId,paymentList):
         c=Cashier()
-        c.payCreditSale(tId,custId,amount,paymentList)
-
+        state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
+        return {'state':state,'message':message}
+    
     @staticmethod
     def receiveStock(userId,busketList):
+        c=Cashier()
+        state,message=c.receiveStock(userId,busketList)
+        return {'state':state,'message':message}
+    
+    @staticmethod
+    def genXReport(shiftId):
+        pass
+
+    @staticmethod
+    def genZReport(shiftId):
         pass
 
     @staticmethod
@@ -96,14 +107,6 @@ class CashierActions:
 
     @staticmethod
     def despatchStock():
-        pass
-
-    @staticmethod
-    def genXReport(shiftId):
-        pass
-
-    @staticmethod
-    def genZReport(shiftId):
         pass
 
 class AdminActions:
