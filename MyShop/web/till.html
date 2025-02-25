@@ -46,8 +46,7 @@
                 <h3>Customer Service Desk</h3>
                 <div class="dash">
                     <button class="success" onclick="registerCustomerPanel()">Register</button>
-                    <button class="success">Check credit</button>
-                    <button class="cool">Transactions</button>
+                    <button class="success" onclick="checkCustomerCredit()">Check credit</button>
                     <button class="danger">Pay Credit</button>
                 </div>
             </div>
@@ -56,8 +55,8 @@
                 <div class="dash">
                     <button class="minLenBtn danger" onclick="displayStartingAmount()">Starting Amount</button>
                     <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
-                    <button class="minLenBtn cool">Reports</button>
-                    <button class="minLenBtn cool">Sales</button>
+                    <button class="minLenBtn cool" onclick="displayReports()">Reports</button>
+                    <button class="minLenBtn cool" onclick="displaySales()" >Sales</button>
                     <button class="minLenBtn success" onclick="logOut()">LogOut</button>
                     <button class="minLenBtn danger">Close Shift</button>
                 </div>

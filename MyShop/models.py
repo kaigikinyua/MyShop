@@ -137,7 +137,6 @@ class BranchesModel(Base):
 class StockModel(Base):
     __tablename__='Stock'
     stockId=Column(Integer,primary_key=True)
-    branchId=Column(Integer)
     productId=Column(String)
     barCode=Column(String)
     quantity=Column(String)

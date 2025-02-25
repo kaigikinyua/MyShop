@@ -1,7 +1,8 @@
+import random
 import sys
-from views import UserView,ProductsView,SaleSettingsView,BranchesView
+from views import StockView,UserView,ProductsView,SaleSettingsView,BranchesView
 from settings import Settings
-
+from utils import FormatTime
 class UsersSetUp:
     @staticmethod
     def createUsers():
@@ -51,6 +52,16 @@ class ProductsSetUp:
     def removeProducts():
         pass
 
+class StockSetUp:
+    @staticmethod
+    def addStock():
+        i=1
+        time=FormatTime.now()
+        for p in ProductsSetUp.products:
+            x=StockView()
+            x.addProductToStock(i,p['barCode'],random.randrange(10,1000),2,time)
+            i=i+1
+
 class SaleSettingsSetUp:
     
     @staticmethod
@@ -91,6 +102,8 @@ def addAllSetUps():
     BranchesSetUp.addBranches(BranchesSetUp.branches)
     ProductsSetUp.createProducts()
     SaleSettingsSetUp.addSalesSettings()
+    StockSetUp.addStock()
+
 def backupdb():
     pass
 

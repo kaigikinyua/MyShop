@@ -455,8 +455,10 @@ class CustomerView:
     def getAllCustomers(self):
         Session=sessionmaker(bind=engine)
         session=Session()
-        return session.query(CustomerModel).all()
-
+        customers=session.query(CustomerModel).all()
+        session.close()
+        return customers
+    
     def updateCustomerDetails(self,custId,custName,phoneNumber):
         if(custId!=None and len(custName)>0 and len(phoneNumber)>0):
             Session=sessionmaker(bind=engine)
@@ -513,8 +515,9 @@ class TransactionView:
                 session=Session()
                 session.add(t)
                 session.commit()
+                transactionId=t.transactionId
                 session.close()
-                return True,t.transactionId
+                return True,transactionId
             else:
                 return False,"Either saleamount or paidamount could not be typecasted to integer"
         else:
@@ -1189,16 +1192,16 @@ class SaleSettingsView:
 
 class StockView:
 
-    def addProductToStock(self,branchId,productId,barCode,quantity,authorId,time):
+    def addProductToStock(self,productId,barCode,quantity,authorId,time):
+        state=False
         message=''
-        if(branchId!=None and productId!=None and barCode!=None and  quantity!=None and authorId!=None and time!=None):
+        if(productId!=None and barCode!=None and  quantity!=None and authorId!=None and time!=None):
             pByBarCode=self.getProductByBarCode(barCode)
             pByProductId=self.getProductById(productId)
             if(pByBarCode==None and pByProductId==None):
                 Session=sessionmaker(bind=engine)
                 session=Session()
-                product=ProductsModel(
-                    branchId=branchId,
+                product=StockModel(
                     productId=productId,
                     barCode=barCode,
                     quantity=quantity,
@@ -1208,12 +1211,14 @@ class StockView:
                 session.add(product)
                 session.commit()
                 session.close()
+                state=True
+                message='Added product'
             else:
                 message='Product already exists hence could not be added'
         else:
             message='None type passed to StockView.addProductToStock()'
             Logging.consoleLog('error',message)
-        return False,message
+        return state,message
     
     def getProductByBarCode(self,barCode):
         if(barCode!=None):
@@ -1311,7 +1316,7 @@ class StockHistoryView:
                 product=StockHistoryModel(
                     stockReceipt=stockReceipt,
                     stockAction=StockHistoryModel.stockActionList[stockAction],
-                    stockDelta=StockHistoryModel.getDelta(stockAction,quantity),
+                    stockDelta=StockHistoryView.getDelta(stockAction,quantity),
                     userId=authorId,
                     branchId=branchId,
                     productId=productId,

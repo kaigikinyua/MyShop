@@ -96,6 +96,19 @@ class User:
         else:
             return []
 
+    def fetchAllCustomers(self):
+        c=CustomerView()
+        customers=c.getAllCustomers()
+        customersList=[]
+        for customer in customers:
+            customersList.append({
+                "id":customer.id,
+                "name":customer.name,
+                "phoneNum":customer.phoneNumber,
+                "creditOwed":customer.totalCreditOwed
+                })
+        return customersList
+
 class Cashier(User):
 
     def declareStartingAmount(self,userId,shiftId,startingAmount):

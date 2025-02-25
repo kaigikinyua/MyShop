@@ -60,6 +60,12 @@ class FetchData:
         transactionList=u.fetchAllTransactions()
         Logging.consoleLog('message',f'Getting All Transactions {transactionList}')
         return {'transactions':transactionList}
+    
+    @staticmethod
+    def fetchAllCustomers():
+        c=User()
+        customers=c.fetchAllCustomers()
+        return {'state':True,'customers':customers}
 
 class CashierActions:
 
@@ -170,7 +176,8 @@ if __name__=="__main__":
     # #all functions
     eel._expose("getProductsAndBranches",fetchData.getProductsAndBranches)
     eel._expose("getAllTransactions",fetchData.getAllTransactions)
-    
+    eel._expose("getAllCustomers",fetchData.fetchAllCustomers)
+
     eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
     eel._expose("registerCustomer",cashierActions.registerCustomer)

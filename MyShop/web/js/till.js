@@ -353,6 +353,86 @@ function registerCustomerPanel(){
     popUpPanel.appendChild(submit)
     popUpPanel.appendChild(cancel)
 }
+async function checkCustomerCredit(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Check Customer Credit"
+    
+    var custSearchBox=document.createElement('input')
+    custSearchBox.placeholder='Customer Name or Customer id'
+
+    var customersBox=document.createElement('div')
+    customersBox.classList.add('listView')
+    var customers=await Customer.fetchAllCustomers()
+    console.log(customers)
+    customers.forEach(cust=>{
+        var custTile=document.createElement('div')
+        custTile.innerHTML='<h3>'+cust['name']+'</h3><small>Phone '+cust['phoneNum']+'</small><small> Credit Taken = '+cust['creditOwed']+'</small>'
+        custTile.classList.add('item')
+        custTile.addEventListener('click',()=>{
+            console.log(cust)
+        })
+        customersBox.appendChild(custTile)
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(custSearchBox)
+    popUpPanel.appendChild(customersBox)
+    popUpPanel.appendChild(cancel)
+}
+function displayReports(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Reports"
+    
+    var buttonsContainer=document.createElement("div")
+    var xReportBtn=document.createElement('button')
+    var zReportBtn=document.createElement('button')
+    var creditReportBtn=document.createElement('button')
+    var emptiesReportBnt=document.createElement('button')
+
+    xReportBtn.classList.add('cool')
+    zReportBtn.classList.add('danger')
+    creditReportBtn.classList.add('success')
+    emptiesReportBnt.classList.add('cool')
+
+    xReportBtn.innerHTML='X Report'
+    zReportBtn.innerHTML='Z Report'
+    creditReportBtn.innerHTML='Credit Report'
+    emptiesReportBnt.innerHTML='Empties Report'
+
+    var buttonsList=[xReportBtn,zReportBtn,creditReportBtn,emptiesReportBnt]
+    buttonsList.forEach(btn=>{
+        btn.classList.add('minLenBtn')
+        buttonsContainer.appendChild(btn)
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(buttonsContainer)
+    popUpPanel.appendChild(cancel)
+}
+function displaySales(){
+    
+}
+
 
 
 class Render{
@@ -450,6 +530,7 @@ class FetchData{
         return response
     }
 }
+
 class Shift{
     static async declareStartingAmount(amount){
         var shiftId=Auth.getShiftId()
@@ -489,6 +570,7 @@ class Shift{
     printXReport(){}
     printZReport(){}
 }
+
 class Customer{
     static async registerCustomer(custName,custPhone){
         var response=await eel.registerCustomer(custName,custPhone)()
@@ -500,6 +582,14 @@ class Customer{
             notificationBubble(response['message'],2,4)
             return false
         }
+    }
+    static async fetchAllCustomers(){
+        var response=await eel.getAllCustomers()()
+        var state=response['state']
+        if(state==true){
+            var customers=response['customers']
+            return customers
+        }else{return []}    
     }
 }
 
