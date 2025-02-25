@@ -1,7 +1,8 @@
+import random
 import sys
-from views import UserView,ProductsView,SaleSettingsView
+from views import StockView,UserView,ProductsView,SaleSettingsView,BranchesView
 from settings import Settings
-
+from utils import FormatTime
 class UsersSetUp:
     @staticmethod
     def createUsers():
@@ -15,6 +16,21 @@ class UsersSetUp:
     @staticmethod
     def removeUsers():
         pass
+
+class BranchesSetUp:
+    branches=[
+            {'name':'MainWareHouse','loc':'Ngara','phone':'074GASDGSL','tillNumb':'62467FAS','mName':'TestUser','mPhone':'011FAKJSHFASS'},
+            {'name':'KBX 101k','loc':'Nairobi','phone':'0745XDFAGAS','tillNumb':'123XYZ','mName':'James Kuria King','mPhone':'07454ADFALKSGA'},
+            {'name':'Nyamakima 01','loc':'Nairobi Downtown','phone':'0745DFJALKNC','tillNumb':'6425FASGA','mName':'Kamotho Kamau','mPhone':'07ASLKDJFLA'},
+            {'name':'Juja 02','loc':'Juja Town','phone':'0745GBAKSJB','tillNumb':'2145SDFA','mName':'Susan Wajomoko','mPhone':'07GASJLKVSD'},
+            {'name':'Kericho 05','loc':'Kericho Town','phone':'074RQWUOFASL','tillNumb':'782FASDF','mName':'Abdul Kharim','mPhone':'07FASKLJDFCAS'},
+        ]
+    
+    @staticmethod
+    def addBranches(branches):
+        branchObj=BranchesView()
+        for b in branches:
+            branchObj.addBranch(b['name'],b['loc'],b['phone'],b['tillNumb'],b['mName'],b['mPhone'])
 
 class ProductsSetUp:
     products=[
@@ -36,6 +52,16 @@ class ProductsSetUp:
     def removeProducts():
         pass
 
+class StockSetUp:
+    @staticmethod
+    def addStock():
+        i=1
+        time=FormatTime.now()
+        for p in ProductsSetUp.products:
+            x=StockView()
+            x.addProductToStock(i,p['barCode'],random.randrange(10,1000),2,time)
+            i=i+1
+
 class SaleSettingsSetUp:
     
     @staticmethod
@@ -45,8 +71,8 @@ class SaleSettingsSetUp:
         discount=5
         vat=16
         currency='Kenyan Shillings;Ksh'
-        tillId='MainWareHouse'
-        tillTag='WareHouse'
+        tillId=BranchesSetUp.branches[0]['name']
+        tillTag=BranchesSetUp.branches[0]['name']
 
         s=SaleSettingsView()
         settings=SaleSettingsView.getSalesSettings()
@@ -73,8 +99,10 @@ class CSV_Data_Dump:
 
 def addAllSetUps():
     UsersSetUp.createUsers()
+    BranchesSetUp.addBranches(BranchesSetUp.branches)
     ProductsSetUp.createProducts()
     SaleSettingsSetUp.addSalesSettings()
+    StockSetUp.addStock()
 
 def backupdb():
     pass

@@ -1,5 +1,7 @@
 //var items=[]
 var productsList=[]
+var branches=[]
+
 var customerBusket=[]
 var busketTotalPrice=0
 var payments=[]
@@ -230,6 +232,7 @@ function displayStartingAmount(){
     var sAmount=document.createElement("input")
     sAmount.placeholder='Starting Amount'
     sAmount.id="sAmountDeclaration"
+    sAmount.type='number'
     var submit=document.createElement("button")
     submit.innerHTML="Submit"
     //submit.classList.add("submit")
@@ -237,10 +240,15 @@ function displayStartingAmount(){
     submit.classList.add("danger")
     submit.onclick=(()=>{
         var sAmount=document.getElementById("sAmountDeclaration").value
-        if(sAmount!=undefined && sAmount!=null && sAmount!=""){
-            Shift.declareStartingAmount(sAmount)
-            closePopUp()
-            notificationBubble("Declared starting amount",1,3)
+        if(sAmount!=undefined && sAmount!=null && sAmount!="" && sAmount>=0){
+            sAmount=parseInt(sAmount)
+            var result=Shift.declareStartingAmount(sAmount)
+            if(result){
+                closePopUp()
+                notificationBubble("Declared starting amount",1,3)
+            }else{
+                notificationBubble("Error in declaring starting amount",2,4)
+            }
         }else{
             notificationBubble("Please fill in the starting amount",2,3)
         }
@@ -266,6 +274,7 @@ function displayClosingAmount(){
     var cAmount=document.createElement("input")
     cAmount.placeholder='Closing Amount'
     cAmount.id="cAmountDeclaration"
+    cAmount.type='number'
     var submit=document.createElement("button")
     submit.innerHTML="Submit"
     //submit.classList.add("submit")
@@ -273,9 +282,11 @@ function displayClosingAmount(){
     submit.classList.add("danger")
     submit.onclick=(()=>{
         var cAmount=document.getElementById("cAmountDeclaration").value
-        if(cAmount!=undefined && cAmount!=null && cAmount!=""){
-            Shift.declareClosingAmount(sAmount)
-            closePopUp()
+        if(cAmount!=undefined && cAmount!=null && cAmount!="" && cAmount>=0){
+            var state=Shift.declareClosingAmount(cAmount)
+            if(state==true){
+                closePopUp()
+            }
             notificationBubble("Declared closing amount",1,3)
         }else{
             notificationBubble("Please fill in the closing amount",2,3)
@@ -293,10 +304,135 @@ function displayClosingAmount(){
     popUpPanel.appendChild(cancel)
 }
 
+function registerCustomerPanel(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Register Customer"
+    
+    var inputs=document.createElement('div')
+    var custNameInput=document.createElement("input")
+    custNameInput.placeholder='Customer Name'
+    custNameInput.id="custNameInput"
+    
+    var custPhoneInput=document.createElement("input")
+    custPhoneInput.placeholder='Customer Phone Number'
+    custPhoneInput.type='number'
+    custPhoneInput.id='custPhoneInput'
+    inputs.appendChild(custNameInput)
+    inputs.appendChild(custPhoneInput)
 
-function setUpUser(){
-    Auth.renderShiftId()
+    var submit=document.createElement("button")
+    submit.innerHTML="Submit"
+    //submit.classList.add("submit")
+    submit.classList.add("minLenBtn")
+    submit.classList.add("danger")
+    submit.onclick=(()=>{
+        var cName=document.getElementById('custNameInput').value
+        var cPhone=document.getElementById('custPhoneInput').value
+        if(cName!=undefined && cName!=null && cPhone!=undefined && cPhone!=null){
+            var state=Customer.registerCustomer(cName,cPhone)
+            if(state==true){
+                closePopUp()
+            }
+        }else{
+            notificationBubble('Please fill in the customer name and phone number',2,4)
+        }
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(inputs)
+    popUpPanel.appendChild(submit)
+    popUpPanel.appendChild(cancel)
 }
+async function checkCustomerCredit(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Check Customer Credit"
+    
+    var custSearchBox=document.createElement('input')
+    custSearchBox.placeholder='Customer Name or Customer id'
+
+    var customersBox=document.createElement('div')
+    customersBox.classList.add('listView')
+    var customers=await Customer.fetchAllCustomers()
+    console.log(customers)
+    customers.forEach(cust=>{
+        var custTile=document.createElement('div')
+        custTile.innerHTML='<h3>'+cust['name']+'</h3><small>Phone '+cust['phoneNum']+'</small><small> Credit Taken = '+cust['creditOwed']+'</small>'
+        custTile.classList.add('item')
+        custTile.addEventListener('click',()=>{
+            console.log(cust)
+        })
+        customersBox.appendChild(custTile)
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(custSearchBox)
+    popUpPanel.appendChild(customersBox)
+    popUpPanel.appendChild(cancel)
+}
+function displayReports(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Reports"
+    
+    var buttonsContainer=document.createElement("div")
+    var xReportBtn=document.createElement('button')
+    var zReportBtn=document.createElement('button')
+    var creditReportBtn=document.createElement('button')
+    var emptiesReportBnt=document.createElement('button')
+
+    xReportBtn.classList.add('cool')
+    zReportBtn.classList.add('danger')
+    creditReportBtn.classList.add('success')
+    emptiesReportBnt.classList.add('cool')
+
+    xReportBtn.innerHTML='X Report'
+    zReportBtn.innerHTML='Z Report'
+    creditReportBtn.innerHTML='Credit Report'
+    emptiesReportBnt.innerHTML='Empties Report'
+
+    var buttonsList=[xReportBtn,zReportBtn,creditReportBtn,emptiesReportBnt]
+    buttonsList.forEach(btn=>{
+        btn.classList.add('minLenBtn')
+        buttonsContainer.appendChild(btn)
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.onclick=closePopUp
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(buttonsContainer)
+    popUpPanel.appendChild(cancel)
+}
+function displaySales(){
+    
+}
+
 
 
 class Render{
@@ -332,46 +468,167 @@ class Render{
         document.getElementById('quantity').value=1
     }
     static renderSearchBoxProducts(products){
-        let parent=document.getElementById('searchItemCode')
+        let parent=document.getElementById('allProductsBox')
         products.forEach(p=>{
-            var container=document.createElement('ul')
-            container.innerHTML="<li>"+p['name']+" "+p['barCode']+"</li>"
-            container.classList.add('listView')
+            var container=document.createElement('li')
+            container.innerHTML+="<button class='iconBtn'>+</button>"+p['name']+" @ Ksh"+p['sPrice']+" code="+p['barCode']
+            container.addEventListener('click',()=>{
+                var itemCodeInput=document.getElementById('itemCode')
+                itemCodeInput.value=p['barCode']
+            })
+            container.classList.add('item')
             parent.appendChild(container)
+        })
+    }
+    static renderBranchesToSelectBox(branches){
+        var selectBox=document.getElementById('counterID')
+        var defaultid=0
+        branches.forEach(b=>{
+            var opt=document.createElement('option')
+            opt.value=b['id']
+            opt.innerHTML=b['name']
+            selectBox.appendChild(opt)
+            defaultid=defaultid+1
+        });
+    }
+    static renderTransactionSearchBox(transactions){
+        var selectBox=document.getElementById('miniTransactionBox')
+        transactions.forEach(p=>{
+            var container=document.createElement('li')
+            container.innerHTML+="<div>SellDate: "+p['sellDate']+" SaleAmount: "+p['saleAmount']+"<div>"
+            container.classList.add('item')
+            container.addEventListener('click',(event)=>{
+                Transaction.displayTransaction(p)
+            })
+            selectBox.appendChild(container)
         })
     }
 }
 
-class Product{
-    static getProduct(){}
-}
-
 class FetchData{
-    static async getAllProducts(){
-        var products=await eel.getAllProducts()()
-        return products
+    static async getProductsAndBranches(){
+        var response=await eel.getProductsAndBranches()()
+        return response
     }
+
     static async customerCreditWorthy(custIdName,custPhoneNumber,amount){
-        var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)
+        var response=await eel.isCustomerCreditWorth(custIdName,custPhoneNumber,amount)()
+        return response
+    }
+
+    static async getAllTransactions(){
+        var response=await eel.getAllTransactions()()
+        return response
+    }
+
+    static async declareStartingAmount(userId,shiftId,amount){
+        var response=await eel.declareStartingAmount(userId,shiftId,amount)()
+        return response  
+    }
+    static async declareClosingAmount(userId,shiftId,amount){
+        var response=await eel.declareClosingAmount(userId,shiftId,amount)()
         return response
     }
 }
+
 class Shift{
-    static declareStartingAmount(amount){
-        console.log("Starting amount is "+amount)
+    static async declareStartingAmount(amount){
+        var shiftId=Auth.getShiftId()
+        if(amount!=null && amount!=undefined){
+            var userId=getUserId()
+            var response=await FetchData.declareStartingAmount(userId,shiftId,amount)
+            if(response['state']==true){
+                notificationBubble(response['message'],1,2)
+                return true
+            }else{
+                console.log(response['message'])
+                notificationBubble(response['message'],2,4)    
+                return false
+            }
+        }else{
+            notificationBubble("ShiftId or Starting amout is empty",2,4)
+        }
     }
     static declareClosingAmount(amount){
-        console.log("Closing amount is "+amount)
+        var shiftId=Auth.getShiftId()
+        if(amount!=null && amount!=undefined){
+            var userId=getUserId()
+            var response=FetchData.declareClosingAmount(userId,shiftId,amount)
+            if(response['state']==true){
+                notificationBubble(response['message'],1,2)
+                return true
+            }else{
+                notificationBubble(response['message'],2,4)
+                return false
+            }
+        }else{
+            notificationBubble("ShiftId or Closing amout is empty",2,4)
+        }
     }
     openShift(){}
     closeShift(){}
+    printXReport(){}
+    printZReport(){}
 }
+
+class Customer{
+    static async registerCustomer(custName,custPhone){
+        var response=await eel.registerCustomer(custName,custPhone)()
+        if(response['state']==true){
+            notificationBubble(response['message'],1,2)
+            closePopUp()
+            return true
+        }else{
+            notificationBubble(response['message'],2,4)
+            return false
+        }
+    }
+    static async fetchAllCustomers(){
+        var response=await eel.getAllCustomers()()
+        var state=response['state']
+        if(state==true){
+            var customers=response['customers']
+            return customers
+        }else{return []}    
+    }
+}
+
 
 class Transaction{
     static getTransaction(transactionId){}
     static loadTransaction(transaction){}
-    static getTransactions(){}
+    static displayTransaction(transaction){
+        showPopUp("")
+        var popUpPanel=document.getElementById('popUpPanel')
+        var header=document.createElement("h3")
+        header.classList.add("header")
+        header.innerHTML="Transaction"
+
+        var transactionContainer=document.createElement('div')
+        var transactionInnerHtml=document.createElement('div')
+        transactionInnerHtml.innerHTML='<h3>Transaction ID: '+transaction['id']+'</h3>'
+        transactionInnerHtml.innerHTML='<h3>Sell Date: '+transaction['sellDate']+'</h3>'
+        transactionInnerHtml.innerHTML+='<p>Sale Amount: '+transaction['saleAmount']+'</p>'
+        transactionInnerHtml.innerHTML+='<p>Paid Amount: '+transaction['paidAmount']+'</p>'
+        var soldItems=document.createElement('table')
+        soldItems.innerHTML='<th><td>Item Name </td><td>Quantity</td> <td>Total</td></th>'
+        transaction['soldItems'].forEach(item=>{
+            soldItems.innerHTML+='<tr><td>'+item['name']+'</td><td>'+item['quantity']+'</td><td>'+item['quantity']*item['soldPrice']+'</td></tr>'
+        });
+        transactionInnerHtml.appendChild(soldItems)
+        transactionContainer.appendChild(transactionInnerHtml)
+        var cancel=document.createElement("button")
+        cancel.innerHTML="Cancel"
+        cancel.classList.add("minLenBtn")
+        cancel.classList.add("cool")
+        cancel.onclick=closePopUp
+        popUpPanel.appendChild(header)
+        popUpPanel.appendChild(transactionContainer)
+        popUpPanel.appendChild(cancel)
+    }
+    
     static getAllTransactions(){}
+
     static async sendTransactionToBackend(busket,payments,counterId,custId){
         console.log("Sending transaction to the backend")
         var cashierId=Auth.getUserId()
@@ -384,6 +641,7 @@ class Transaction{
             notificationBubble("Transaction Failed",0,5)
         }
     }
+
     static clearTransactionFromUi(){
         Render.clearAllItems()
         customerBusket=[]
@@ -401,15 +659,9 @@ class Transaction{
         document.getElementById("basketTotal").innerHTML=busketTotalPrice
     }
 }
-
-class Reports{
-    static generateXReport(){}
-    static generateZReport(){}
-}
-
 class Auth{
     static renderShiftId(){
-        var shiftId=localStorage.getItem('shiftId')
+        var shiftId=Auth.getShiftId()
         var x=document.getElementById("shiftId")
         x.innerHTML="Shift "+shiftId+" | "
     }
@@ -418,9 +670,27 @@ class Auth{
         var splitToken=token.split(':')
         return splitToken[splitToken.length-1]
     }
+    static getShiftId(){
+        var shiftId=localStorage.getItem('shiftId')
+        if(shiftId!=null && shiftId!=undefined){
+            return shiftId
+        }else{return 'UnknownShiftId'}
+    }
 }
+
+function setUpUser(){
+    Auth.renderShiftId()
+}
+
 setTimeout(async ()=>{
     setUpUser()
-    productsList=await FetchData.getAllProducts()
+    response=await FetchData.getProductsAndBranches()
+    tResponse=await FetchData.getAllTransactions()
+    productsList=response['products']
+    branches=response['branches']
+    console.log(tResponse)
     Render.renderSearchBoxProducts(productsList)
+    Render.renderBranchesToSelectBox(branches)
+    Render.renderTransactionSearchBox(tResponse['transactions'])
+
 },1000)

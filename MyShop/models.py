@@ -55,6 +55,7 @@ class CustomerModel(Base):
     name=Column(String)
     phoneNumber=Column(String)
     totalCreditOwed=Column(Integer,default=0)
+    #registrationDate=Column(Float)
 ##transactions
 class TransactionModel(Base):
     __tablename__='Transaction'
@@ -131,26 +132,31 @@ class BranchesModel(Base):
     branchPhone=Column(String)
     tillNumber=Column(String)
     managerName=Column(String)
-    managerPhoneNumber=Column(String)
+    managerPhone=Column(String)
 
 class StockModel(Base):
     __tablename__='Stock'
     stockId=Column(Integer,primary_key=True)
-    branchId=Column(Integer)
     productId=Column(String)
-    stockType=Column(String)
+    barCode=Column(String)
     quantity=Column(String)
     authorId=Column(Integer)
     time=Column(Float)
 
-class StockDispatchReceivingModel(Base):
-    __tablename__='DispatchAndReceiving'
+class StockHistoryModel(Base):
+    __tablename__='StockHistory'
     id=Column(Integer,primary_key=True)
-    stockId=Column(Integer)
-    dispatcher=Column(Integer)
-    receiver=Column(Integer)
-    received=Column(Boolean)
-    rejected=Column(Boolean)
+    stockReceipt=Column(String)#transactionId,dispatchId,invoiceNumber
+    stockAction=Column(String)
+    stockActionList={'receiving':1,'disptach':-1,'sale':-1,'return':1,'openning':1,'closing':1}
+    stockDelta=Column(Integer)#either -1[sale,dispatch] or +1[restock,return] 
+    userId=Column(String)
+    branchId=Column(String)
+    userStateMent=Column(String)
+    productId=Column(String)
+    barCode=Column(String)
+    quantity=Column(String)
+    time=Column(Float)
 
 class StockTakeModel(Base):
     __tablename__='StockTake'
@@ -167,9 +173,12 @@ class EmptiesModel(Base):
     id=Column(Integer,primary_key=True)
     transactionId=Column(String)
     productId=Column(String)
-    goodCondition=Column(Integer)
-    damaged=Column(Integer)
-    timeLastUpdate=Column(Float)
+    barCode=Column(String)
+    quantity=Column(Integer)
+    quantityReturned=Column(Integer,default=0)
+    returned=Column(Boolean,default=False)
+    takenDate=Column(Float)
+    returnedDate=Column(Float)
 
 class BusinessCostsModel(Base):
     __tablename__='Costs'
@@ -179,7 +188,6 @@ class BusinessCostsModel(Base):
     costTimeline=Column(String)
     desc=Column(String)
     paid=Column(Boolean)
-
 
 if __name__=="__main__":
     Base.metadata.create_all(engine)

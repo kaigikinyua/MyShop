@@ -27,6 +27,7 @@ class FormatTime:
     def now():
         timestamp=datetime.datetime.timestamp(datetime.datetime.now())
         return timestamp
+    
     @staticmethod
     def toTimeStamp(year,month,day,hour,minute,second):
         dTime=datetime.datetime(year,month,day,hour,minute,second)
@@ -49,6 +50,17 @@ class FormatTime:
         return f'{day}/{month}/{year} {hour}:{minute}:{seconds}'
     
     @staticmethod
+    def dateTimeToStandardTime(timestamp):
+        date=datetime.datetime.fromtimestamp(timestamp)
+        year=date.year
+        month=date.month
+        day=date.day
+        hour=date.hour
+        minute=date.minute
+        seconds=date.second
+        return f'{day}/{month}/{year} {hour}:{minute}:{seconds}'
+
+    @staticmethod
     def getDateToday():
         date=datetime.datetime.now()
         year=date.year
@@ -69,7 +81,7 @@ class FormatTime:
 class Logging:
     @staticmethod
     def consoleLog(color,message):
-        colors={'err':'','succ':'','warn':'','norm':''}
+        colors={'err':'','error':'','succ':'','warn':'','norm':''}
         if(Settings.mode=='DEBUG'):
             print(message)
         else:

@@ -12,18 +12,45 @@ button, input {
   margin: 5px;
   outline: none;
   border-radius: 10px;
-  border: none;
+  border: 1px rgb(0, 0, 0);
 }
 
 button.longButton, button.submit {
   position: relative;
+  border: 1px 1px lightgreen;
   width: 90%;
+}
+
+.iconBtn {
+  text-align: center;
+  font-size: 1.2em;
+  background: none;
+  text-align: center;
+  padding: 2px;
+}
+
+.iconBtn:hover {
+  font-size: 1.3em;
+  color: lightgreen;
+  background-color: white;
+  transition-duration: 0.5s;
 }
 
 input {
   position: relative;
   width: 90%;
+  background-color: #e6e6e6;
+}
+
+input:hover {
   background-color: white;
+  border: 3px lightgreen;
+  transition-duration: 0.5s;
+}
+
+.two_columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
 .listView :nth-child(odd) {
@@ -44,6 +71,22 @@ input {
   background-color: turquoise;
   color: white;
   font-weight: bold;
+}
+
+ul.searchBox {
+  max-height: 100px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+ul.searchBox li.item {
+  position: relative;
+  width: 100%;
+  padding: 5px;
+  margin: 3px;
+}
+ul.searchBox li.clickable:hover {
+  background-color: white;
+  transition-duration: 1s;
 }
 
 #notification {

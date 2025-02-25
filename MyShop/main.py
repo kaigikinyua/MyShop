@@ -1,5 +1,7 @@
 import eel
+from utils import Logging
 from users import User,Cashier
+
 
 pages=["index.html","till.html","admin.html"]
 
@@ -9,16 +11,19 @@ eel.init("web")
 def login(username,password):
     u=User()
     auth,message,userLevel,shiftId=u.login(username,password)
+    branchesList=u.getBranchesList()
     if(auth):
-        return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId}    
-    return {"auth":auth,"message":message,"userLevel":None,"shiftId":None}
+        return {"auth":auth,"token":message,"userLevel":userLevel,"shiftId":shiftId,'branches':branchesList}    
+    return {"auth":auth,"message":message,"userLevel":None,"shiftId":None,'branches':None}
 
 @eel.expose
 def logOut(userId):
-    print("logging out")
     u=User()
-    u.logout(int(userId))
-    return {"state":True}
+    logOut=u.logout(int(userId))
+    if(logOut):
+        return {"state":True}
+    else:
+        return {"state":False}
 
 @eel.expose
 def makeSale(busketList,paymentList,tillId,cashier,custId):
@@ -26,7 +31,7 @@ def makeSale(busketList,paymentList,tillId,cashier,custId):
     c=Cashier()
     state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
     if(state==False):
-        return {"state":False,"message":"Could Not complete sale"}
+        return {"state":False,"message":f"Could Not complete sale: Error=> {message}"}
     return {"state":True}
 
 @eel.expose
@@ -41,44 +46,91 @@ class FetchData:
     @staticmethod
     def fetchTransaction():
         pass
+
     @staticmethod
-    def getAllProducts():
-        c=Cashier()
-        return c.fetchAllProducts()
+    def getProductsAndBranches():
+        u=User()
+        productList=u.fetchAllProducts()
+        brancheList=u.getBranchesList()
+        return {'products':productList,'branches':brancheList}
+
+    @staticmethod
+    def getAllTransactions():
+        u=User()
+        transactionList=u.fetchAllTransactions()
+        Logging.consoleLog('message',f'Getting All Transactions {transactionList}')
+        return {'transactions':transactionList}
+    
+    @staticmethod
+    def fetchAllCustomers():
+        c=User()
+        customers=c.fetchAllCustomers()
+        return {'state':True,'customers':customers}
 
 class CashierActions:
+
     @staticmethod
-    def getAllProducts():
+    def declareStartingAmount(userId,shiftId,startingAmount):
+        if(userId!=None and shiftId!=None and startingAmount!=None):
+            Logging.consoleLog('message',int(startingAmount))
+            c=Cashier()
+            sA=int(startingAmount)
+            state,message=c.declareStartingAmount(userId,shiftId,sA)
+            if(state==True):
+                return {'state':True,'message':message}
+            else:
+                return {'state':False,'message':message}
+        return {'state':False,'message':'Please fill in all the fields'}
+        
+    @staticmethod
+    def declareClosingAmount(userId,shiftId,closingAmount):
+        if(userId!=None and shiftId!=None and closingAmount!=None):   
+            c=Cashier()
+            state,message=c.declareClosingAmount(userId,shiftId,int(closingAmount))
+            if(state==True):
+                return {'state':True,'message':message}
+            else:
+                return {'state':False,'message':message}
+        else:
+            return {'state':False,'message':'Please fill in all the fields'}
+
+    @staticmethod
+    def registerCustomer(custName,custPhone):
+        state=False
+        message=''
+        if(custName!=None and custPhone!=None):
+            c=Cashier()
+            state,message=c.registerCustomer(custName,custPhone)
+        else:
+            message='Please fill in the customer name and customer phone'
+        return {'state':state,'message':message}
+    
+    @staticmethod
+    def payCustomerCredit(userId,tId,custId,creditId,paymentList):
         c=Cashier()
-        c.fetchAllProducts()
+        state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
+        return {'state':state,'message':message}
+    
     @staticmethod
-    def declareStartingAmount():
-        pass
+    def receiveStock(userId,busketList):
+        c=Cashier()
+        state,message=c.receiveStock(userId,busketList)
+        return {'state':state,'message':message}
+    
     @staticmethod
-    def declareClosingAmount():
+    def genXReport(shiftId):
         pass
 
     @staticmethod
-    def payCreditSale():
-        print("paying credit sale")
-
-    @staticmethod
-    def receiveStock():
-        pass
-    @staticmethod
-    def despatchStock():
+    def genZReport(shiftId):
         pass
 
     @staticmethod
     def stockTake():
         pass
 
-
     @staticmethod
-    def genXReport():
-        pass
-    @staticmethod
-    def genZReport():
+    def despatchStock():
         pass
 
 class AdminActions:
@@ -86,6 +138,7 @@ class AdminActions:
     @staticmethod
     def addUser():
         pass
+
     @staticmethod
     def deleteUser():
         pass
@@ -108,18 +161,25 @@ class AdminActions:
     @staticmethod
     def addStock():
         pass
+    
     @staticmethod
     def deleteStock():
         pass
+
     @staticmethod
     def updateStock():
         pass
 
 if __name__=="__main__":
     fetchData=FetchData()
-    
+    cashierActions=CashierActions()
     # #all functions
-    eel._expose("getAllProducts",fetchData.getAllProducts)
-    
+    eel._expose("getProductsAndBranches",fetchData.getProductsAndBranches)
+    eel._expose("getAllTransactions",fetchData.getAllTransactions)
+    eel._expose("getAllCustomers",fetchData.fetchAllCustomers)
+
+    eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
+    eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
+    eel._expose("registerCustomer",cashierActions.registerCustomer)
 
     eel.start("login.html",port=4040)
