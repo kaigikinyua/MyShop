@@ -591,6 +591,16 @@ class Customer{
             return customers
         }else{return []}    
     }
+    static async fetchCustomerTotalCredit(custId){
+        var response=await eel.getCustomerTotalCredit(custId)()
+        var state=response['state']
+        if(state==true){
+            var custCredit=response['credit']
+            return custCredit
+        }else{
+            return {'creditTaken':'XYZ','creditAvailable':'ZYX','creditTransactions':[]}
+        }
+    }
 }
 
 

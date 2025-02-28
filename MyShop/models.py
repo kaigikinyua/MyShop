@@ -177,6 +177,7 @@ class EmptiesModel(Base):
     quantity=Column(Integer)
     quantityReturned=Column(Integer,default=0)
     returned=Column(Boolean,default=False)
+    despatchedToFactory=Column(Integer,default=0)
     takenDate=Column(Float)
     returnedDate=Column(Float)
 
