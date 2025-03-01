@@ -1,6 +1,7 @@
 from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
+
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -109,6 +110,10 @@ class User:
                 })
         return customersList
 
+    def fetchCustomerTotalCredit(self):
+
+        return {'creditTaken':'XYZ','creditAvailable':'ZYX','creditTransactions':[]}
+
 class Cashier(User):
 
     def declareStartingAmount(self,userId,shiftId,startingAmount):
@@ -139,15 +144,19 @@ class Cashier(User):
     
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
-        print(authAction)
         if(authAction):
             payment=PaymentView()
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
             if(customerCreditRequest>=0):
-                max_credit=self.maximumCustomerCredit(custId)
-                if(customerCreditRequest>max_credit):
-                    Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                    return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                customerView=CustomerView()
+                cust,custMsg=customerView.getCustomer(custId)
+                if(cust!=None):
+                    max_credit=self.maximumCustomerCredit(custId)
+                    if(customerCreditRequest>max_credit):
+                        Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
+                        return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                else:
+                    return False,f'You need to register the customer in order for them to access credit {custMsg}'
                 
                 saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
                 if(saleResult==True):
