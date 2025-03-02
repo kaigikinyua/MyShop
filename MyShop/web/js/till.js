@@ -1,6 +1,8 @@
 //var items=[]
 var productsList=[]
 var branches=[]
+var allCustomers=[]
+
 
 var customerBusket=[]
 var busketTotalPrice=0
@@ -16,7 +18,7 @@ function addItem(){
             if(p['barCode']==itemName){
                 price=p['sPrice']
                 total=price*quantity
-                customerBusket.push({'name':p['name'],'barCode':p['barCode'],'price':p['sPrice'],'quantity':quantity,'total':total,'discount':0,})
+                customerBusket.push({'name':p['name'],'barCode':p['barCode'],'price':p['sPrice'],'quantity':parseInt(quantity),'total':total,'discount':0,})
                 Render.renderItems(customerBusket)
                 Transaction.computeTotal(customerBusket)
                 itemFound=true
@@ -43,6 +45,7 @@ function removeItem(itemId){
     Transaction.computeTotal(customerBusket)
     Render.renderItems(customerBusket)
 }
+
 //when user clicks 'Pay' button on UI it displays a Pay Pop Up
 function displayPaymentBox(){
     showPopUp("")
@@ -110,7 +113,10 @@ function displayPaymentBox(){
     cancel.innerHTML="Cancel"
     cancel.classList.add("minLenBtn")
     cancel.classList.add("cool")
-    cancel.onclick=closePopUp
+    cancel.addEventListener('click',()=>{
+        closePopUp()
+        payments=[]
+    })
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(paymentOptions)
@@ -122,6 +128,116 @@ function displayPaymentBox(){
     popUpPanel.appendChild(completeTransaction)
 }
 
+
+function displayPayCreditBox(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    popUpPanel.style.minHeight='600px';
+    popUpPanel.style.minWidth='600px'
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Payment"
+    //var x=await eel.makeSale()
+
+    var paymentMethods=document.createElement('div')
+    var paymentOptions=document.createElement('div')
+
+    paymentOptions.innerHTML="<button id='mpesaOpt' class='cool' onclick=changePaymentTo('mpesa')>Mpesa</button>" 
+    paymentOptions.innerHTML+="<button id='cashOpt' class='innactive' onclick=changePaymentTo('cash')>Cash</button>"
+    paymentOptions.innerHTML+="<button id='bankOpt' class='innactive' onclick=changePaymentTo('bank')>Bank</button>"
+
+    var mpesaOption=document.createElement('div')
+    var cashOption=document.createElement('div')
+    var bankOption=document.createElement('div')
+
+    mpesaOption.innerHTML='<input type="text" placeholder="Transaction Id" id="mpesaId"/>'
+    mpesaOption.innerHTML+='<input type="number" placeholder="Phone Number" id="mpesaPhoneNum"/>'
+    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount"/>'
+    mpesaOption.innerHTML+='<button onclick=addPayment("mpesa")>Add Payment</button>'
+
+    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount"/>'
+    cashOption.innerHTML+='<button onclick=addPayment("cash")>Add Payment</button>'
+
+    bankOption.innerHTML='<input type="number" placeholder="Bank Account Number" id="bankAccNumber">'
+    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount"/>'
+    bankOption.innerHTML+='<input type="text" placeholder="Bank Name eg Equity or KCB" id="bankName"/>'
+    bankOption.innerHTML+='<button onclick=addPayment("bank")>Add Payment</button>'
+
+    mpesaOption.id="mpesa";cashOption.id="cash";bankOption.id="bank"
+    mpesaOption.style.display="";cashOption.style.display="none";bankOption.style.display="none"
+    paymentMethods.appendChild(mpesaOption);paymentMethods.appendChild(cashOption);paymentMethods.appendChild(bankOption)
+    
+    var customerIdTile=document.createElement("input")
+    customerIdTile.id='customerId'
+    customerIdTile.placeholder='Customer System Id'
+    customerIdTile.onkeyup=(()=>{
+        var sCustomer=document.getElementById('searchedCustomers')
+        sCustomer.innerHTML=''
+        var value=document.getElementById('customerId').value
+        allCustomers.forEach((cust)=>{
+            var id=String(cust['id'])
+            var name=String(cust['name'].toLowerCase())
+            if(id.includes(value) || name.includes(value)){
+                sCustomer.innerHTML+="<h3>ID "+cust['id']+" Name "+cust["name"]+" Phone "+cust['phoneNum']+"</h3>"
+            }
+        });
+    })
+
+    var searchedCustomers=document.createElement('div')
+    searchedCustomers.id='searchedCustomers'
+
+    var transactionId=document.createElement('input')
+    transactionId.type='customerId'
+    transactionId.placeholder='Transaction Id'
+
+    var customerCreditTransactions=document.createElement('div')
+    customerCreditTransactions.id='customerCreditTransactions'
+
+
+    
+    var paymentTile=document.createElement('div')
+    paymentTile.id='paymentTile'
+
+    var balanceTile=document.createElement('h3')
+    balanceTile.innerHTML="Balance "+busketTotalPrice
+    balanceTile.id="transactionBalance"
+
+    var customerDetails=document.createElement('div')
+    customerDetails.id='customerDetails'
+
+    var completeTransaction=document.createElement("button")
+    completeTransaction.innerHTML="Complete Transaction"
+    completeTransaction.classList.add("minLenBtn")
+    completeTransaction.classList.add("innactive")
+    completeTransaction.disabled=true
+    completeTransaction.id="completeTransaction"
+    completeTransaction.addEventListener('click',()=>{
+
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.addEventListener('click',()=>{
+        closePopUp()
+        payments=[]
+    })
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(customerIdTile)
+    popUpPanel.appendChild(searchedCustomers)
+    popUpPanel.appendChild(transactionId)
+    popUpPanel.appendChild(customerCreditTransactions)
+    popUpPanel.appendChild(paymentOptions)
+    popUpPanel.appendChild(paymentMethods)
+    popUpPanel.appendChild(paymentTile)
+    popUpPanel.appendChild(balanceTile)
+    popUpPanel.appendChild(cancel)
+    popUpPanel.appendChild(completeTransaction)
+}
+
+
 //changes the view on the payment pop up to the selected payment by the user
 function changePaymentTo(paymentType){
     console.log("Changing Pyament to "+paymentType)
@@ -130,10 +246,14 @@ function changePaymentTo(paymentType){
     var paymentBtnClicked=document.getElementById(paymentType+'Opt')
     //hidding all the divs containg the payment option fields/inputs
     paymentTypes.forEach(elm=>{
-        document.getElementById(elm).style.display='none'
-        var btn=document.getElementById(elm+'Opt')
-        btn.classList.remove('cool')
-        btn.classList.add('innactive')
+        try{
+            document.getElementById(elm).style.display='none'
+            var btn=document.getElementById(elm+'Opt')
+            btn.classList.remove('cool')
+            btn.classList.add('innactive')
+        }catch(err){
+
+        }
     });
     //getting the divs containing the payment option and display it
     elmToDisplay.style.display=''
@@ -166,7 +286,8 @@ function addPayment(paymentMethod){
             amount=document.getElementById("creditAmount").value
             var custId=document.getElementById("creditCustomerId").value
             var custPhone=document.getElementById("creditCustomerPhone").value
-            tDetails={"paymentType":"credit","amount":amount,"custId":custId,"custPhone":custPhone}
+            var deadLine=document.getElementById('creditDeadline').value
+            tDetails={"paymentType":"credit","amount":amount,"custId":custId,"custPhone":custPhone,'deadline':new Date(deadLine).getTime()/1000}
             break; 
     }
     var balance=busketTotalPrice
@@ -220,12 +341,13 @@ function sendTransactionToBackend(){
     Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
 }
 
-
 //shift action buttons
 function displayStartingAmount(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
-    
+    popUpPanel.style.minHeight='300px'
+    popUpPanel.style.minWidth='300px'
+
     var header=document.createElement("h3")
     header.classList.add("header")
     header.innerHTML="Declare Starting Amount"
@@ -264,10 +386,13 @@ function displayStartingAmount(){
     popUpPanel.appendChild(submit)
     popUpPanel.appendChild(cancel)
 }
+
 function displayClosingAmount(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
-    
+    popUpPanel.style.minHeight='300px'
+    popUpPanel.style.minWidth='300px'
+
     var header=document.createElement("h3")
     header.classList.add("header")
     header.innerHTML="Declare Closing Amount"
@@ -353,10 +478,14 @@ function registerCustomerPanel(){
     popUpPanel.appendChild(submit)
     popUpPanel.appendChild(cancel)
 }
+
 async function checkCustomerCredit(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
-    
+    popUpPanel.style.minHeight='600px'
+    popUpPanel.style.minWidth='600px'
+
+
     var header=document.createElement("h3")
     header.classList.add("header")
     header.innerHTML="Check Customer Credit"
@@ -364,16 +493,24 @@ async function checkCustomerCredit(){
     var custSearchBox=document.createElement('input')
     custSearchBox.placeholder='Customer Name or Customer id'
 
+    var custDebtBox=document.createElement('div')
+    custDebtBox.id='custDebtBox'
+
+
     var customersBox=document.createElement('div')
     customersBox.classList.add('listView')
     var customers=await Customer.fetchAllCustomers()
-    console.log(customers)
     customers.forEach(cust=>{
         var custTile=document.createElement('div')
         custTile.innerHTML='<h3>'+cust['name']+'</h3><small>Phone '+cust['phoneNum']+'</small><small> Credit Taken = '+cust['creditOwed']+'</small>'
         custTile.classList.add('item')
-        custTile.addEventListener('click',()=>{
-            console.log(cust)
+        custTile.addEventListener('click',async ()=>{
+            var debt=await Customer.fetchCustomerTotalCredit(cust['id'])
+            var dbtBox=document.getElementById('custDebtBox')
+            dbtBox.innerHTML="<h3>"+cust['name']+"</h3>"
+            dbtBox.innerHTML+="<h4>Taken Credit = "+debt['creditTaken']+"</h4>"
+            dbtBox.innerHTML+="<h4>Credit Available = "+debt['creditAvailable']+"</h4>"
+        
         })
         customersBox.appendChild(custTile)
     })
@@ -385,10 +522,12 @@ async function checkCustomerCredit(){
     cancel.onclick=closePopUp
 
     popUpPanel.appendChild(header)
+    popUpPanel.appendChild(custDebtBox)
     popUpPanel.appendChild(custSearchBox)
     popUpPanel.appendChild(customersBox)
     popUpPanel.appendChild(cancel)
 }
+
 function displayReports(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
@@ -429,11 +568,10 @@ function displayReports(){
     popUpPanel.appendChild(buttonsContainer)
     popUpPanel.appendChild(cancel)
 }
+
 function displaySales(){
     
 }
-
-
 
 class Render{
     static renderItems(items){
@@ -529,6 +667,11 @@ class FetchData{
         var response=await eel.declareClosingAmount(userId,shiftId,amount)()
         return response
     }
+    static async getAllCustomers(){
+        var response=await eel.getAllCustomers()()
+        return response['customers']
+    }
+
 }
 
 class Shift{
@@ -592,17 +735,18 @@ class Customer{
         }else{return []}    
     }
     static async fetchCustomerTotalCredit(custId){
-        var response=await eel.getCustomerTotalCredit(custId)()
+        var response=await eel.fetchCustomerTotalCredit(custId)()
+        console.log(response)
         var state=response['state']
         if(state==true){
-            var custCredit=response['credit']
-            return custCredit
+            allCustomers=await FetchData.getAllCustomers()
+            return response
         }else{
+            notificationBubble("Error while fetching customer credit",2,5)
             return {'creditTaken':'XYZ','creditAvailable':'ZYX','creditTransactions':[]}
         }
     }
 }
-
 
 class Transaction{
     static getTransaction(transactionId){}
@@ -642,13 +786,13 @@ class Transaction{
     static async sendTransactionToBackend(busket,payments,counterId,custId){
         console.log("Sending transaction to the backend")
         var cashierId=Auth.getUserId()
-        var response=await eel.makeSale(busket,payments,counterId,cashierId,custId)()
+        var response=await eel.makeSale(busket,payments,counterId,cashierId,parseInt(custId))()
         console.log(response['state'])
         if(response['state']==true){
             Transaction.clearTransactionFromUi()
             notificationBubble("Transaction Completed Successfully",1,5)
         }else{
-            notificationBubble("Transaction Failed",0,5)
+            notificationBubble("Transaction Failed\n"+response['message'],0,5)
         }
     }
 
@@ -669,6 +813,7 @@ class Transaction{
         document.getElementById("basketTotal").innerHTML=busketTotalPrice
     }
 }
+
 class Auth{
     static renderShiftId(){
         var shiftId=Auth.getShiftId()
@@ -698,7 +843,7 @@ setTimeout(async ()=>{
     tResponse=await FetchData.getAllTransactions()
     productsList=response['products']
     branches=response['branches']
-    console.log(tResponse)
+    allCustomers=await FetchData.getAllCustomers()
     Render.renderSearchBoxProducts(productsList)
     Render.renderBranchesToSelectBox(branches)
     Render.renderTransactionSearchBox(tResponse['transactions'])
