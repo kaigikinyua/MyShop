@@ -139,7 +139,7 @@ class StockModel(Base):
     stockId=Column(Integer,primary_key=True)
     productId=Column(String)
     barCode=Column(String)
-    quantity=Column(String)
+    quantity=Column(Integer)
     authorId=Column(Integer)
     time=Column(Float)
 
