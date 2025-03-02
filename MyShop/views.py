@@ -439,7 +439,7 @@ class CustomerView:
         if(custId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            return session.query(CustomerModel).filter_by(id=custId).one_or_none()
+            return session.query(CustomerModel).filter_by(id=custId).one_or_none(),''
         else:
             return False,'Passed a None Parameter to CustomerView.getCustomer()'
 
@@ -558,7 +558,7 @@ class TransactionView:
         if(tId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            transactions=session.query(TransactionModel).filter_by(transactionId=tId).first()
+            transactions=session.query(TransactionModel).filter_by(transactionId=tId).one_or_none()
             session.close()
             return transactions
         return None
@@ -744,6 +744,14 @@ class PaymentView:
             #diff<0 -customer has paid excess
             return diff
 
+    def getPaymentMethodFromList(self,paymentMethod,paymentList):
+        paymentMethods=[]
+        if(paymentMethod!=None and paymentList!=None):
+            for p in paymentList:
+                if(p['paymentType']==paymentMethod):
+                    paymentMethods.append()
+        return paymentMethods
+
     def payCredit(self,paymentMethod,paymentAmount,tId,creditId,transactionCredentials,paymentTime):
         state=False
         message=''
@@ -788,7 +796,7 @@ class PaymentView:
             total=0
             for p in paymentList:
                 if(p["paymentType"]=='credit'):
-                    total=total+p['amount']
+                    total=total+int(p['amount'])
             return total
         return -1,
 
@@ -832,8 +840,10 @@ class PaymentView:
 class CustomerCreditView:
 
     def payCredit(self,custId,creditId,tId,paymentList):
+        state=False
+        message=''
         if(paymentList!=None and tId!=None):
-            creditBalance=self.creditBalance(custId,creditId,tId)
+            creditBalance=self.creditBalanceOnTransaction(tId)
             creditObj=self.fetchCreditById(custId,creditId)
             p=PaymentView()
             amount=p.calcTotal(paymentList)
@@ -844,6 +854,7 @@ class CustomerCreditView:
                     rslt,message=p.payCredit(pay['paymentType'],pay['amount'],tId,creditId,pay['credentials'],payTime)
                     if(rslt==None or rslt==False):
                         error=True
+                        message+=message
                 if(error==False):
                     creditObj.totalCreditPaid=creditObj.totalCreditPaid+amount
                     Session=sessionmaker(bind=engine)
@@ -851,12 +862,16 @@ class CustomerCreditView:
                     session.add(creditObj)
                     session.commit()
                     session.close()
+                    state=True
+                    message='Updated credit successfull'
                 else:
                     #initiate rollback
-                    pass
+                    message+='Error while updating customer Credit'
             else:
-                return False,f'Customer will have overpaid the credit balance Credit Balance={creditBalance} amount paid={amount}'
-        return False,'None parameter passed to payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId)'
+                message='Customer will have overpaid the credit balance Credit Balance={creditBalance} amount paid={amount}'
+        else:
+            message=f'None parameter passed to payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId)'
+        return state,message
 
     def addCredit(self,custId,tId,cAmount,cDeadline):
         state=False
@@ -885,26 +900,43 @@ class CustomerCreditView:
             message='Credit could not be added'
         return state,message
 
-    def creditBalance(self,custId,creditId,tId):
-        if(custId!=None and tId!=None):
+    def addCreditFromPaymentList(self,paymentList,tId,custId):
+        if(len(paymentList)>0 and tId!=None):
+            allPaymentsDone=True
+            errorMessage=None
+            paymentTime=FormatTime.now()
+            for p in paymentList:
+                transactionCredentials="None"
+                pMethod=p["paymentType"]
+                if(pMethod=='credit'):
+                    self.addCredit(custId,tId,p['amount'],p['deadline'])
+            if(allPaymentsDone):
+                return True,"Transaction success"
+            else:
+                Logging.logToFile(f"One or more payments failed to be added to the database {errorMessage}")
+                return False,f"One or more payments failed to be added to the database {errorMessage}"
+        else:
+            return False,"None Parameter passed to function addPaymentList(paymentList,tId)"
+    def creditBalanceOnTransaction(self,tId):
+        if(tId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            credit=session.query(CustomerCreditModel).filter_by(customerId=custId,id=creditId,transactionId=tId).one_or_none()
+            credit=session.query(TransactionModel).filter_by(id=tId).one_or_none()
             if(credit!=None):
-                balance=credit.creditAmount-credit.totalCreditPaid
+                balance=credit.saleAmount-credit.paidAmount
                 return balance
             else:
-                return False,f'Çustomer credit record [Customer id {custId} Transaction id {tId}] could not be found'
+                return False,f'Transaction with id {tId}] could not be found'
 
-        return False,'None value passed to creditFullySettled(self,custId,tId)'
+        return False,f'None value passed to creditFullySettled(self,custId,tId)'
 
     def calcTotalCustomerCredit(self,custId):
         if(custId!=None):
-            debtList=self.fetchAllCreditTransactionsByCustomer(custId,False)
+            debtList=self.fetchAllCreditTransactionsByCustomer(custId)
             totalDebt=0
             transactionIds=[]
             for debt in debtList:
-                totalDebt=totalDebt+(debt.creditAmount-debt.totalCreditPaid)
+                totalDebt=totalDebt+(debt.saleAmount-debt.paidAmount)
                 transactionIds.append(debt.transactionId)
             return totalDebt,transactionIds
         return False,'None parameter passed to calcTotalCustomerCredit(self,custId)'
@@ -919,6 +951,15 @@ class CustomerCreditView:
                 return False,0
         return False,'None paramenter passed to CustomerCreditView.isCustomerCreditWorthy()'
     
+    def customerAvailableCredit(self,custId):
+        if(custId!=None):
+            totalCredit,creditIds=self.calcTotalCustomerCredit(custId)
+            sSettings=SaleSettingsView.fetchSettings()
+            return sSettings.maxCustomerCredit-totalCredit
+        else:
+            Logging.consoleLog('error',f'None Parameter passed to CustomerCreditView.customerAvailableCredit()')
+            return 0
+
     def fetchCreditById(self,custId,creditId):
         if(custId!=None and creditId!=None):
             Session=sessionmaker(bind=engine)
@@ -941,25 +982,19 @@ class CustomerCreditView:
                 return None
         return False
     
-    def fetchAllCreditTransactionsByCustomer(self,custId,creditState=False):
+    def fetchAllCreditTransactionsByCustomer(self,custId):
         Session=sessionmaker(bind=engine)
         session=Session()
-        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=creditState,customerId=custId).all()
+        allCredit=session.query(TransactionModel).filter_by(customerId=custId).all()
         session.close()
         if(len(allCredit)>0):
             return allCredit
         return []    
-
-    def fetchUnpaidCreditByCustomer(self,custId):
-        credit=self.fetchCreditByCustomer(custId,False)
-        if(credit!=None):
-            return credit
-        return []
     
-    def fetchPaidCreditByCustomer(self,custId):
-        credit=self.fetchCreditByCustomer(custId,True)
-        if(credit!=None):
-            return credit
+    def creditReportByCustomer(self,custId):
+        paidCredit=self.fetchAllCreditTransactionsByCustomer(custId,True)
+        unpaidCredit=self.fetchAllCreditTransactionsByCustomer(custId,False)
+        
         return []
 
     def fetchCreditWithinPeriod(self,startTime,endTime,paid):
@@ -1001,20 +1036,6 @@ class CustomerCreditView:
             report.append(r)
         return report
 
-    def calcTotalCredit(self):
-        Session=sessionmaker(bind=engine)
-        session=Session()
-        unpaidCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
-        total=0
-        for credit in unpaidCredit:
-            total=total+(credit.creditAmount-credit.totalCreditPaid)
-        return total
-
-    def calcTotalCreditFromCreditList(self,creditList):
-        total=0
-        for credit in creditList:
-            total=total+(credit.creditAmount-credit.totalCreditPaid)
-        return total
 
     def fetchCreditList(self,fullyPaid=False):
         Session=sessionmaker(bind=engine)
@@ -1315,7 +1336,7 @@ class StockHistoryView:
                 time=FormatTime.now()
                 product=StockHistoryModel(
                     stockReceipt=stockReceipt,
-                    stockAction=StockHistoryModel.stockActionList[stockAction],
+                    stockAction=stockAction,
                     stockDelta=StockHistoryView.getDelta(stockAction,quantity),
                     userId=authorId,
                     branchId=branchId,
@@ -1406,6 +1427,10 @@ class EmptiesView:
             empties=session.query(EmptiesModel).filter_by(transactionId=transactionId).all()
             return empties
         return False
+
+    @staticmethod
+    def despatchToFactory(emptiesId,transactionId,dispatchQuantity):
+        pass
 
 class BranchesView:
 

@@ -1,6 +1,7 @@
 from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
+
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -109,6 +110,23 @@ class User:
                 })
         return customersList
 
+    def fetchCustomerTotalCredit(self,custId):
+        creditTaken=0
+        creditAvailable=0
+        creditTransactions=[]
+        state=False
+        if(custId!=None):
+            customerView=CustomerCreditView()
+            creditTaken,transactionIds=customerView.calcTotalCustomerCredit(custId)
+            creditAvailable=customerView.customerAvailableCredit(custId)
+            for t in transactionIds:
+                transView=TransactionView()
+                transObj=transView.fetchTransactionById(t)
+                creditTransactions.append({"tId":transObj.id,"paidAmount":transObj.paidAmount,"saleAmount":transObj.saleAmount})
+            state=True
+        
+        return state,creditTaken,creditAvailable,creditTransactions
+
 class Cashier(User):
 
     def declareStartingAmount(self,userId,shiftId,startingAmount):
@@ -139,15 +157,19 @@ class Cashier(User):
     
     def makeSale(self,busketList,paymentList,tillId,cashierId,custId):
         authAction=super().authUserLevelAction(cashierId,"cashier")
-        print(authAction)
         if(authAction):
             payment=PaymentView()
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
             if(customerCreditRequest>=0):
-                max_credit=self.maximumCustomerCredit(custId)
-                if(customerCreditRequest>max_credit):
-                    Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                    return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                customerView=CustomerView()
+                cust,custMsg=customerView.getCustomer(int(custId))
+                if(cust!=None):
+                    max_credit=self.maximumCustomerCredit(custId)
+                    if(customerCreditRequest>max_credit):
+                        Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
+                        return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                else:
+                    return False,f'You need to register the customer in order for them to access credit {custMsg}'
                 
                 saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
                 if(saleResult==True):
@@ -177,10 +199,15 @@ class Cashier(User):
         soldProduct=SoldItemsView()
         #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
         saleAmount=transaction.calcTotalAmount(paymentList)
-        
+
         tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
         pState,pMessage=payment.addPaymentList(paymentList,tId)
         sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
+        customerCreditRequest=payment.calcCreditInPayment(paymentList)
+        if(customerCreditRequest>0 and tState==True):
+            creditViewObj=CustomerCreditView()
+            creditViewObj.addCreditFromPaymentList(paymentList,tId,custId)
+
         if(tState and pState and sPState):
             addStockToHist,addStockToHistmsg=self.addStockHistory(tId,'sale',tillId,busketList,cashierId)
             reducedStock,reducedStockmsg=self.reduceStockAfterSale(busketList,cashierId)
@@ -270,7 +297,7 @@ class Cashier(User):
             error=False
             for i in busketList:
                 product=pView.getProductByBarCode(i['barCode'])
-                removedItem,rmessage=sV.removeItems(cashierId,product.id,product.barCode,i['quantity'])
+                removedItem,rmessage=sV.removeItems(cashierId,product.id,product.barCode,int(i['quantity']))
                 if(removedItem!=True):
                     error=True
                     message=rmessage

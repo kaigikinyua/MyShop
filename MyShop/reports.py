@@ -66,6 +66,14 @@ class Reports:
     def generateZReport(self,dateTimeStamp):
         pass
 
+    def generateFullCreditReport(self):
+        pass
+    
+    def generateCustomerCreditReport(self,customerId):
+        pass
+
+    def generateEmptiesReport(self):
+        pass
 
 
 

@@ -106,6 +106,16 @@ class CashierActions:
         return {'state':state,'message':message}
     
     @staticmethod
+    def fetchCustomerTotalCredit(custId):
+        Logging.consoleLog('message',f'Fetching customer Total credit custId={custId}')
+        c=Cashier()
+        state,creditTaken,creditAvailable,creditTransactions=c.fetchCustomerTotalCredit(custId)
+        if(state==True):
+            return {'state':True,'message':'Success','creditTaken':creditTaken,'creditAvailable':creditAvailable,'creditTransactions':creditTransactions}
+        else:
+            return {'state':False,'message':'Error while getting customerCredit','creditTaken':creditTaken,'creditAvailable':creditAvailable,'creditTransactions':creditTransactions}
+    
+    @staticmethod
     def payCustomerCredit(userId,tId,custId,creditId,paymentList):
         c=Cashier()
         state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
@@ -181,5 +191,6 @@ if __name__=="__main__":
     eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
     eel._expose("registerCustomer",cashierActions.registerCustomer)
+    eel._expose("fetchCustomerTotalCredit",cashierActions.fetchCustomerTotalCredit)
 
     eel.start("login.html",port=4040)

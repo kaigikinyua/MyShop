@@ -139,7 +139,7 @@ class StockModel(Base):
     stockId=Column(Integer,primary_key=True)
     productId=Column(String)
     barCode=Column(String)
-    quantity=Column(String)
+    quantity=Column(Integer)
     authorId=Column(Integer)
     time=Column(Float)
 
@@ -177,6 +177,7 @@ class EmptiesModel(Base):
     quantity=Column(Integer)
     quantityReturned=Column(Integer,default=0)
     returned=Column(Boolean,default=False)
+    despatchedToFactory=Column(Integer,default=0)
     takenDate=Column(Float)
     returnedDate=Column(Float)
 
