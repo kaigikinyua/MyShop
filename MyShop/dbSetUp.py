@@ -1,6 +1,6 @@
 import random
 import sys
-from views import StockView,UserView,ProductsView,SaleSettingsView,BranchesView
+from views import StockView,UserView,CustomerView,ProductsView,SaleSettingsView,BranchesView,CustomerModel
 from settings import Settings
 from utils import FormatTime
 class UsersSetUp:
@@ -93,6 +93,19 @@ class TransactionsSetUp:
     def deleteTransactions():
         pass
 
+class CustomerSetUp:
+    customers=[
+        {'name':'James 007','phoneNum':'123456789'},
+        {'name':'Kamau Eric','phoneNum':'05412314564'},
+        {'name':'Wangiku','phoneNum':'89745631'},
+        {'name':'Mary Yvone','phoneNum':'023151045'},
+    ]
+    @staticmethod
+    def addCustomers():
+        custViewObj=CustomerView()
+        for c in CustomerSetUp.customers:
+            custViewObj.addCustomer(c['name'],c['phoneNum'])
+
 class CSV_Data_Dump:
     pass
 
@@ -103,6 +116,7 @@ def addAllSetUps():
     ProductsSetUp.createProducts()
     SaleSettingsSetUp.addSalesSettings()
     StockSetUp.addStock()
+    CustomerSetUp.addCustomers()
 
 def backupdb():
     pass
