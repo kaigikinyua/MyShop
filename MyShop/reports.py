@@ -3,71 +3,89 @@ from views import ShiftView,CustomerCreditView,SaleSettingsView,UserView,Transac
 from utils import Logging,CSV,FormatTime
 class Reports:
     #daily reports
-    def generateReport(self,reportType,dateTimeStamp):
-        mpesaSales,cashSales,bankSales,creditSales=ReportData.getSalesByType()
+    def generateSalesReport(self,reportType,shiftObj,startTime,endTime):
+        sTime,endTime=startTime,endTime
+        mpesaSales,cashSales,bankSales,creditSales=ReportData.getSalesByType(startTime,endTime)
         numberOfTransactions=mpesaSales['num']+cashSales['num']+bankSales['num']+creditSales['num']
         salesSettings=SaleSettingsView.getSalesSettings()
-        sTime,endTime=ShiftView.getOpenShiftTime()
-
         reportName='X Report'
         storeDetails={'storeId':salesSettings.tillId}
         dateTime=f'Date: {datetime.datetime.date} Time: {datetime.datetime.time}'
-        
-
-        openningFloat=0
-        grossSales=mpesaSales['totalAmount']+cashSales['totalAmount']+bankSales['totalAmount']+creditSales['amount']
-        cashInHand=grossSales-creditSales['totalAmount']+openningFloat
+        openningFloat=shiftObj.startingAmount
+        closingAmount=0
+        grossSales=mpesaSales['totalAmount']+cashSales['totalAmount']+bankSales['totalAmount']-creditSales['amount']
+        cashInHand=grossSales+openningFloat
+        taxes=(salesSettings.valueAddedTaxPercent*grossSales)/100
         netSales=0
-        taxes=0
 
-        auth={
-            'shiftId':ReportData.getShiftId(),
-            'openningTime':sTime,
-            'logins':ReportData.getNumOfLogins(),
-            'operatorId':'Not Implemented',
-        }
+        closeOnPrint=False
         zReportStuff=None
         
+        auth={
+            'shiftId':shiftObj.shiftId,
+            'openningTime':shiftObj.startTime,
+            'logins':shiftObj.logins,
+            'openningId':shiftObj.openningId,
+        }
+        if(reportType=='z'):
+            reportName='Z Report'
+        
         reportString=f'''
-            {reportName} {dateTime}
+            Report:{reportType.upper()} 
+            {dateTime}
             Store: {storeDetails['storeId']}        
-            Shift Id: {auth['shiftId']} Operator Id: {auth['operatorId']}
+            Shift Id: {auth['shiftId']} 
+            Openning Id: {auth['openningId']}
             Openning Time: {auth['openningTime']}
             Num of Logins: {auth['logins']}
             -------------------------------------------------------------
             Sales:
-            Number of Sales : ------------{numberOfTransactions}
-            Gross Sales:------------------{grossSales}
-            Credit Sales:------------------{creditSales['totalAmount']}
-            Money at hand:-----------------{cashInHand}
-            Tax:----------------------------{taxes}
+            Number of Sales : ------------ {numberOfTransactions}
+            Gross Sales:------------------ {grossSales}
+            Credit Sales:------------------ {creditSales['totalAmount']}
+            Money at hand:----------------- {cashInHand}
+            Tax:---------------------------- {taxes}
 
-            Number of Cash Transactions: {cashSales['num']}
-            Cash(Float):-----------------{openningFloat}
-            Cash(Collected):-------------{cashSales['totalAmount']}
-            Total Cash: -----------------{openningFloat+cashSales["totalAmount"]}
+            Number of Cash Transactions:  {cashSales['num']}
+            Cash(Float):----------------- {openningFloat}
+            Cash(Collected):------------- {cashSales['totalAmount']}
+            Total Cash: ----------------- {openningFloat+cashSales["totalAmount"]}
 
-            Number of Bank Transactions: {bankSales['num']}
-            Bank(Collected):-------------{bankSales["totalAmount"]}
+            Number of Bank Transactions:  {bankSales['num']}
+            Bank(Collected):------------- {bankSales["totalAmount"]}
 
             Number of Mpesa Transactions: {mpesaSales['num']}
             Mpesa Total Collected---------{mpesaSales['totalAmount']}
 
             Number of Credit Transactions: {creditSales['num']}
-            Total Credit ------------------{creditSales['totalAmount']}
+            Total Credit ------------------ {creditSales['totalAmount']}
 
         '''
-
         return reportString
 
-    def generateXReport(self):
-        pass
+    def generateXReport(self,shiftId):
 
-    def generateZReport(self,dateTimeStamp):
-        pass
+        shift=ShiftView.getShift(shiftId)
+        startTime=shift.startTime
+        endTime=FormatTime.now()
+        if(shift.isClosed):
+            endTime=shift.endTime
+
+        reportString=self.generateSalesReport('x',shift,startTime,endTime)
+
+    def generateZReport(self,shiftId):
+        shift=ShiftView.getShift(shiftId)
+        startTime=shift.startTime
+        endTime=FormatTime.now()
+        if(shift.isClosed):
+            endTime=shift.endTime
+
+        reportString=self.generateSalesReport('z',shift,startTime,endTime)
+        #close shift after sending the z Report
 
     def generateFullCreditReport(self):
-        pass
+        paymentView=PaymentView()
+        paymentView.fetchAllPaymentsWithinPeriod()
     
     def generateCustomerCreditReport(self,customerId):
         pass
@@ -123,26 +141,24 @@ class Reports:
 class ReportData:
 
     @staticmethod
-    def getSalesByType():
-        sTime,endTime=ShiftView.getOpenShiftTime()
+    def getSalesByType(sTime,endTime):
         p=PaymentView()
         mpesaPayments=p.fetchPaymentsByTimeAndPaymentMethod(sTime,endTime,'mpesa')
         cashPayments=p.fetchPaymentsByTimeAndPaymentMethod(sTime,endTime,'cash')
         bankPayments=p.fetchPaymentsByTimeAndPaymentMethod(sTime,endTime,'bank')
+        creditPayments=p.fetchPaymentsByTimeAndPaymentMethod(sTime,endTime,'credit')
         totalMpesa=p.calcTotal(mpesaPayments)
         totalCash=p.calcTotal(cashPayments)
         totalBank=p.calcTotal(bankPayments)
+        totalCredit=p.calcTotal(bankPayments)
         numMpesa=len(mpesaPayments)
         numCash=len(cashPayments)
         numBank=len(bankPayments)
+        numCredit=len(creditPayments)
         mpesaObj={'paymentType':'mpesa','num':numMpesa,'totalAmount':totalMpesa}
         cashObj={'paymentType':'cash','num':numCash,'totalAmount':totalCash}
         bankObj={'paymentType':'bank','num':numBank,'totalAmount':totalBank}
-        creditView=CustomerCreditView()
-        creditList=creditView.fetchCreditWithinPeriod(sTime,endTime,False)
-        totalCredit=creditView.calcTotalCreditFromCreditList(creditList)
-        numCredit=len(creditList)
-        creditObj={'num':numCredit,'totalAmount':totalCredit}
+        creditObj={'paymentType':'credit','num':numCredit,'totalAmount':totalCredit}
         return mpesaObj,cashObj,bankObj,creditObj
     
     @staticmethod
@@ -170,7 +186,7 @@ class CalcSales:
     @staticmethod
     def calcPaymentTypeSold(startTimeStamp,endTimeStamp,salesType):
         p=PaymentView()
-        payments=p.filterPaymentByPaymentType(startTimeStamp,endTimeStamp,salesType)
+        payments=p.fetchPaymentsByTimeAndPaymentMethod(salesType,startTimeStamp,endTimeStamp)
         total=0
         if(payments!=None):
             numOfCashTransactions=len(payments)
