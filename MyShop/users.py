@@ -106,8 +106,20 @@ class User:
                 "id":customer.id,
                 "name":customer.name,
                 "phoneNum":customer.phoneNumber,
-                "creditOwed":customer.totalCreditOwed
+                "creditOwed":customer.totalCreditOwed,
                 })
+        creditView=CustomerCreditView()
+        for customer in customersList:
+           cTransaction=creditView.fetchAllCreditTransactionsByCustomer(customer['id'],False)
+           creditTransactions=[]
+           for t in cTransaction:
+               creditTransactions.append({
+                   'tId':t.transactionId,
+                   'saleAmount':t.saleAmount,
+                   'paidAmount':t.paidAmount,
+                   'time':FormatTime.dateTimeToStandardTime(t.time)
+                })
+           customer['creditTrasactions']=creditTransactions
         return customersList
 
     def fetchCustomerTotalCredit(self,custId):
@@ -244,16 +256,16 @@ class Cashier(User):
                     return True
         return False
 
-    def payCreditSale(self,userId,tId,custId,creditId,paymentList):
+    def payCreditSale(self,userId,tId,custId,paymentList):
         state=False
         message=''
         auth=super().authUserLevelAction(userId,'cashier')
         if(auth):
-            if(tId!=None and custId!=None and creditId!=None and paymentList!=None):
+            if(tId!=None and custId!=None and paymentList!=None):
                 creditInPaymentList=self.checkForCreditInPayMentList(paymentList)
                 if(creditInPaymentList==False):
                     c=CustomerCreditView()
-                    creditState,message=c.payCredit(custId,creditId,tId,paymentList)
+                    creditState,message=c.payCredit(custId,tId,paymentList)
                     if(creditState==True):
                         state=True
                         message='Paid credit successfully'
@@ -262,7 +274,7 @@ class Cashier(User):
                 else:
                     message='You cannot pay credit with another credit.Please use Mpesa,Bank or Cash'
             else:
-                message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCredit()'
+                message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCreditSale()'
         else:
             message='Access Denied user level not permited to payCreditSale'
         Logging.consoleLog('message',message)

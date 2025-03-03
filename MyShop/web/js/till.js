@@ -128,7 +128,6 @@ function displayPaymentBox(){
     popUpPanel.appendChild(completeTransaction)
 }
 
-
 function displayPayCreditBox(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
@@ -178,7 +177,34 @@ function displayPayCreditBox(){
             var id=String(cust['id'])
             var name=String(cust['name'].toLowerCase())
             if(id.includes(value) || name.includes(value)){
-                sCustomer.innerHTML+="<h3>ID "+cust['id']+" Name "+cust["name"]+" Phone "+cust['phoneNum']+"</h3>"
+                var h3Cust=document.createElement('h3')
+                h3Cust.innerHTML+="ID "+cust['id']+"<small>Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
+                h3Cust.addEventListener('click',()=>{
+                    var x=document.getElementById('customerId')
+                    x.value=cust['id']
+                    x.disabled=true
+                    
+                    var cTransactions=document.getElementById('customerCreditTransactions')
+                    cTransactions.innerHTML=''
+                    cTransactions.removeChil
+                    cust['creditTrasactions'].forEach(t=>{
+                        var transaction=document.createElement('h4')
+                        transaction.innerHTML=t['time']+'Total= '+t['saleAmount']+' Paid='+t['paidAmount']+' Transaction Id= '+t['tId']+'</h4>'
+                        transaction.addEventListener('click',()=>{
+                            busketTotalPrice=t['saleAmount']-t['paidAmount']
+                            document.getElementById('transactionBalance').innerHTML=busketTotalPrice
+                            var completeBtn=document.getElementById('completeTransaction')
+                            completeBtn.disabled=false
+                            completeBtn.classList.remove('innactive')
+                            completeBtn.classList.add('danger')
+                            var y=document.getElementById('transactionId')
+                            y.value=t['tId']
+                            y.disabled=true
+                        });
+                        cTransactions.appendChild(transaction)
+                    });
+                });
+                sCustomer.appendChild(h3Cust)
             }
         });
     })
@@ -186,9 +212,9 @@ function displayPayCreditBox(){
     var searchedCustomers=document.createElement('div')
     searchedCustomers.id='searchedCustomers'
 
-    var transactionId=document.createElement('input')
-    transactionId.type='customerId'
-    transactionId.placeholder='Transaction Id'
+    var creditIdInput=document.createElement('input')
+    creditIdInput.id='transactionId'
+    creditIdInput.placeholder='Transaction Id'
 
     var customerCreditTransactions=document.createElement('div')
     customerCreditTransactions.id='customerCreditTransactions'
@@ -211,8 +237,24 @@ function displayPayCreditBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.addEventListener('click',()=>{
-
+    completeTransaction.addEventListener('click',async ()=>{
+        var custId=document.getElementById('customerId').value
+        var creditId=document.getElementById('transactionId').value
+        if(custId!=undefined && custId!=null){
+            if(creditId!=undefined && creditId!=null){
+                var state=await Transaction.payCredit(creditId,custId,payments)
+                if(state==true){
+                    notificationBubble('Paid customer credit Successfully',1,5)
+                    closePopUp()
+                    payments=[]
+                    Transaction.clearTransactionFromUi()
+                }else{
+                
+                }
+            }else{notificationBubble('Please fill in the transaction id'),3,5}
+        }else{
+            notificationBubble('Please fill in the customer id',3,5)
+        }
     })
 
     var cancel=document.createElement("button")
@@ -222,12 +264,13 @@ function displayPayCreditBox(){
     cancel.addEventListener('click',()=>{
         closePopUp()
         payments=[]
+        Transaction.clearTransactionFromUi()
     })
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(customerIdTile)
     popUpPanel.appendChild(searchedCustomers)
-    popUpPanel.appendChild(transactionId)
+    popUpPanel.appendChild(creditIdInput)
     popUpPanel.appendChild(customerCreditTransactions)
     popUpPanel.appendChild(paymentOptions)
     popUpPanel.appendChild(paymentMethods)
@@ -573,6 +616,14 @@ function displaySales(){
     
 }
 
+function printXReport(){
+
+}
+
+function closeShift(){
+
+}
+
 class Render{
     static renderItems(items){
         var list=document.getElementById('itemList')
@@ -708,10 +759,8 @@ class Shift{
             notificationBubble("ShiftId or Closing amout is empty",2,4)
         }
     }
-    openShift(){}
+    static printXReport(){}
     closeShift(){}
-    printXReport(){}
-    printZReport(){}
 }
 
 class Customer{
@@ -811,6 +860,18 @@ class Transaction{
         });
         busketTotalPrice=tot
         document.getElementById("basketTotal").innerHTML=busketTotalPrice
+    }
+    static async payCredit(tId,custId,paymentList){
+        var userId=Auth.getUserId()
+        if(userId!=null && userId!=undefined){
+            var response=await eel.payCustomerCredit(userId,tId,custId,paymentList)()
+            if(response['state']==true){
+                return true
+            }else{
+                notificationBubble(response['message'],0,5)
+            }
+        }
+        return false
     }
 }
 
