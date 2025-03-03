@@ -116,9 +116,11 @@ class CashierActions:
             return {'state':False,'message':'Error while getting customerCredit','creditTaken':creditTaken,'creditAvailable':creditAvailable,'creditTransactions':creditTransactions}
     
     @staticmethod
-    def payCustomerCredit(userId,tId,custId,creditId,paymentList):
+    def payCustomerCredit(userId,tId,custId,paymentList):
+        Logging.consoleLog('debug',f'Paying customer credit userId={userId} tId={tId} custId={custId} paymentList={paymentList}')
         c=Cashier()
-        state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
+        state,message=c.payCreditSale(userId,tId,custId,paymentList)
+        
         return {'state':state,'message':message}
     
     @staticmethod
@@ -188,6 +190,7 @@ if __name__=="__main__":
     eel._expose("getAllTransactions",fetchData.getAllTransactions)
     eel._expose("getAllCustomers",fetchData.fetchAllCustomers)
 
+    eel._expose("payCustomerCredit",cashierActions.payCustomerCredit)
     eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
     eel._expose("registerCustomer",cashierActions.registerCustomer)
