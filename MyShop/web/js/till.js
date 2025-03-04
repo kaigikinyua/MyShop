@@ -643,28 +643,26 @@ async function checkCustomerCredit(){
 function displayReports(){
     showPopUp("")
     var popUpPanel=document.getElementById('popUpPanel')
-    
+    popUpPanel.style.minHeight='300px'
+    popUpPanel.style.minWidth='300px'
     var header=document.createElement("h3")
     header.classList.add("header")
     header.innerHTML="Reports"
     
     var buttonsContainer=document.createElement("div")
     var xReportBtn=document.createElement('button')
-    var zReportBtn=document.createElement('button')
     var creditReportBtn=document.createElement('button')
     var emptiesReportBnt=document.createElement('button')
 
     xReportBtn.classList.add('cool')
-    zReportBtn.classList.add('danger')
     creditReportBtn.classList.add('success')
     emptiesReportBnt.classList.add('cool')
 
     xReportBtn.innerHTML='X Report'
-    zReportBtn.innerHTML='Z Report'
     creditReportBtn.innerHTML='Credit Report'
     emptiesReportBnt.innerHTML='Empties Report'
 
-    var buttonsList=[xReportBtn,zReportBtn,creditReportBtn,emptiesReportBnt]
+    var buttonsList=[xReportBtn,creditReportBtn,emptiesReportBnt]
     buttonsList.forEach(btn=>{
         btn.classList.add('minLenBtn')
         buttonsContainer.appendChild(btn)
@@ -679,18 +677,6 @@ function displayReports(){
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(buttonsContainer)
     popUpPanel.appendChild(cancel)
-}
-
-function displaySales(){
-    
-}
-
-function printXReport(){
-
-}
-
-function closeShift(){
-
 }
 
 class Render{
@@ -961,6 +947,24 @@ class Stock{
 
     }
     static async dispatchEmpties(empties){}
+}
+
+class Reports{
+    static async getXReport(){
+
+    }
+    static async getZreport(){
+
+    }
+    static async closeShift(){
+
+    }
+    static async creditReport(){
+
+    }
+    static async emptiesReport(){
+
+    }
 }
 
 
