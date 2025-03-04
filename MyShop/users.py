@@ -106,8 +106,20 @@ class User:
                 "id":customer.id,
                 "name":customer.name,
                 "phoneNum":customer.phoneNumber,
-                "creditOwed":customer.totalCreditOwed
+                "creditOwed":customer.totalCreditOwed,
                 })
+        creditView=CustomerCreditView()
+        for customer in customersList:
+           cTransaction=creditView.fetchAllCreditTransactionsByCustomer(customer['id'],False)
+           creditTransactions=[]
+           for t in cTransaction:
+               creditTransactions.append({
+                   'tId':t.transactionId,
+                   'saleAmount':t.saleAmount,
+                   'paidAmount':t.paidAmount,
+                   'time':FormatTime.dateTimeToStandardTime(t.time)
+                })
+           customer['creditTrasactions']=creditTransactions
         return customersList
 
     def fetchCustomerTotalCredit(self,custId):
@@ -160,27 +172,27 @@ class Cashier(User):
         if(authAction):
             payment=PaymentView()
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
-            if(customerCreditRequest>=0):
+            if(customerCreditRequest>0):
                 customerView=CustomerView()
-                cust,custMsg=customerView.getCustomer(int(custId))
-                if(cust!=None):
+                if(custId!=None and custId!=0):
+                    #cust,custMsg=customerView.getCustomer(int(custId))
                     max_credit=self.maximumCustomerCredit(custId)
                     if(customerCreditRequest>max_credit):
                         Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                        return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                        return False,f'Customer is only eligable for a maximum credit of {max_credit}' 
                 else:
-                    return False,f'You need to register the customer in order for them to access credit {custMsg}'
-                
-                saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
-                if(saleResult==True):
-                    Logging.consoleLog('succ','Sale made successfully')
-                    return True,"Sale is successfull"
-                else:
-                    errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
-                    Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
-                    return False,errorMessage
+                    return False,f'Please enter the customer id in order for them to get credit on a transaction'
             else:
-                Logging.consoleLog('error',f'Transaction credit request is {customerCreditRequest}:Negative value')
+                custId=0        
+            saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
+            if(saleResult==True):
+                Logging.consoleLog('succ','Sale made successfully')
+                return True,"Sale is successfull"
+            else:
+                errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
+                Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
+                return False,errorMessage
+            
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
         return False,"User level is not cashier"
 
@@ -244,16 +256,16 @@ class Cashier(User):
                     return True
         return False
 
-    def payCreditSale(self,userId,tId,custId,creditId,paymentList):
+    def payCreditSale(self,userId,tId,custId,paymentList):
         state=False
         message=''
         auth=super().authUserLevelAction(userId,'cashier')
         if(auth):
-            if(tId!=None and custId!=None and creditId!=None and paymentList!=None):
+            if(tId!=None and custId!=None and paymentList!=None):
                 creditInPaymentList=self.checkForCreditInPayMentList(paymentList)
                 if(creditInPaymentList==False):
                     c=CustomerCreditView()
-                    creditState,message=c.payCredit(custId,creditId,tId,paymentList)
+                    creditState,message=c.payCredit(custId,tId,paymentList)
                     if(creditState==True):
                         state=True
                         message='Paid credit successfully'
@@ -262,7 +274,7 @@ class Cashier(User):
                 else:
                     message='You cannot pay credit with another credit.Please use Mpesa,Bank or Cash'
             else:
-                message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCredit()'
+                message='Please fill in all the details for credit to be payed: NoneType Passed to Cashier.payCreditSale()'
         else:
             message='Access Denied user level not permited to payCreditSale'
         Logging.consoleLog('message',message)
@@ -308,18 +320,19 @@ class Cashier(User):
             message='None type passed to Cashier.reduceStockAfterSale()'
         return state,message
 
-    def receiveStock(self,cashierId,busketList):
+    def receiveStock(self,cashierId,invoiceNumber,stockList):
         state=False
         message=''
         auth=super().authUserLevelAction(cashierId,'cashier')
         if(auth):
-            if(busketList!=None and cashierId!=None):
+            if(cashierId!=None and invoiceNumber!=None and stockList!=None):
                 sV=StockView()
                 pView=ProductsView()
                 error=False
-                for i in busketList:
+                for i in stockList:
                     product=pView.getProductByBarCode(i['barCode'])
                     removedItem,rmessage=sV.addItems(cashierId,product.id,product.barCode,i['quantity'])
+                    StockHistoryView.addStockHistory(invoiceNumber,'receiving','Warehouse',product.id,product.barCode,i['quantity'],cashierId)
                     if(removedItem!=True):
                         error=True
                         message=rmessage

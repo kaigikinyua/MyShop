@@ -116,16 +116,21 @@ class CashierActions:
             return {'state':False,'message':'Error while getting customerCredit','creditTaken':creditTaken,'creditAvailable':creditAvailable,'creditTransactions':creditTransactions}
     
     @staticmethod
-    def payCustomerCredit(userId,tId,custId,creditId,paymentList):
+    def payCustomerCredit(userId,tId,custId,paymentList):
+        Logging.consoleLog('debug',f'Paying customer credit userId={userId} tId={tId} custId={custId} paymentList={paymentList}')
         c=Cashier()
-        state,message=c.payCreditSale(userId,tId,custId,creditId,paymentList)
+        state,message=c.payCreditSale(userId,tId,custId,paymentList)
+        
         return {'state':state,'message':message}
     
     @staticmethod
-    def receiveStock(userId,busketList):
-        c=Cashier()
-        state,message=c.receiveStock(userId,busketList)
-        return {'state':state,'message':message}
+    def receiveStock(userId,invoiceId,receivedItems):
+        if(userId!=None and invoiceId!=None and receivedItems!=None):
+            c=Cashier()
+            state,message=c.receiveStock(userId,invoiceId,receivedItems)
+            return {'state':state,'message':message}
+        else:
+            return {'state':False,'message':'Empty fields passed to CashierActions.receiveStock()'}
     
     @staticmethod
     def genXReport(shiftId):
@@ -188,9 +193,11 @@ if __name__=="__main__":
     eel._expose("getAllTransactions",fetchData.getAllTransactions)
     eel._expose("getAllCustomers",fetchData.fetchAllCustomers)
 
+    eel._expose("payCustomerCredit",cashierActions.payCustomerCredit)
     eel._expose("declareStartingAmount",cashierActions.declareStartingAmount)
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
     eel._expose("registerCustomer",cashierActions.registerCustomer)
     eel._expose("fetchCustomerTotalCredit",cashierActions.fetchCustomerTotalCredit)
+    eel._expose("receiveStock",cashierActions.receiveStock)
 
     eel.start("login.html",port=4040)

@@ -3,7 +3,6 @@ var productsList=[]
 var branches=[]
 var allCustomers=[]
 
-
 var customerBusket=[]
 var busketTotalPrice=0
 var payments=[]
@@ -70,18 +69,18 @@ function displayPaymentBox(){
 
     mpesaOption.innerHTML='<input type="text" placeholder="Transaction Id" id="mpesaId"/>'
     mpesaOption.innerHTML+='<input type="number" placeholder="Phone Number" id="mpesaPhoneNum"/>'
-    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount"/>'
+    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount" min=0 oninput="this.value = Math.abs(this.value)"/>'
     mpesaOption.innerHTML+='<button onclick=addPayment("mpesa")>Add Payment</button>'
 
-    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount"/>'
+    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     cashOption.innerHTML+='<button onclick=addPayment("cash")>Add Payment</button>'
 
     bankOption.innerHTML='<input type="number" placeholder="Bank Account Number" id="bankAccNumber">'
-    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount"/>'
+    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     bankOption.innerHTML+='<input type="text" placeholder="Bank Name eg Equity or KCB" id="bankName"/>'
     bankOption.innerHTML+='<button onclick=addPayment("bank")>Add Payment</button>'
 
-    creditOption.innerHTML='<input type="number" placeholder="Credit Amount" id="creditAmount"/>'
+    creditOption.innerHTML='<input type="number" placeholder="Credit Amount" id="creditAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     creditOption.innerHTML+='<input type="date" id="creditDeadline"/>'
     creditOption.innerHTML+='<input type="text" id="creditCustomerId" placeholder="Customer System Id Name"/>'
     creditOption.innerHTML+='<input type="text" id="creditCustomerPhone" placeholder="Customer Phone Number"/>'
@@ -92,7 +91,7 @@ function displayPaymentBox(){
     paymentMethods.appendChild(mpesaOption);paymentMethods.appendChild(cashOption);paymentMethods.appendChild(bankOption);paymentMethods.appendChild(creditOption)
     
     var customerIdTile=document.createElement("div")
-    customerIdTile.innerHTML="<input type='text' id='customerId' placeholder='Customer Registration Number'/>"
+    customerIdTile.innerHTML="<input type='number' id='customerId' placeholder='Customer Registration Number' default='0'/>"
 
     var paymentTile=document.createElement('div')
     paymentTile.id='paymentTile'
@@ -107,15 +106,24 @@ function displayPaymentBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.onclick=(()=>sendTransactionToBackend())
+    completeTransaction.onclick=(async ()=>{
+        var counterId=document.getElementById("counterID").value
+        var customerId=document.getElementById("customerId").value
+        if(customerId ==null || customerId==undefined || parseInt(customerId)==0){
+            customerId=0
+        }
+        var response=await Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
+        if(response['state']==true){
+            Transaction.clearTransactionFromUi()
+        }
+    })
 
     var cancel=document.createElement("button")
     cancel.innerHTML="Cancel"
     cancel.classList.add("minLenBtn")
     cancel.classList.add("cool")
     cancel.addEventListener('click',()=>{
-        closePopUp()
-        payments=[]
+        Transaction.clearTransactionFromUi()
     })
 
     popUpPanel.appendChild(header)
@@ -127,7 +135,6 @@ function displayPaymentBox(){
     popUpPanel.appendChild(cancel)
     popUpPanel.appendChild(completeTransaction)
 }
-
 
 function displayPayCreditBox(){
     showPopUp("")
@@ -150,16 +157,16 @@ function displayPayCreditBox(){
     var cashOption=document.createElement('div')
     var bankOption=document.createElement('div')
 
-    mpesaOption.innerHTML='<input type="text" placeholder="Transaction Id" id="mpesaId"/>'
+    mpesaOption.innerHTML='<input type="text" placeholder="Mpesa Transaction Id" id="mpesaId"/>'
     mpesaOption.innerHTML+='<input type="number" placeholder="Phone Number" id="mpesaPhoneNum"/>'
-    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount"/>'
+    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     mpesaOption.innerHTML+='<button onclick=addPayment("mpesa")>Add Payment</button>'
 
-    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount"/>'
+    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     cashOption.innerHTML+='<button onclick=addPayment("cash")>Add Payment</button>'
 
     bankOption.innerHTML='<input type="number" placeholder="Bank Account Number" id="bankAccNumber">'
-    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount"/>'
+    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     bankOption.innerHTML+='<input type="text" placeholder="Bank Name eg Equity or KCB" id="bankName"/>'
     bankOption.innerHTML+='<button onclick=addPayment("bank")>Add Payment</button>'
 
@@ -178,7 +185,34 @@ function displayPayCreditBox(){
             var id=String(cust['id'])
             var name=String(cust['name'].toLowerCase())
             if(id.includes(value) || name.includes(value)){
-                sCustomer.innerHTML+="<h3>ID "+cust['id']+" Name "+cust["name"]+" Phone "+cust['phoneNum']+"</h3>"
+                var h3Cust=document.createElement('h3')
+                h3Cust.innerHTML+="ID "+cust['id']+"<small>Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
+                h3Cust.addEventListener('click',()=>{
+                    var x=document.getElementById('customerId')
+                    x.value=cust['id']
+                    x.disabled=true
+                    
+                    var cTransactions=document.getElementById('customerCreditTransactions')
+                    cTransactions.innerHTML=''
+                    cTransactions.removeChil
+                    cust['creditTrasactions'].forEach(t=>{
+                        var transaction=document.createElement('h4')
+                        transaction.innerHTML=t['time']+'Total= '+t['saleAmount']+' Paid='+t['paidAmount']+' Transaction Id= '+t['tId']+'</h4>'
+                        transaction.addEventListener('click',()=>{
+                            busketTotalPrice=t['saleAmount']-t['paidAmount']
+                            document.getElementById('transactionBalance').innerHTML=busketTotalPrice
+                            var completeBtn=document.getElementById('completeTransaction')
+                            completeBtn.disabled=false
+                            completeBtn.classList.remove('innactive')
+                            completeBtn.classList.add('danger')
+                            var y=document.getElementById('transactionId')
+                            y.value=t['tId']
+                            y.disabled=true
+                        });
+                        cTransactions.appendChild(transaction)
+                    });
+                });
+                sCustomer.appendChild(h3Cust)
             }
         });
     })
@@ -186,9 +220,9 @@ function displayPayCreditBox(){
     var searchedCustomers=document.createElement('div')
     searchedCustomers.id='searchedCustomers'
 
-    var transactionId=document.createElement('input')
-    transactionId.type='customerId'
-    transactionId.placeholder='Transaction Id'
+    var creditIdInput=document.createElement('input')
+    creditIdInput.id='transactionId'
+    creditIdInput.placeholder='Transaction Id'
 
     var customerCreditTransactions=document.createElement('div')
     customerCreditTransactions.id='customerCreditTransactions'
@@ -211,8 +245,24 @@ function displayPayCreditBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.addEventListener('click',()=>{
-
+    completeTransaction.addEventListener('click',async ()=>{
+        var custId=document.getElementById('customerId').value
+        var creditId=document.getElementById('transactionId').value
+        if(custId!=undefined && custId!=null){
+            if(creditId!=undefined && creditId!=null){
+                var state=await Transaction.payCredit(creditId,custId,payments)
+                if(state==true){
+                    notificationBubble('Paid customer credit Successfully',1,5)
+                    closePopUp()
+                    payments=[]
+                    Transaction.clearTransactionFromUi()
+                }else{
+                
+                }
+            }else{notificationBubble('Please fill in the transaction id'),3,5}
+        }else{
+            notificationBubble('Please fill in the customer id',3,5)
+        }
     })
 
     var cancel=document.createElement("button")
@@ -222,12 +272,13 @@ function displayPayCreditBox(){
     cancel.addEventListener('click',()=>{
         closePopUp()
         payments=[]
+        Transaction.clearTransactionFromUi()
     })
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(customerIdTile)
     popUpPanel.appendChild(searchedCustomers)
-    popUpPanel.appendChild(transactionId)
+    popUpPanel.appendChild(creditIdInput)
     popUpPanel.appendChild(customerCreditTransactions)
     popUpPanel.appendChild(paymentOptions)
     popUpPanel.appendChild(paymentMethods)
@@ -235,6 +286,76 @@ function displayPayCreditBox(){
     popUpPanel.appendChild(balanceTile)
     popUpPanel.appendChild(cancel)
     popUpPanel.appendChild(completeTransaction)
+}
+
+function displayReceiveStock(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    popUpPanel.style.minHeight='600px';
+    popUpPanel.style.minWidth='600px'
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Receive Stock"
+
+    var invoiceNumber=document.createElement('input')
+    invoiceNumber.id='invoiceNumber'
+    invoiceNumber.defaultValue=''
+    invoiceNumber.placeholder='Invoice Number'
+
+
+    var stockList=document.createElement('div')
+    stockList.classList.add('paddedContainer')
+    stockList.classList.add('listView')
+    stockList.innerHTML=""
+    productsList.forEach(p=>{
+        var product=document.createElement('div')
+        product.innerHTML+="<h4 class='grid listItem'>"+p['name']+" "+p['barCode']+"<div><input class='minLen' id='receiveStock|"+p['id']+"' placeholder='Quantity Received' default='0' type='number' min='0' oninput='this.value = Math.abs(this.value)'/><button class='iconBtn danger'>Remove</button></div></h4>"
+        stockList.appendChild(product)
+    })
+
+
+    var receiveStockBtn=document.createElement("button")
+    receiveStockBtn.innerHTML="Receive Stock"
+    receiveStockBtn.classList.add("minLenBtn")
+    receiveStockBtn.classList.add("danger")
+    receiveStockBtn.id="receiveStock"
+    receiveStockBtn.addEventListener('click',async ()=>{
+        var iNumber=document.getElementById('invoiceNumber').value
+        if(iNumber!=null && iNumber!=undefined && iNumber!=''){
+            var receivedItems=[]
+            productsList.forEach(p=>{
+                var receivedQuantity=document.getElementById('receiveStock|'+p['id']).value
+                if(receivedQuantity>0){
+                    receivedItems.push({'id':p['id'],'barCode':p['barCode'],'quantity':parseInt(receivedQuantity)})
+                }
+            })
+            if(receivedItems.length>0){
+                console.log(receivedItems)
+                var response=await Stock.receiveStock(iNumber,receivedItems)
+                if(response['state']==true){
+                    closePopUp()
+                }
+            }else{
+                notificationBubble("Please fill in the stock items received",3,5)
+            }
+        }else{notificationBubble("Please fill in the invoice number",3,5)}
+       
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.addEventListener('click',()=>{
+        closePopUp()
+    })
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(invoiceNumber)
+    popUpPanel.appendChild(stockList)
+    popUpPanel.appendChild(receiveStockBtn)
+    popUpPanel.appendChild(cancel)
+
 }
 
 
@@ -330,15 +451,6 @@ function addPayment(paymentMethod){
             btn.classList.add("danger")
         }
     }
-}
-
-function sendTransactionToBackend(){
-    var counterId=document.getElementById("counterID").value
-    var customerId=document.getElementById("customerId").value
-    if(customerId.length==0){
-        customerId='null'
-    }
-    Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
 }
 
 //shift action buttons
@@ -573,6 +685,14 @@ function displaySales(){
     
 }
 
+function printXReport(){
+
+}
+
+function closeShift(){
+
+}
+
 class Render{
     static renderItems(items){
         var list=document.getElementById('itemList')
@@ -708,10 +828,8 @@ class Shift{
             notificationBubble("ShiftId or Closing amout is empty",2,4)
         }
     }
-    openShift(){}
+    static printXReport(){}
     closeShift(){}
-    printXReport(){}
-    printZReport(){}
 }
 
 class Customer{
@@ -789,10 +907,11 @@ class Transaction{
         var response=await eel.makeSale(busket,payments,counterId,cashierId,parseInt(custId))()
         console.log(response['state'])
         if(response['state']==true){
-            Transaction.clearTransactionFromUi()
             notificationBubble("Transaction Completed Successfully",1,5)
+            return response
         }else{
             notificationBubble("Transaction Failed\n"+response['message'],0,5)
+            return response
         }
     }
 
@@ -802,6 +921,7 @@ class Transaction{
         busketTotalPrice=0
         payments=[]
         closePopUp()
+        Transaction.computeTotal(customerBusket)
     }
 
     static computeTotal(items){
@@ -812,7 +932,37 @@ class Transaction{
         busketTotalPrice=tot
         document.getElementById("basketTotal").innerHTML=busketTotalPrice
     }
+    static async payCredit(tId,custId,paymentList){
+        var userId=Auth.getUserId()
+        if(userId!=null && userId!=undefined){
+            var response=await eel.payCustomerCredit(userId,tId,custId,paymentList)()
+            allCustomers=await FetchData.getAllCustomers()
+            if(response['state']==true){
+                return true
+            }else{
+                notificationBubble(response['message'],0,5)
+            }
+        }
+        return false
+    }
 }
+
+class Stock{
+    static async receiveStock(invoiceNumber,items){
+        var userId=Auth.getUserId()
+        var response=await eel.receiveStock(userId,invoiceNumber,items)()
+        if(response['state']==true){
+            return response
+        }else{
+            notificationBubble(response['message'],0,5)
+        }
+    }
+    static async receiveEmpties(transactionId,empties){
+
+    }
+    static async dispatchEmpties(empties){}
+}
+
 
 class Auth{
     static renderShiftId(){

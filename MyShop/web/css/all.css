@@ -21,6 +21,10 @@ button.longButton, button.submit {
   width: 90%;
 }
 
+.paddedContainer {
+  padding: 10px;
+}
+
 .iconBtn {
   text-align: center;
   font-size: 1.2em;
@@ -48,9 +52,26 @@ input:hover {
   transition-duration: 0.5s;
 }
 
+.minLen {
+  padding: 3px;
+  width: auto;
+}
+
 .two_columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+.grid {
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+}
+
+.listView .listItem {
+  margin-top: 5px;
+  padding: 3px;
+  background-color: none;
 }
 
 .listView :nth-child(odd) {
