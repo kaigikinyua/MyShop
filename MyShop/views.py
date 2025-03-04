@@ -772,34 +772,33 @@ class PaymentView:
                     paymentMethods.append()
         return paymentMethods
 
-    def payCredit(self,paymentMethod,paymentAmount,tId,creditId,transactionCredentials,paymentTime):
+    def payCredit(self,payment,tId,creditId,paymentTime):
         state=False
         message=''
-        if(paymentMethod!=None and paymentAmount>0 and tId!=None and creditId!=None and transactionCredentials!=None and paymentTime!=None):
+        if(payment!=None and tId!=None and creditId!=None and paymentTime!=None):
             t=TransactionView()
             tr=t.fetchTransactionById(tId)
             if(tr==None):
                 #no transaction whose id=transactionId hence no payment can be made
                 message=f'There is no transaction whose with transactionId={tId}'
             else:
-                payment=PaymentModel()
-                payment.transactionId=tId
-                payment.paymentMethod=paymentMethod
-                payment.paidForCreditId=creditId
-                payment.amountPayed=paymentAmount
-                payment.time=paymentTime
-                if(paymentMethod=='mpesa'):
-                    payment.mpesaTransaction=transactionCredentials
-                elif(paymentMethod=='bank'):
-                    payment.bankAcc=transactionCredentials
-                elif(paymentMethod=='cash'):
-                    payment.mpesaTransaction='None;Cash'
-                    payment.bankAcc='None;Cash'
-                rslt=t.updatePaidAmount(tId,paymentAmount)
+                p=PaymentModel()
+                p.transactionId=tId
+                p.paymentMethod=payment['paymentType']
+                p.paidForCreditId=creditId
+                p.amountPayed=payment['amount']
+                p.time=paymentTime
+                if(payment['paymentType']=='mpesa'):
+                    p.mpesaTransaction=payment["phoneNum"]+';'+payment["mpesaTid"]
+                elif(payment['paymentType']=='bank'):
+                    p.bankAcc=payment["bankName"]+';'+payment["bankAccNumber"]
+                elif(payment['paymentType']=='cash'):
+                    p.mpesaTransaction='None;Cash'
+                    p.bankAcc='None;Cash'
                 Session=sessionmaker(bind=engine)
                 session=Session()
-                session.add(payment)
-                rslt=t.updatePaidAmount(tId,paymentAmount)
+                session.add(p)
+                rslt=t.updatePaidAmount(tId,payment['amount'])
                 if(rslt):
                     session.commit()
                     state=True
@@ -857,7 +856,7 @@ class PaymentView:
     def calcTotal(self,payments):
         total=0
         for p in payments:
-            total=total+p.amountPayed
+            total=total+int(p['amount'])
         return total
 
     def getAllPayments(self):
@@ -871,15 +870,18 @@ class CustomerCreditView:
         state=False
         message=''
         if(paymentList!=None and tId!=None):
-            creditBalance=self.creditBalanceOnTransaction(tId)
+            creditBalance,msg=self.creditBalanceOnTransaction(tId)
             creditObj=self.fetchCreditByTransactionId(tId,custId)
             p=PaymentView()
             amount=p.calcTotal(paymentList)
-            if(creditBalance>=amount):
+            if(creditBalance==False):
+                message=msg
+                Logging.consoleLog('error',msg)
+            elif(creditBalance>=amount):
                 payTime=FormatTime.now()
                 error=False
                 for pay in paymentList:
-                    rslt,message=p.payCredit(pay['paymentType'],pay['amount'],tId,creditObj.id,pay['credentials'],payTime)
+                    rslt,message=p.payCredit(pay,tId,creditObj.id,payTime)
                     if(rslt==None or rslt==False):
                         error=True
                         message+=message
@@ -895,7 +897,7 @@ class CustomerCreditView:
                 else:
                     #initiate rollback
                     message+='Error while updating customer Credit'
-            else:
+            elif(creditBalance<amount):
                 message='Customer will have overpaid the credit balance Credit Balance={creditBalance} amount paid={amount}'
         else:
             message=f'None parameter passed to payCredit(self,custId,tId,paymentMethod,amount,transactionCredentials,creditId)'
@@ -951,18 +953,18 @@ class CustomerCreditView:
         if(tId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            credit=session.query(TransactionModel).filter_by(id=tId).one_or_none()
+            credit=session.query(TransactionModel).filter_by(transactionId=tId).one_or_none()
             if(credit!=None):
                 balance=credit.saleAmount-credit.paidAmount
-                return balance
+                return balance,''
             else:
-                return False,f'Transaction with id {tId}] could not be found'
+                return False,f'Transaction with id {tId} could not be found'
 
         return False,f'None value passed to creditFullySettled(self,custId,tId)'
 
     def calcTotalCustomerCredit(self,custId):
         if(custId!=None):
-            debtList=self.fetchAllCreditTransactionsByCustomer(custId)
+            debtList=self.fetchAllCreditTransactionsByCustomer(custId,False)
             totalDebt=0
             transactionIds=[]
             for debt in debtList:

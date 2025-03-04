@@ -174,14 +174,14 @@ class Cashier(User):
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
             if(customerCreditRequest>=0):
                 customerView=CustomerView()
-                cust,custMsg=customerView.getCustomer(int(custId))
-                if(cust!=None):
+                if(custId!=None and custId!=0):
+                    #cust,custMsg=customerView.getCustomer(int(custId))
                     max_credit=self.maximumCustomerCredit(custId)
                     if(customerCreditRequest>max_credit):
                         Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                        return False,'Customer is only eligable for a maximum credit of {max_credit}'
+                        return False,f'Customer is only eligable for a maximum credit of {max_credit}'
                 else:
-                    return False,f'You need to register the customer in order for them to access credit {custMsg}'
+                    return False,f'You need to register the customer in order for them to access credit'
                 
                 saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
                 if(saleResult==True):

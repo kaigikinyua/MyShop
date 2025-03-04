@@ -92,7 +92,7 @@ function displayPaymentBox(){
     paymentMethods.appendChild(mpesaOption);paymentMethods.appendChild(cashOption);paymentMethods.appendChild(bankOption);paymentMethods.appendChild(creditOption)
     
     var customerIdTile=document.createElement("div")
-    customerIdTile.innerHTML="<input type='text' id='customerId' placeholder='Customer Registration Number'/>"
+    customerIdTile.innerHTML="<input type='number' id='customerId' placeholder='Customer Registration Number' default='0'/>"
 
     var paymentTile=document.createElement('div')
     paymentTile.id='paymentTile'
@@ -107,15 +107,24 @@ function displayPaymentBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.onclick=(()=>sendTransactionToBackend())
+    completeTransaction.onclick=(()=>{
+        var counterId=document.getElementById("counterID").value
+        var customerId=document.getElementById("customerId").value
+        if(customerId ==null || customerId==undefined || parseInt(customerId)==0){
+            customerId=0
+        }
+        var response=Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
+        if(response['state']==true){
+            Transaction.clearTransactionFromUi()
+        }
+    })
 
     var cancel=document.createElement("button")
     cancel.innerHTML="Cancel"
     cancel.classList.add("minLenBtn")
     cancel.classList.add("cool")
     cancel.addEventListener('click',()=>{
-        closePopUp()
-        payments=[]
+        Transaction.clearTransactionFromUi()
     })
 
     popUpPanel.appendChild(header)
@@ -373,15 +382,6 @@ function addPayment(paymentMethod){
             btn.classList.add("danger")
         }
     }
-}
-
-function sendTransactionToBackend(){
-    var counterId=document.getElementById("counterID").value
-    var customerId=document.getElementById("customerId").value
-    if(customerId.length==0){
-        customerId='null'
-    }
-    Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
 }
 
 //shift action buttons
@@ -838,10 +838,11 @@ class Transaction{
         var response=await eel.makeSale(busket,payments,counterId,cashierId,parseInt(custId))()
         console.log(response['state'])
         if(response['state']==true){
-            Transaction.clearTransactionFromUi()
             notificationBubble("Transaction Completed Successfully",1,5)
+            return response
         }else{
             notificationBubble("Transaction Failed\n"+response['message'],0,5)
+            return response
         }
     }
 
@@ -865,6 +866,7 @@ class Transaction{
         var userId=Auth.getUserId()
         if(userId!=null && userId!=undefined){
             var response=await eel.payCustomerCredit(userId,tId,custId,paymentList)()
+            allCustomers=await FetchData.getAllCustomers()
             if(response['state']==true){
                 return true
             }else{
