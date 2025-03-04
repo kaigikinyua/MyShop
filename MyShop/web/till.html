@@ -28,7 +28,7 @@
                 </div>
                 <div class="inline">
                     <h3>Quantity</h3>
-                    <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1"/>
+                    <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1" min="0" oninput="this.value = Math.abs(this.value)"/>
                 </div>
                 <div class="inline">
                     <button onclick="addItem()" onkeypress="searchItem()">Add Product</button>
@@ -66,7 +66,7 @@
             <div class="uiPanel">
                 <h3>Stock Actions</h3>
                 <div class="dash">
-                    <button class="minLenBtn cool">Receive Stock</button>
+                    <button class="minLenBtn cool" onclick="displayReceiveStock()">Receive Stock</button>
                     <button class="minLenBtn danger">Dispatch Stock</button>
                     <button class="minLenBtn success">Stock Take</button>
                 </div>

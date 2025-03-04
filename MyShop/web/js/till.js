@@ -3,7 +3,6 @@ var productsList=[]
 var branches=[]
 var allCustomers=[]
 
-
 var customerBusket=[]
 var busketTotalPrice=0
 var payments=[]
@@ -70,18 +69,18 @@ function displayPaymentBox(){
 
     mpesaOption.innerHTML='<input type="text" placeholder="Transaction Id" id="mpesaId"/>'
     mpesaOption.innerHTML+='<input type="number" placeholder="Phone Number" id="mpesaPhoneNum"/>'
-    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount"/>'
+    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount" min=0 oninput="this.value = Math.abs(this.value)"/>'
     mpesaOption.innerHTML+='<button onclick=addPayment("mpesa")>Add Payment</button>'
 
-    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount"/>'
+    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     cashOption.innerHTML+='<button onclick=addPayment("cash")>Add Payment</button>'
 
     bankOption.innerHTML='<input type="number" placeholder="Bank Account Number" id="bankAccNumber">'
-    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount"/>'
+    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     bankOption.innerHTML+='<input type="text" placeholder="Bank Name eg Equity or KCB" id="bankName"/>'
     bankOption.innerHTML+='<button onclick=addPayment("bank")>Add Payment</button>'
 
-    creditOption.innerHTML='<input type="number" placeholder="Credit Amount" id="creditAmount"/>'
+    creditOption.innerHTML='<input type="number" placeholder="Credit Amount" id="creditAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     creditOption.innerHTML+='<input type="date" id="creditDeadline"/>'
     creditOption.innerHTML+='<input type="text" id="creditCustomerId" placeholder="Customer System Id Name"/>'
     creditOption.innerHTML+='<input type="text" id="creditCustomerPhone" placeholder="Customer Phone Number"/>'
@@ -107,13 +106,13 @@ function displayPaymentBox(){
     completeTransaction.classList.add("innactive")
     completeTransaction.disabled=true
     completeTransaction.id="completeTransaction"
-    completeTransaction.onclick=(()=>{
+    completeTransaction.onclick=(async ()=>{
         var counterId=document.getElementById("counterID").value
         var customerId=document.getElementById("customerId").value
         if(customerId ==null || customerId==undefined || parseInt(customerId)==0){
             customerId=0
         }
-        var response=Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
+        var response=await Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
         if(response['state']==true){
             Transaction.clearTransactionFromUi()
         }
@@ -158,16 +157,16 @@ function displayPayCreditBox(){
     var cashOption=document.createElement('div')
     var bankOption=document.createElement('div')
 
-    mpesaOption.innerHTML='<input type="text" placeholder="Transaction Id" id="mpesaId"/>'
+    mpesaOption.innerHTML='<input type="text" placeholder="Mpesa Transaction Id" id="mpesaId"/>'
     mpesaOption.innerHTML+='<input type="number" placeholder="Phone Number" id="mpesaPhoneNum"/>'
-    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount"/>'
+    mpesaOption.innerHTML+='<input type="number" id="mpesaAmount" placeholder="Mpesa Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     mpesaOption.innerHTML+='<button onclick=addPayment("mpesa")>Add Payment</button>'
 
-    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount"/>'
+    cashOption.innerHTML='<input type="number" placeholder="Cash Amount" id="cashAmount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     cashOption.innerHTML+='<button onclick=addPayment("cash")>Add Payment</button>'
 
     bankOption.innerHTML='<input type="number" placeholder="Bank Account Number" id="bankAccNumber">'
-    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount"/>'
+    bankOption.innerHTML+='<input type="number" id="bankAmount" placeholder="Bank Amount" min="0" oninput="this.value = Math.abs(this.value)"/>'
     bankOption.innerHTML+='<input type="text" placeholder="Bank Name eg Equity or KCB" id="bankName"/>'
     bankOption.innerHTML+='<button onclick=addPayment("bank")>Add Payment</button>'
 
@@ -287,6 +286,76 @@ function displayPayCreditBox(){
     popUpPanel.appendChild(balanceTile)
     popUpPanel.appendChild(cancel)
     popUpPanel.appendChild(completeTransaction)
+}
+
+function displayReceiveStock(){
+    showPopUp("")
+    var popUpPanel=document.getElementById('popUpPanel')
+    popUpPanel.style.minHeight='600px';
+    popUpPanel.style.minWidth='600px'
+    var header=document.createElement("h3")
+    header.classList.add("header")
+    header.innerHTML="Receive Stock"
+
+    var invoiceNumber=document.createElement('input')
+    invoiceNumber.id='invoiceNumber'
+    invoiceNumber.defaultValue=''
+    invoiceNumber.placeholder='Invoice Number'
+
+
+    var stockList=document.createElement('div')
+    stockList.classList.add('paddedContainer')
+    stockList.classList.add('listView')
+    stockList.innerHTML=""
+    productsList.forEach(p=>{
+        var product=document.createElement('div')
+        product.innerHTML+="<h4 class='grid listItem'>"+p['name']+" "+p['barCode']+"<div><input class='minLen' id='receiveStock|"+p['id']+"' placeholder='Quantity Received' default='0' type='number' min='0' oninput='this.value = Math.abs(this.value)'/><button class='iconBtn danger'>Remove</button></div></h4>"
+        stockList.appendChild(product)
+    })
+
+
+    var receiveStockBtn=document.createElement("button")
+    receiveStockBtn.innerHTML="Receive Stock"
+    receiveStockBtn.classList.add("minLenBtn")
+    receiveStockBtn.classList.add("danger")
+    receiveStockBtn.id="receiveStock"
+    receiveStockBtn.addEventListener('click',async ()=>{
+        var iNumber=document.getElementById('invoiceNumber').value
+        if(iNumber!=null && iNumber!=undefined && iNumber!=''){
+            var receivedItems=[]
+            productsList.forEach(p=>{
+                var receivedQuantity=document.getElementById('receiveStock|'+p['id']).value
+                if(receivedQuantity>0){
+                    receivedItems.push({'id':p['id'],'barCode':p['barCode'],'quantity':parseInt(receivedQuantity)})
+                }
+            })
+            if(receivedItems.length>0){
+                console.log(receivedItems)
+                var response=await Stock.receiveStock(iNumber,receivedItems)
+                if(response['state']==true){
+                    closePopUp()
+                }
+            }else{
+                notificationBubble("Please fill in the stock items received",3,5)
+            }
+        }else{notificationBubble("Please fill in the invoice number",3,5)}
+       
+    })
+
+    var cancel=document.createElement("button")
+    cancel.innerHTML="Cancel"
+    cancel.classList.add("minLenBtn")
+    cancel.classList.add("cool")
+    cancel.addEventListener('click',()=>{
+        closePopUp()
+    })
+
+    popUpPanel.appendChild(header)
+    popUpPanel.appendChild(invoiceNumber)
+    popUpPanel.appendChild(stockList)
+    popUpPanel.appendChild(receiveStockBtn)
+    popUpPanel.appendChild(cancel)
+
 }
 
 
@@ -852,6 +921,7 @@ class Transaction{
         busketTotalPrice=0
         payments=[]
         closePopUp()
+        Transaction.computeTotal(customerBusket)
     }
 
     static computeTotal(items){
@@ -876,6 +946,23 @@ class Transaction{
         return false
     }
 }
+
+class Stock{
+    static async receiveStock(invoiceNumber,items){
+        var userId=Auth.getUserId()
+        var response=await eel.receiveStock(userId,invoiceNumber,items)()
+        if(response['state']==true){
+            return response
+        }else{
+            notificationBubble(response['message'],0,5)
+        }
+    }
+    static async receiveEmpties(transactionId,empties){
+
+    }
+    static async dispatchEmpties(empties){}
+}
+
 
 class Auth{
     static renderShiftId(){

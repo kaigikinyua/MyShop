@@ -701,6 +701,8 @@ class PaymentView:
                         transactionCredentials=p["phoneNum"]+';'+p["mpesaTid"]
                     elif(pMethod=='bank'):
                         transactionCredentials=p["bankName"]+';'+p["bankAccNumber"]
+                    elif(pMethod=='cash'):
+                        transactionCredentials='none;cash'
                     pState,pmessage=self.addPayment(p["paymentType"],int(p["amount"]),tId,transactionCredentials,paymentTime)
                     if(pState==False):
                         allPaymentsDone=False
@@ -708,7 +710,7 @@ class PaymentView:
             if(allPaymentsDone):
                 return True,"Transaction success"
             else:
-                Logging.logToFile(f"One or more payments failed to be added to the database {errorMessage}")
+                Logging.logToFile('error',f"One or more payments failed to be added to the database {errorMessage}")
                 return False,f"One or more payments failed to be added to the database {errorMessage}"
         else:
             return False,"None Parameter passed to function addPaymentList(paymentList,tId)"

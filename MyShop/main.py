@@ -124,10 +124,13 @@ class CashierActions:
         return {'state':state,'message':message}
     
     @staticmethod
-    def receiveStock(userId,busketList):
-        c=Cashier()
-        state,message=c.receiveStock(userId,busketList)
-        return {'state':state,'message':message}
+    def receiveStock(userId,invoiceId,receivedItems):
+        if(userId!=None and invoiceId!=None and receivedItems!=None):
+            c=Cashier()
+            state,message=c.receiveStock(userId,invoiceId,receivedItems)
+            return {'state':state,'message':message}
+        else:
+            return {'state':False,'message':'Empty fields passed to CashierActions.receiveStock()'}
     
     @staticmethod
     def genXReport(shiftId):
@@ -195,5 +198,6 @@ if __name__=="__main__":
     eel._expose("declareClosingAmount",cashierActions.declareClosingAmount)
     eel._expose("registerCustomer",cashierActions.registerCustomer)
     eel._expose("fetchCustomerTotalCredit",cashierActions.fetchCustomerTotalCredit)
+    eel._expose("receiveStock",cashierActions.receiveStock)
 
     eel.start("login.html",port=4040)

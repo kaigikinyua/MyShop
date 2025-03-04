@@ -172,27 +172,27 @@ class Cashier(User):
         if(authAction):
             payment=PaymentView()
             customerCreditRequest=payment.calcCreditInPayment(paymentList)
-            if(customerCreditRequest>=0):
+            if(customerCreditRequest>0):
                 customerView=CustomerView()
                 if(custId!=None and custId!=0):
                     #cust,custMsg=customerView.getCustomer(int(custId))
                     max_credit=self.maximumCustomerCredit(custId)
                     if(customerCreditRequest>max_credit):
                         Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                        return False,f'Customer is only eligable for a maximum credit of {max_credit}'
+                        return False,f'Customer is only eligable for a maximum credit of {max_credit}' 
                 else:
-                    return False,f'You need to register the customer in order for them to access credit'
-                
-                saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
-                if(saleResult==True):
-                    Logging.consoleLog('succ','Sale made successfully')
-                    return True,"Sale is successfull"
-                else:
-                    errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
-                    Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
-                    return False,errorMessage
+                    return False,f'Please enter the customer id in order for them to get credit on a transaction'
             else:
-                Logging.consoleLog('error',f'Transaction credit request is {customerCreditRequest}:Negative value')
+                custId=0        
+            saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
+            if(saleResult==True):
+                Logging.consoleLog('succ','Sale made successfully')
+                return True,"Sale is successfull"
+            else:
+                errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
+                Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
+                return False,errorMessage
+            
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
         return False,"User level is not cashier"
 
@@ -320,18 +320,19 @@ class Cashier(User):
             message='None type passed to Cashier.reduceStockAfterSale()'
         return state,message
 
-    def receiveStock(self,cashierId,busketList):
+    def receiveStock(self,cashierId,invoiceNumber,stockList):
         state=False
         message=''
         auth=super().authUserLevelAction(cashierId,'cashier')
         if(auth):
-            if(busketList!=None and cashierId!=None):
+            if(cashierId!=None and invoiceNumber!=None and stockList!=None):
                 sV=StockView()
                 pView=ProductsView()
                 error=False
-                for i in busketList:
+                for i in stockList:
                     product=pView.getProductByBarCode(i['barCode'])
                     removedItem,rmessage=sV.addItems(cashierId,product.id,product.barCode,i['quantity'])
+                    StockHistoryView.addStockHistory(invoiceNumber,'receiving','Warehouse',product.id,product.barCode,i['quantity'],cashierId)
                     if(removedItem!=True):
                         error=True
                         message=rmessage
