@@ -39,6 +39,8 @@ class ProductsSetUp:
             {'name':'County 1000ml','barCode':'15234456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
             {'name':'Honey Master 300ml','barCode':'5346356','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
             {'name':'Sugar Malt','barCode':'856785456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
+            {'name':'Keg Black','barCode':'123456789','tags':'keg;black','desc':'50000ml','bPrice':5500,'sPrice':6000,'returnContainers':False},
+            {'name':'Keg Dark','barCode':'56789032','tags':'keg;dark','desc':'50000ml','bPrice':5500,'sPrice':6000,'returnContainers':False},
         ]
     
     @staticmethod
