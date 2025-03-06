@@ -133,15 +133,15 @@ class CashierActions:
             return {'state':False,'message':'Empty fields passed to CashierActions.receiveStock()'}
     
     @staticmethod
-    def genXReport(shiftId):
-        reportObj=Reports()
-        report=reportObj.generateXReport(shiftId)
-        return {'state':True,'message':report,'report':report}
+    def genXReport(userId,shiftId):
+        c=Cashier()
+        state,report=c.genXReport(userId,shiftId)
+        return {'state':state,'message':report,'report':report}
     
     @staticmethod
-    def genZReport(shiftId):
-        reportObj=Reports()
-        report=reportObj.generateZReport(shiftId)
+    def genZReport(userId,shiftId):
+        c=Cashier()
+        state,report=c.genZReport(userId,shiftId)
         return {'state':True,'message':report,'report':report}
 
     @staticmethod

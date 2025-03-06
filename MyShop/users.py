@@ -1,7 +1,7 @@
 from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
-
+from reports import Reports
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -352,12 +352,25 @@ class Cashier(User):
         state,message=c.addCustomer(custName,custPhone)
         return state,message
     
-    def genXReport(self,userId):
-        pass
+    def genXReport(self,userId,shiftId):
+        auth=super().authUserLevelAction(userId,"cashier")
+        state=False
+        report=''
+        if(auth):
+            reportsObj=Reports()
+            report=reportsObj.genXReport(shiftId)
+            state=True
+        return state,report
 
-    def genZReport(self,userId):
-        pass
-
+    def genZReport(self,userId,shiftId):
+        auth=super().authUserLevelAction(userId,"cashier")
+        state=False
+        report=''
+        if(auth):
+            reportsObj=Reports()
+            report=reportsObj.genZReport(shiftId)
+        return state,report
+    
     def genCreditReport(self,userId):
         pass
 

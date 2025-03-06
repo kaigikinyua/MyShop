@@ -668,6 +668,21 @@ function displayReports(){
         buttonsContainer.appendChild(btn)
     })
 
+    xReportBtn.addEventListener('click',async ()=>{
+        var response=await Reports.getXReport()
+        console.log(response)
+        if(response['state']==true){
+            console.log(response['report'])
+        }
+    })
+    creditReportBtn.addEventListener('click',()=>{
+        var response=Reports.getZreport()
+    })
+
+    emptiesAndStockReportBtn.addEventListener('click',()=>{
+
+    })
+
     var reportsContent=document.createElement('div')
     reportsContent.id='reportsContent'
 
@@ -1033,7 +1048,8 @@ class Stock{
 class Reports{
     static async getXReport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateXReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateXReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{
@@ -1043,7 +1059,8 @@ class Reports{
     }
     static async getZreport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateZReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateZReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{
@@ -1054,7 +1071,8 @@ class Reports{
 
     static async creditReport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateCreditReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateCreditReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{

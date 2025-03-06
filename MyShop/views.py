@@ -855,7 +855,7 @@ class PaymentView:
         Session=sessionmaker(bind=engine)
         session=Session()
         if(startTime!=None and endTime!=None):
-            return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime,paymentMethod=paymentMethod).all()
+            return session.query(PaymentModel).filter(PaymentModel.time>=startTime,PaymentModel.time<=endTime,PaymentModel.paymentMethod==paymentMethod).all()
         else:
             return None
 
