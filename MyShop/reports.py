@@ -11,7 +11,7 @@ class Reports:
         salesSettings=SaleSettingsView.getSalesSettings()
         reportName='X Report'
         storeDetails={'storeId':salesSettings.tillId}
-        dateTime=f'Date: {datetime.datetime.date} Time: {datetime.datetime.time}'
+        dateTime=f'Date: {FormatTime.dateTimeToStandardTime(FormatTime.now())} Time: {datetime.datetime.time}'
         openningFloat=shiftObj.startingAmount
         closingAmount=0
         grossSales=mpesaSales['totalAmount']+cashSales['totalAmount']+bankSales['totalAmount']
@@ -35,7 +35,7 @@ class Reports:
             Report:{reportType.upper()} 
             {dateTime}
             Store: {storeDetails['storeId']}        
-            Shift Id: {auth['shiftId']} 
+            Shift Id: {auth['shiftId']}
             Openning Id: {auth['openningId']}
             Openning Time: {auth['openningTime']}
             Num of Logins: {auth['logins']}

@@ -670,9 +670,9 @@ function displayReports(){
 
     xReportBtn.addEventListener('click',async ()=>{
         var response=await Reports.getXReport()
-        console.log(response)
         if(response['state']==true){
-            console.log(response['report'])
+            var r=document.getElementById('reportsContent')
+            r.innerHTML=response['report']
         }
     })
     creditReportBtn.addEventListener('click',()=>{
@@ -683,7 +683,7 @@ function displayReports(){
 
     })
 
-    var reportsContent=document.createElement('div')
+    var reportsContent=document.createElement('pre')
     reportsContent.id='reportsContent'
 
     var cancel=document.createElement("button")
@@ -696,6 +696,7 @@ function displayReports(){
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(buttonsContainer)
+    popUpPanel.appendChild(reportsContent)
     popUpPanel.appendChild(cancel)
 }
 
