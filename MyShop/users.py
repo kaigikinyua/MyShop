@@ -179,22 +179,22 @@ class Cashier(User):
                     max_credit=self.maximumCustomerCredit(custId)
                     if(customerCreditRequest>max_credit):
                         Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                        return False,f'Customer is only eligable for a maximum credit of {max_credit}' 
+                        return False,f'Customer is only eligable for a maximum credit of {max_credit}',None 
                 else:
-                    return False,f'Please enter the customer id in order for them to get credit on a transaction'
+                    return False,f'Please enter the customer id in order for them to get credit on a transaction',None
             else:
                 custId=0        
-            saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
+            saleResult,transactionId=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
             if(saleResult==True):
                 Logging.consoleLog('succ','Sale made successfully')
-                return True,"Sale is successfull"
+                return True,"Sale is successfull",transactionId
             else:
                 errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
                 Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
-                return False,errorMessage
+                return False,errorMessage,None
             
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
-        return False,"User level is not cashier"
+        return False,"User level is not cashier",None
 
     def maximumCustomerCredit(self,customerId):
         if(customerId=='null'):
@@ -212,6 +212,8 @@ class Cashier(User):
         #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
         saleAmount=transaction.calcTotalAmount(paymentList)
 
+        tId=None
+        state=False
         tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
         pState,pMessage=payment.addPaymentList(paymentList,tId)
         sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
@@ -224,11 +226,11 @@ class Cashier(User):
             addStockToHist,addStockToHistmsg=self.addStockHistory(tId,'sale',tillId,busketList,cashierId)
             reducedStock,reducedStockmsg=self.reduceStockAfterSale(busketList,cashierId)
             if(addStockToHist and reducedStock):
-                return True
+                state=True
             else:
                 Logging.consoleLog('error',addStockToHistmsg)
                 Logging.consoleLog('error',reducedStockmsg)
-                return False
+                state=False
         else:
             logMessage=f'''
                 RollBack required while making sale busketList={busketList} paymentList={paymentList} tillId={tillId} cashierId={cashierId} customerId={custId}"\n
@@ -237,7 +239,7 @@ class Cashier(User):
                 SoldItemsView.addSoldItemsList() Errors=> state {sPState} message {sPMessage}
             '''
             Logging.consoleLog('error',logMessage)
-            return tId
+        return state,tId
         
     def handleSaleRollBack(self,busketList,paymentList,tId):
         t=TransactionView()

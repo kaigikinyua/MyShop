@@ -400,6 +400,7 @@ class ProductsView:
             Session=sessionmaker(bind=engine)
             session=Session()
             result=session.query(ProductsModel).filter_by(barCode=barcode).one_or_none()
+            session.close()
             return result
         else:
             return False
@@ -459,7 +460,9 @@ class CustomerView:
         if(custId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            return session.query(CustomerModel).filter_by(id=custId).one_or_none(),''
+            customer=session.query(CustomerModel).filter_by(id=custId).one_or_none(),''
+            session.close()
+            return customer
         else:
             return False,'Passed a None Parameter to CustomerView.getCustomer()'
 
@@ -468,11 +471,13 @@ class CustomerView:
             Session=sessionmaker(bind=engine)
             session=Session()
             cust=session.query(CustomerModel).filter_by(phoneNumber=phone).one_or_none()
+            session.close()
             return cust
         else:
             return False,'Passed a None Parameter to CustomerView.getCustomerByPhoneNumber()'
 
     def getAllCustomers(self):
+        customers=[]
         Session=sessionmaker(bind=engine)
         session=Session()
         customers=session.query(CustomerModel).all()
@@ -483,10 +488,11 @@ class CustomerView:
         if(custId!=None and len(custName)>0 and len(phoneNumber)>0):
             Session=sessionmaker(bind=engine)
             session=Session()
-            c=session.query(CustomerModel).filter(id=custId)
+            c=session.query(CustomerModel).filter_by(id=custId).one_or_one()
             c.name=custName
             c.phoneNumber=phoneNumber
             session.commit()
+            session.close()
             return True
         else:
             return False
@@ -498,6 +504,7 @@ class CustomerView:
         if(result!=None):
             session.delete(result)
             session.commit()
+            session.close()
             return True
         return False
     
@@ -512,6 +519,7 @@ class CustomerView:
         Session=sessionmaker(bind=engine)
         session=Session()
         pNumberExists=session.query(CustomerModel).filter_by(phoneNumber=phoneNumber).all()
+        session.close()
         if(len(pNumberExists)>0):
             #print(pNumberExists[0].phoneNumber)
             return True
@@ -607,12 +615,14 @@ class TransactionView:
     def fetchAllTransactions(self,startTime,endTime):
         Session=sessionmaker(bind=engine)
         session=Session()
+        transactions=None
         if(startTime!=None and endTime!=None):
-            return session.query(TransactionModel).filter(TransactionModel.time>=startTime,TransactionModel.time<=endTime)
+            transactions=session.query(TransactionModel).filter(TransactionModel.time>=startTime,TransactionModel.time<=endTime)
         else:
             Logging.consoleLog('error',f'Could not get transactions between {startTime} and {endTime}')
-            return self.getAllTransactions()
-
+            transactions=self.getAllTransactions()
+        return transactions
+    
     def updatePaidAmount(self,tId,addAmount):
         try:
             addAmount=int(addAmount)
@@ -646,8 +656,10 @@ class TransactionView:
     def getAllTransactions(self):
         Session=sessionmaker(bind=engine)
         session=Session()
-        return session.query(TransactionModel).all()
-
+        transactions=session.query(TransactionModel).all()
+        session.close()
+        return transactions
+    
 class PaymentView:
     def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials,paymentTime):
         t=TransactionView()
@@ -1184,6 +1196,7 @@ class SoldItemsView:
         Session=sessionmaker(bind=engine)
         session=Session()
         soldItems=session.query(SoldItemsModel).filter_by(transactionId=tId).all()
+        session.close()
         return soldItems
 
     def fetchSoldItemsByDate(self,timeBegin,timeEnd):

@@ -29,10 +29,10 @@ def logOut(userId):
 def makeSale(busketList,paymentList,tillId,cashier,custId):
     print("Making Sale")
     c=Cashier()
-    state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
+    state,message,transactionId=c.makeSale(busketList,paymentList,tillId,cashier,custId)
     if(state==False):
         return {"state":False,"message":f"Could Not complete sale: Error=> {message}"}
-    return {"state":True}
+    return {"state":True,'message':'Sale Successfull','tId':transactionId,'payments':paymentList,'busketList':busketList}
 
 @eel.expose
 def customerCreditWorthy(custId,custPhone,amount):
