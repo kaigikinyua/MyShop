@@ -1,7 +1,7 @@
 import eel
 from utils import Logging
 from users import User,Cashier
-
+from reports import Reports
 
 pages=["index.html","till.html","admin.html"]
 
@@ -134,10 +134,24 @@ class CashierActions:
     
     @staticmethod
     def genXReport(shiftId):
-        pass
-
+        reportObj=Reports()
+        report=reportObj.generateXReport(shiftId)
+        return {'state':True,'message':report,'report':report}
+    
     @staticmethod
     def genZReport(shiftId):
+        reportObj=Reports()
+        report=reportObj.generateZReport(shiftId)
+        return {'state':True,'message':report,'report':report}
+
+    @staticmethod
+    def genCreditReport(startDate,endDate):
+        reportObj=Reports()
+        report=reportObj.generateFullCreditReport(startDate,endDate)
+        return {'state':True,'message':report,'report':report}
+
+    @staticmethod
+    def closeShift(shiftId):
         pass
 
     @staticmethod
@@ -199,5 +213,9 @@ if __name__=="__main__":
     eel._expose("registerCustomer",cashierActions.registerCustomer)
     eel._expose("fetchCustomerTotalCredit",cashierActions.fetchCustomerTotalCredit)
     eel._expose("receiveStock",cashierActions.receiveStock)
+
+    eel._expose("generateXReport",cashierActions.genXReport)
+    eel._expose("generateZReport",cashierActions.genZReport)
+    eel._expose("generateCreditReport",cashierActions.genCreditReport)
 
     eel.start("login.html",port=4040)

@@ -652,27 +652,32 @@ function displayReports(){
     var buttonsContainer=document.createElement("div")
     var xReportBtn=document.createElement('button')
     var creditReportBtn=document.createElement('button')
-    var emptiesReportBnt=document.createElement('button')
+    var emptiesAndStockReportBtn=document.createElement('button')
 
     xReportBtn.classList.add('cool')
     creditReportBtn.classList.add('success')
-    emptiesReportBnt.classList.add('cool')
+    emptiesAndStockReportBtn.classList.add('cool')
 
     xReportBtn.innerHTML='X Report'
     creditReportBtn.innerHTML='Credit Report'
-    emptiesReportBnt.innerHTML='Empties Report'
+    emptiesAndStockReportBtn.innerHTML='Empties Report'
 
-    var buttonsList=[xReportBtn,creditReportBtn,emptiesReportBnt]
+    var buttonsList=[xReportBtn,creditReportBtn,emptiesAndStockReportBtn]
     buttonsList.forEach(btn=>{
         btn.classList.add('minLenBtn')
         buttonsContainer.appendChild(btn)
     })
 
+    var reportsContent=document.createElement('div')
+    reportsContent.id='reportsContent'
+
     var cancel=document.createElement("button")
     cancel.innerHTML="Cancel"
     cancel.classList.add("minLenBtn")
     cancel.classList.add("cool")
-    cancel.onclick=closePopUp
+    cancel.addEventListener('click',()=>{
+        closePopUp()   
+    })
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(buttonsContainer)
@@ -951,16 +956,39 @@ class Stock{
 
 class Reports{
     static async getXReport(){
-
+        var shiftId=Auth.getShiftId()
+        var response=await eel.generateXReport(shiftId)()
+        if(response['state']==true){
+            return response
+        }else{
+            notificationBubble(response['message'],0,5)
+            return response
+        }
     }
     static async getZreport(){
-
+        var shiftId=Auth.getShiftId()
+        var response=await eel.generateZReport(shiftId)()
+        if(response['state']==true){
+            return response
+        }else{
+            notificationBubble(response['message'],0,5)
+            return response
+        }
     }
-    static async closeShift(){
 
-    }
     static async creditReport(){
-
+        var shiftId=Auth.getShiftId()
+        var response=await eel.generateCreditReport(shiftId)()
+        if(response['state']==true){
+            return response
+        }else{
+            notificationBubble(response['message'],0,5)
+            return response
+        }
+    }
+    
+    static async closeShift(){
+        
     }
     static async emptiesReport(){
 

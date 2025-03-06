@@ -1,6 +1,7 @@
 import datetime
 from views import ShiftView,CustomerCreditView,SaleSettingsView,UserView,TransactionView,PaymentView,SoldItemsView
 from utils import Logging,CSV,FormatTime
+
 class Reports:
     #daily reports
     def generateSalesReport(self,reportType,shiftObj,startTime,endTime):
@@ -83,20 +84,15 @@ class Reports:
         reportString=self.generateSalesReport('z',shift,startTime,endTime)
         #close shift after sending the z Report
 
-    def generateFullCreditReport(self):
+    def genFullCreditReport(self,startDate,endDate):
         paymentView=PaymentView()
         paymentView.fetchAllPaymentsWithinPeriod()
     
-    def generateCustomerCreditReport(self,customerId):
+    def genCustomerCreditReport(self,customerId):
         pass
 
-    def generateEmptiesReport(self):
-        pass
-
-
-
-    def generateStockReport(self,startDate,endDate):
-        reportName='Stock Report'
+    def genStockAndEmptiesReport(self,startDate,endDate):
+        reportName='Stock and Empties Report'
         dateTime=f'Date: {datetime.datetime.date} Time: {datetime.datetime.time}'
         stockReport={
             'instockItems':[
@@ -113,25 +109,6 @@ class Reports:
             'creditedTransactions':[
                 {'transactionId':'003','date':'11/12/2024','creditAmount':100,'custName':'James','phone':'+i560898768'},
                 {'transactionId':'004','date':'11/12/2024','creditAmount':50,'custName':'Hammond','phone':'+i5698098768'}
-            ]
-        }
-
-    def generateOperationReport(self,startDate,endDate):
-        reportName='Operation Report'
-        dateTime=f'Date: {datetime.datetime.date} Time: {datetime.datetime.time}'
-        operationReport={
-            'bills':[
-                {'billName':'rent','desc':'Rent for Warehouse','amount':50000,'date':'11/12/2024','paid':True},
-                {'billName':'electricity','desc':'Electricity for warehouse','amount':300,'date':'11/12/2024','paid':True},
-                {'billName':'fuel','desc':'fuel for KBZ 100Q','amount':3000,'date':'11/12/2024','paid':True},
-                {'billName':'water','desc':'water bill for warehouse','amount':50000,'date':'11/12/2024','paid':True},
-            ],
-            'pettyCash':[
-                {'desc':'Callers credit','amount':400,'paid':True},
-                {'desc':'4 Casual labourers','amount':400,'paid':True},
-            ],
-            'wages':[
-                {'employeeName':'James Njoroge','amount':30000,'paid':True}
             ]
         }
 
@@ -181,7 +158,6 @@ class ReportData:
             return shift.logins
         return 'Error getting the num of open shifts'
     
-
 class CalcSales:
     @staticmethod
     def calcPaymentTypeSold(startTimeStamp,endTimeStamp,salesType):
