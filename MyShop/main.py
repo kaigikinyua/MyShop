@@ -29,10 +29,10 @@ def logOut(userId):
 def makeSale(busketList,paymentList,tillId,cashier,custId):
     print("Making Sale")
     c=Cashier()
-    state,message=c.makeSale(busketList,paymentList,tillId,cashier,custId)
+    state,message,transactionId=c.makeSale(busketList,paymentList,tillId,cashier,custId)
     if(state==False):
         return {"state":False,"message":f"Could Not complete sale: Error=> {message}"}
-    return {"state":True}
+    return {"state":True,'message':'Sale Successfull','tId':transactionId,'payments':paymentList,'busketList':busketList}
 
 @eel.expose
 def customerCreditWorthy(custId,custPhone,amount):
@@ -133,15 +133,15 @@ class CashierActions:
             return {'state':False,'message':'Empty fields passed to CashierActions.receiveStock()'}
     
     @staticmethod
-    def genXReport(shiftId):
-        reportObj=Reports()
-        report=reportObj.generateXReport(shiftId)
-        return {'state':True,'message':report,'report':report}
+    def genXReport(userId,shiftId):
+        c=Cashier()
+        state,report=c.genXReport(userId,shiftId)
+        return {'state':state,'message':report,'report':report}
     
     @staticmethod
-    def genZReport(shiftId):
-        reportObj=Reports()
-        report=reportObj.generateZReport(shiftId)
+    def genZReport(userId,shiftId):
+        c=Cashier()
+        state,report=c.genZReport(userId,shiftId)
         return {'state':True,'message':report,'report':report}
 
     @staticmethod
@@ -151,8 +151,11 @@ class CashierActions:
         return {'state':True,'message':report,'report':report}
 
     @staticmethod
-    def closeShift(shiftId):
-        pass
+    def closeShift(shiftId,userId):
+        if(shiftId!=None and userId!=None):
+            c=Cashier()
+            state,message,reports=c.closeShift(shiftId,userId)
+            return {'state':state,'message':message,'reports':reports}
 
     @staticmethod
     def stockTake():
@@ -217,5 +220,6 @@ if __name__=="__main__":
     eel._expose("generateXReport",cashierActions.genXReport)
     eel._expose("generateZReport",cashierActions.genZReport)
     eel._expose("generateCreditReport",cashierActions.genCreditReport)
+    eel._expose("closeShift",cashierActions.closeShift)
 
     eel.start("login.html",port=4040)

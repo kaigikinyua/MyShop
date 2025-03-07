@@ -114,7 +114,7 @@ function displayPaymentBox(){
         }
         var response=await Transaction.sendTransactionToBackend(customerBusket,payments,counterId,customerId)
         if(response['state']==true){
-            Transaction.clearTransactionFromUi()
+            var receipt=Transaction.showReceipt(response)
         }
     })
 
@@ -668,7 +668,22 @@ function displayReports(){
         buttonsContainer.appendChild(btn)
     })
 
-    var reportsContent=document.createElement('div')
+    xReportBtn.addEventListener('click',async ()=>{
+        var response=await Reports.getXReport()
+        if(response['state']==true){
+            var r=document.getElementById('reportsContent')
+            r.innerHTML=response['report']
+        }
+    })
+    creditReportBtn.addEventListener('click',()=>{
+        var response=Reports.getZreport()
+    })
+
+    emptiesAndStockReportBtn.addEventListener('click',()=>{
+
+    })
+
+    var reportsContent=document.createElement('pre')
     reportsContent.id='reportsContent'
 
     var cancel=document.createElement("button")
@@ -681,6 +696,7 @@ function displayReports(){
 
     popUpPanel.appendChild(header)
     popUpPanel.appendChild(buttonsContainer)
+    popUpPanel.appendChild(reportsContent)
     popUpPanel.appendChild(cancel)
 }
 
@@ -697,7 +713,7 @@ class Render{
             var itemDiv=document.createElement('div')
             itemDiv.classList.add('item')
             itemDiv.id='item,'+i
-            itemDiv.innerHTML=item['name']+' @ '+item['price']+' * '+item['quantity']+' ='+item['total']
+            itemDiv.innerHTML=item['name']+' @ '+item['price']+' * '+item['quantity']+' ='+item['total'].toLocaleString()
             var deleteItem=document.createElement('button')
             deleteItem.addEventListener('click',()=>{removeItem(itemDiv.id)})
             deleteItem.innerHTML="remove"
@@ -890,6 +906,64 @@ class Transaction{
         popUpPanel.appendChild(cancel)
     }
     
+    static showReceipt(receiptData){
+        showPopUp("")
+        var popUpPanel=document.getElementById('popUpPanel')
+        var header=document.createElement("h3")
+        header.classList.add("header")
+        header.innerHTML="<h3>STEMAR DISTRIBUTORS RECEIPT</h3>"
+        header.innerHTML+="<div>Date: "+new Date().toUTCString()+"</div>"
+        header.innerHTML+="<div>Receipt Number"+receiptData['tId']+"</div>"
+
+        var itemsDiv=document.createElement('table')
+        var paymentsDiv=document.createElement('table')
+
+        itemsDiv.innerHTML='<tr><th>Items</th></tr>'
+        receiptData['busketList'].forEach(item=>{
+            var i=document.createElement('tr')
+            i.innerHTML='<td>'+item['barCode']+'</td><td> '+item['name']+'</td><td>'+item['quantity']+'</td><td>* '+item['price']+'</td>'+parseInt(item['quantity'])*parseInt(item['price'])+'</td>'
+            itemsDiv.appendChild(i)
+        })
+
+        var totalRow=document.createElement('tr')
+        totalRow.innerHTML='<th>Total Cost</th><th>'+Transaction.computeTotal(receiptData['busketList'])+'</th>'
+        itemsDiv.appendChild(totalRow)
+
+        paymentsDiv.innerHTML='<tr><th>Customer Payments</th><th></th></tr>'
+        receiptData['payments'].forEach(p=>{
+            var i=document.createElement('tr')
+            i.innerHTML='<td>'+p['paymentType']+'</td><td>'+p['amount']+'</td>'
+            paymentsDiv.appendChild(i)
+        })
+        
+        var custPayment=Transaction.computeTotalPaid(receiptData['payments'])
+        var totalRow=document.createElement('tr')
+        totalRow.innerHTML='<th>Total Paid</th><th>'+custPayment['paid'].toLocaleString()+'</th>'
+        itemsDiv.appendChild(totalRow)
+        if(custPayment['credit']>0){
+            var totalRow=document.createElement('tr')
+            totalRow.innerHTML='<th>Customer Credit</th><th> - '+custPayment['credit']+'</th>'
+            itemsDiv.appendChild(totalRow)
+        }
+
+        var printReceiptBtn=document.createElement('button')
+        printReceiptBtn.classList.add('cool')
+        printReceiptBtn.innerHTML='Print Receipt'
+        printReceiptBtn.addEventListener('click',()=>{
+            printReceiptBtn.style.display='none';
+            window.print()
+            closePopUp()
+            setTimeout(()=>{
+                Transaction.clearTransactionFromUi()
+            },1000)
+        })
+
+        popUpPanel.appendChild(header)
+        popUpPanel.appendChild(itemsDiv)
+        popUpPanel.appendChild(paymentsDiv)
+        popUpPanel.appendChild(printReceiptBtn)
+    }
+
     static getAllTransactions(){}
 
     static async sendTransactionToBackend(busket,payments,counterId,custId){
@@ -921,8 +995,26 @@ class Transaction{
             tot+=i["total"]
         });
         busketTotalPrice=tot
-        document.getElementById("basketTotal").innerHTML=busketTotalPrice
+        document.getElementById("basketTotal").innerHTML=busketTotalPrice.toLocaleString()
+        return tot
     }
+    static computeTotalPaid(payments){
+        var tot=0
+        var credit=0
+        payments.forEach(i=>{
+            if(i['paymentType']!='credit'){
+                tot+=parseFloat(i['amount'])
+            }else{
+                credit+=parseFloat(i['amount'])
+            }
+        })
+        return {'paid':tot,'credit':credit}
+    }
+
+    static addCommaToNumber(figure){
+        return figure.toLocaleString()
+    }
+
     static async payCredit(tId,custId,paymentList){
         var userId=Auth.getUserId()
         if(userId!=null && userId!=undefined){
@@ -957,7 +1049,8 @@ class Stock{
 class Reports{
     static async getXReport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateXReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateXReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{
@@ -967,7 +1060,8 @@ class Reports{
     }
     static async getZreport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateZReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateZReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{
@@ -978,7 +1072,8 @@ class Reports{
 
     static async creditReport(){
         var shiftId=Auth.getShiftId()
-        var response=await eel.generateCreditReport(shiftId)()
+        var userId=Auth.getUserId()
+        var response=await eel.generateCreditReport(userId,shiftId)()
         if(response['state']==true){
             return response
         }else{

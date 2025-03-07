@@ -1,7 +1,7 @@
 from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
-
+from reports import Reports
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -179,22 +179,22 @@ class Cashier(User):
                     max_credit=self.maximumCustomerCredit(custId)
                     if(customerCreditRequest>max_credit):
                         Logging.consoleLog('error',f"Sale failded because: Requested Credit is {customerCreditRequest} and the maximum credit is {max_credit}")
-                        return False,f'Customer is only eligable for a maximum credit of {max_credit}' 
+                        return False,f'Customer is only eligable for a maximum credit of {max_credit}',None 
                 else:
-                    return False,f'Please enter the customer id in order for them to get credit on a transaction'
+                    return False,f'Please enter the customer id in order for them to get credit on a transaction',None
             else:
                 custId=0        
-            saleResult=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
+            saleResult,transactionId=self.handleSale(busketList,paymentList,tillId,cashierId,custId)
             if(saleResult==True):
                 Logging.consoleLog('succ','Sale made successfully')
-                return True,"Sale is successfull"
+                return True,"Sale is successfull",transactionId
             else:
                 errorMessage=self.handleSaleRollBack(busketList,paymentList,saleResult)
                 Logging.consoleLog('error',f'There was an error while making the sale: Error=>{errorMessage}')
-                return False,errorMessage
+                return False,errorMessage,None
             
         Logging.consoleLog('error',f"You need Cashier user level access to make a sale")
-        return False,"User level is not cashier"
+        return False,"User level is not cashier",None
 
     def maximumCustomerCredit(self,customerId):
         if(customerId=='null'):
@@ -212,6 +212,8 @@ class Cashier(User):
         #paidAmount,creditAmount=t.calcPaidandCreditAmount(paymentList)
         saleAmount=transaction.calcTotalAmount(paymentList)
 
+        tId=None
+        state=False
         tState,tId=transaction.createTransaction(custId,cashierId,tillId,saleAmount)
         pState,pMessage=payment.addPaymentList(paymentList,tId)
         sPState,sPMessage=soldProduct.addSoldItemsList(tId,busketList,True)
@@ -224,11 +226,11 @@ class Cashier(User):
             addStockToHist,addStockToHistmsg=self.addStockHistory(tId,'sale',tillId,busketList,cashierId)
             reducedStock,reducedStockmsg=self.reduceStockAfterSale(busketList,cashierId)
             if(addStockToHist and reducedStock):
-                return True
+                state=True
             else:
                 Logging.consoleLog('error',addStockToHistmsg)
                 Logging.consoleLog('error',reducedStockmsg)
-                return False
+                state=False
         else:
             logMessage=f'''
                 RollBack required while making sale busketList={busketList} paymentList={paymentList} tillId={tillId} cashierId={cashierId} customerId={custId}"\n
@@ -237,7 +239,7 @@ class Cashier(User):
                 SoldItemsView.addSoldItemsList() Errors=> state {sPState} message {sPMessage}
             '''
             Logging.consoleLog('error',logMessage)
-            return tId
+        return state,tId
         
     def handleSaleRollBack(self,busketList,paymentList,tId):
         t=TransactionView()
@@ -350,41 +352,96 @@ class Cashier(User):
         state,message=c.addCustomer(custName,custPhone)
         return state,message
     
-    def genXReport(self,userId):
-        pass
+    def genXReport(self,userId,shiftId):
+        auth=super().authUserLevelAction(userId,"cashier")
+        state=False
+        report=''
+        if(auth):
+            reportsObj=Reports()
+            report=reportsObj.genXReport(shiftId)
+            state=True
+        return state,report
 
-    def genZReport(self,userId):
-        pass
+    def genZReport(self,userId,shiftId):
+        auth=super().authUserLevelAction(userId,"cashier")
+        state=False
+        report=''
+        if(auth):
+            reportsObj=Reports()
+            report=reportsObj.genZReport(shiftId)
+        return state,report
+    
+    def closeShift(self,userId,shiftId):
+        state=False
+        message=''
+        zReport='',xReport='',cReport='',sReport=''
+        if(userId!=None and shiftId!=None):
+            cShiftState,cShiftMsg=ShiftView.closeShift(shiftId,userId)
+            if(cShiftState==True):
+                zRState,zReport=self.genZReport(userId,shiftId)
+                xRState,xReport=self.genXReport(userId,shiftId)
+                cRState,cReport=self.genCreditReport(userId)
+                sRState,sReport=self.genStockReport(userId,shiftId)
+            else:
+                message=f'Shift could not be closed {cShiftMsg}'
+        return state,message,{'z':zReport,'x':xReport,'c':cReport,'s':sReport}
 
     def genCreditReport(self,userId):
-        pass
+        state=False
+        report=''
+        if(userId!=None):
+            pass
+        else:
+            report='None type passed to Cashier.genStockReport()'
+        return state,report
 
-    def stockTake(self,userId):
-        pass
+    def genStockReport(self,userId,shiftId):
+        state=False
+        report=''
+        if(userId!=None and shiftId!=None):
+            pass
+        else:
+            report='None type passed to Cashier.genStockReport()'
+        return state,report
 
 class Admin(Cashier):
     #admin user actions
-    def addUser(self,username,password,userLevel):
-        if(len(username)>4 and len(password)>8 and userLevel!=None):
-            newUser=UserView()
-            success,message=newUser.addUser(username,password,userLevel)
-            if(success):
-                Logging.consoleLog('succ','{message}:[{username}] to users')
-                return True
+    def addUser(self,userId,username,password,userLevel):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            if(len(username)>4 and len(password)>8 and userLevel!=None):
+                newUser=UserView()
+                success,message=newUser.addUser(username,password,userLevel)
+                if(success):
+                    Logging.consoleLog('succ','{message}:[{username}] to users')
+                    state=True
+                else:
+                    Logging.consoleLog(message)
             else:
-                Logging.consoleLog(message)
-                return False
+                message='Username must be more than 4 characters. Password must be more than 8 characters and userLevel cannot be empty'
+        return state,message
+
+    def deleteUser(self,userId,deleteUser):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
         else:
-            Logging.consoleLog('err','Username must have more than 5 characters: {username}')
-            Logging.consoleLog('err',"Password must be more than 8 characters: {password}")
-            Logging.consoleLog('err',"UserLevel must not be none: {userLevel}")
-            return False
+            message='User level is not allowed to delete a user'
+        return state,message
 
-    def deleteUser(self,uid):
-        pass
-
-    def updateUser(self,uid,username,userLevel):
-        pass
+    def updateUser(self,userId,username,userLevel):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to update user'
+        return state,message
 
     #admin product actions
     def addProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
@@ -420,16 +477,44 @@ class Admin(Cashier):
             message='You do not have the required access level to Admin.deleteProduct()'
         return state,message
 
-    def updateProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
-        pass
+    def updateProduct(self,userId,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to update product'
+        return state,message
 
     #admin stock actions
-    def editStock(self):
-        pass
+    def editStock(self,userId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
 
-    def deleteStock():
-        pass
+    def deleteStock(self,userId,productId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
     
-    def updateStock():
-        pass
+    def updateStock(self,userId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
 
