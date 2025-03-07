@@ -186,22 +186,22 @@ class ShiftView:
             return openShifts
 
     @staticmethod
-    def closeShift(shiftId):
+    def closeShift(shiftId,userId):
         state=False
         message=''
-        if(shiftId!=None):
+        if(shiftId!=None and userId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
             shift=session.query(ShiftModel).filter_by(shiftId=shiftId).one_or_none()
             if(shift!=None):
                 if(shift.closingAmount>-1 and shift.startingAmount>-1):
                     shift.isClosed=True
+                    shift.closingId=userId
                     shift.endTime=FormatTime.now()
                     session.commit()
                     state=True
                     message='Shift is now closed'
                 else:
-                    state=False
                     message=f'Starting amount and closing amount should be more than -1\nCurrent Starting amount is {shift.startingAmount} and closing amount is {shift.closingAmount}'
                 session.close()
             else:

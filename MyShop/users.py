@@ -371,35 +371,77 @@ class Cashier(User):
             report=reportsObj.genZReport(shiftId)
         return state,report
     
-    def genCreditReport(self,userId):
-        pass
+    def closeShift(self,userId,shiftId):
+        state=False
+        message=''
+        zReport='',xReport='',cReport='',sReport=''
+        if(userId!=None and shiftId!=None):
+            cShiftState,cShiftMsg=ShiftView.closeShift(shiftId,userId)
+            if(cShiftState==True):
+                zRState,zReport=self.genZReport(userId,shiftId)
+                xRState,xReport=self.genXReport(userId,shiftId)
+                cRState,cReport=self.genCreditReport(userId)
+                sRState,sReport=self.genStockReport(userId,shiftId)
+            else:
+                message=f'Shift could not be closed {cShiftMsg}'
+        return state,message,{'z':zReport,'x':xReport,'c':cReport,'s':sReport}
 
-    def stockTake(self,userId):
-        pass
+    def genCreditReport(self,userId):
+        state=False
+        report=''
+        if(userId!=None):
+            pass
+        else:
+            report='None type passed to Cashier.genStockReport()'
+        return state,report
+
+    def genStockReport(self,userId,shiftId):
+        state=False
+        report=''
+        if(userId!=None and shiftId!=None):
+            pass
+        else:
+            report='None type passed to Cashier.genStockReport()'
+        return state,report
 
 class Admin(Cashier):
     #admin user actions
-    def addUser(self,username,password,userLevel):
-        if(len(username)>4 and len(password)>8 and userLevel!=None):
-            newUser=UserView()
-            success,message=newUser.addUser(username,password,userLevel)
-            if(success):
-                Logging.consoleLog('succ','{message}:[{username}] to users')
-                return True
+    def addUser(self,userId,username,password,userLevel):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            if(len(username)>4 and len(password)>8 and userLevel!=None):
+                newUser=UserView()
+                success,message=newUser.addUser(username,password,userLevel)
+                if(success):
+                    Logging.consoleLog('succ','{message}:[{username}] to users')
+                    state=True
+                else:
+                    Logging.consoleLog(message)
             else:
-                Logging.consoleLog(message)
-                return False
+                message='Username must be more than 4 characters. Password must be more than 8 characters and userLevel cannot be empty'
+        return state,message
+
+    def deleteUser(self,userId,deleteUser):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
         else:
-            Logging.consoleLog('err','Username must have more than 5 characters: {username}')
-            Logging.consoleLog('err',"Password must be more than 8 characters: {password}")
-            Logging.consoleLog('err',"UserLevel must not be none: {userLevel}")
-            return False
+            message='User level is not allowed to delete a user'
+        return state,message
 
-    def deleteUser(self,uid):
-        pass
-
-    def updateUser(self,uid,username,userLevel):
-        pass
+    def updateUser(self,userId,username,userLevel):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to update user'
+        return state,message
 
     #admin product actions
     def addProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
@@ -435,16 +477,44 @@ class Admin(Cashier):
             message='You do not have the required access level to Admin.deleteProduct()'
         return state,message
 
-    def updateProduct(self,uid,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
-        pass
+    def updateProduct(self,userId,pid,pName,barCode,tags,desc,bPrice,sPrice,returnContainers):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to update product'
+        return state,message
 
     #admin stock actions
-    def editStock(self):
-        pass
+    def editStock(self,userId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
 
-    def deleteStock():
-        pass
+    def deleteStock(self,userId,productId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
     
-    def updateStock():
-        pass
+    def updateStock(self,userId):
+        state=False
+        message=''
+        auth=super().authUserLevelAction(userId,'admin')
+        if(auth):
+            pass
+        else:
+            message='User level is not allowed to delete a user'
+        return state,message
 

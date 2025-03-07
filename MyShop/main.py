@@ -151,8 +151,11 @@ class CashierActions:
         return {'state':True,'message':report,'report':report}
 
     @staticmethod
-    def closeShift(shiftId):
-        pass
+    def closeShift(shiftId,userId):
+        if(shiftId!=None and userId!=None):
+            c=Cashier()
+            state,message,reports=c.closeShift(shiftId,userId)
+            return {'state':state,'message':message,'reports':reports}
 
     @staticmethod
     def stockTake():
@@ -217,5 +220,6 @@ if __name__=="__main__":
     eel._expose("generateXReport",cashierActions.genXReport)
     eel._expose("generateZReport",cashierActions.genZReport)
     eel._expose("generateCreditReport",cashierActions.genCreditReport)
+    eel._expose("closeShift",cashierActions.closeShift)
 
     eel.start("login.html",port=4040)
