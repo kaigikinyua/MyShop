@@ -39,6 +39,16 @@ class ShiftModel(Base):
     startTime=Column(Float)
     endTime=Column(Float,default=None)
 
+class EndOfDaySalesModel(Base):
+    __tablename__='EndOfDaySales'
+    id=Column(Integer,primary_key=True)
+    date=Column(Float)
+    grossSales=Column(Float,default=0)
+    netSales=Column(Float,default=0)
+    taxes=Column(Float,default=0)
+    dayCredit=Column(Float,default=0)
+    totalCredit=Column(Float,default=0)
+
 class SalesSettingsModel(Base):
     __tablename__="SalesSettings"
     id=Column(Integer,primary_key=True)

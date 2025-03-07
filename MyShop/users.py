@@ -374,7 +374,10 @@ class Cashier(User):
     def closeShift(self,userId,shiftId):
         state=False
         message=''
-        zReport='',xReport='',cReport='',sReport=''
+        zReport=''
+        xReport=''
+        cReport=''
+        sReport=''
         if(userId!=None and shiftId!=None):
             cShiftState,cShiftMsg=ShiftView.closeShift(shiftId,userId)
             if(cShiftState==True):

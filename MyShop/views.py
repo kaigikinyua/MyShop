@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,StockModel,EmptiesModel,StockHistoryModel
+from models import engine,UserModel,EndOfDaySalesModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,StockModel,EmptiesModel,StockHistoryModel
 from models import PaymentModel,CustomerModel,SoldItemsModel,SalesSettingsModel,CustomerCreditModel,BranchesModel
 
 from utils import FormatTime,Logging
@@ -661,6 +661,7 @@ class TransactionView:
         return transactions
     
 class PaymentView:
+
     def addPayment(self,paymentMethod,paymentAmount,transactionId,transactionCredentials,paymentTime):
         t=TransactionView()
         tr=t.fetchTransactionById(transactionId)
@@ -1026,7 +1027,6 @@ class CustomerCreditView:
                 return credit
         return None
 
-
     def fetchCreditTransactionByCustomer(self,custId,tId):
         if(custId!=None and tId!=None):
             Session=sessionmaker(bind=engine)
@@ -1053,16 +1053,55 @@ class CustomerCreditView:
             return creditTransactions
         return []    
     
-    def creditReportByCustomer(self,custId):
-        paidCredit=self.fetchAllCreditTransactionsByCustomer(custId,True)
-        unpaidCredit=self.fetchAllCreditTransactionsByCustomer(custId,False)
+    def creditReportByCustomer(self,custId,paid):
+        if(custId!=None and paid!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            customerCredit=session.query(CustomerCreditModel).filter_by(customerId=custId,fullyPaid=paid).all()
+            session.close()
+            return customerCredit
+        else:
+            return False
+    
+    def genFullCreditReport(self,paid):
+        if(paid!=None):
+            reportType='Unpaid Credit Report'
+            if(paid==True):
+                reportType='Paid Credit Report'
+            c=CustomerView()
+            customers=c.getAllCustomers()
+            fullCreditReport=[]
+            for cust in customers:
+                creditReportByCustomer=self.creditReportByCustomer(cust.id,paid)
+                if(creditReportByCustomer!=False and len(creditReportByCustomer)>0):
+                    custCreditReport=[]
+                    for credit in creditReportByCustomer:
+                        custCreditReport.append(
+                            {
+                                'deadLine':FormatTime.dateTimeToStandardTime(credit.creditDeadline),
+                                'paidAmount':credit.totalCreditPaid,
+                                'creditAmount':credit.creditAmount,
+                                'transactionId':credit.transactionId,
+                            }
+                        )
+                    fullCreditReport.append({'name':cust.name,'phone':cust.phoneNumber,'id':cust.id,'credit':custCreditReport})
+            return reportType,fullCreditReport
         
-        return []
+        else:
+            return False,False
 
     def fetchCreditWithinPeriod(self,startTime,endTime,paid):
         Session=sessionmaker(bind=engine)
         session=Session()
-        creditSales=session.query(CustomerCreditModel).filter_by(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,fullyPaid=paid).all()
+        creditSales=session.query(CustomerCreditModel).filter(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,CustomerCreditModel.fullyPaid==paid).all()
+        session.close()
+        return creditSales
+
+    def fetchPaidCreditWithinPeriod(self,startTime,endTime):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        creditSales=session.query(CustomerCreditModel).filter(CustomerCreditModel.time>=startTime,CustomerCreditModel.time<=endTime,CustomerCreditModel.totalCreditPaid>0).all()
+        session.close()
         return creditSales
 
     def calcTotalCreditByCustomer(self,creditList):
@@ -1109,6 +1148,14 @@ class CustomerCreditView:
         session=Session()
         allCredit=session.query(CustomerCreditModel).all()
         return allCredit
+    
+    def getAllUnpaidCredit(self):
+        Session=sessionmaker(bind=engine)
+        session=Session()
+        allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
+        return allCredit
+
+
 
 class SoldItemsView:
     def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
@@ -1562,3 +1609,83 @@ class BranchesView:
         session=Session()
         branches=session.query(BranchesModel).all()
         return branches
+    
+class EndOfDaySales:
+
+    @staticmethod
+    def calcEndOfDaySales(dayStart,dayEnd):
+        paymentView=PaymentView()
+        payments=paymentView.fetchAllPaymentsWithinPeriod(dayStart,dayEnd)
+        grossPayment=0
+        for p in payments:
+            grossPayment=float(grossPayment)+float(p.amountPayed)
+        return grossPayment
+    
+    @staticmethod
+    def calcTaxes(grossSales):
+        salesSettings=SaleSettingsView.fetchSettings()
+        netSales=(salesSettings.valueAddedTaxPercent/100)*grossSales
+        return netSales
+    
+    @staticmethod
+    def calcAllPaidAndUnpaidCredit():
+        c=CustomerCreditView()
+        allCreditObj=c.getAllCredit()
+        totalUnpaidCredit=0
+        totalPaidCredit=0
+        for credit in allCreditObj:
+            if(credit.fullyPaid==False):
+                totalUnpaidCredit=totalUnpaidCredit+(credit.creditAmount-credit.totalCreditPaid)
+            else:
+                totalPaidCredit=totalPaidCredit+credit.totalCreditPaid
+        return totalPaidCredit,totalUnpaidCredit
+
+    @staticmethod
+    def calcDayPaidCredit(dayStart,dayEnd):
+        custCreditView=CustomerCreditView()
+        creditRecords=custCreditView.fetchPaidCreditWithinPeriod(dayStart,dayEnd)
+        dayCredit=0
+        for credit in creditRecords:
+            dayCredit=dayCredit+credit.totalCreditPaid
+        return dayCredit
+
+    @staticmethod
+    def calcDayCredit(dayStart,dayEnd):
+        custCreditView=CustomerCreditView()
+        creditRecords=custCreditView.fetchCreditWithinPeriod(dayStart,dayEnd,False)
+        dayCredit=0
+        for credit in creditRecords:
+            dayCredit=dayCredit+(float(credit.creditAmount)-float(credit.totalCreditPaid))
+        return dayCredit
+
+    @staticmethod
+    def saveSalesSettings(grossSales,netSales,taxes,credit):
+        if(grossSales!=None and netSales!=None and taxes!=None):
+            sales=EndOfDaySalesModel()
+            sales.date=FormatTime.getDateTodayTimeStamp()
+            sales.grossSales=grossSales
+            sales.netSales=netSales
+            sales.taxes=taxes
+            sales.dayCredit=credit
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            session.add(sales)
+            session.commit()
+            session.close()
+            Logging.consoleLog('error','Sales settings saved')
+            return True
+        else:
+            Logging.consoleLog('error','None parameter passed to EndOfDaySales.saveSakesSettings()')
+            return False
+        
+    @staticmethod
+    def filterEndOfSalesByDate(startDate,endDate):
+        if(startDate!=None and endDate!=None):
+            Session=sessionmaker(bind=engine)
+            session=Session()
+            endOfDaySales=session.query(EndOfDaySales).filter(EndOfDaySales.date>startDate,EndOfDaySales.date<endDate).all()
+            session.close()
+            return endOfDaySales
+        else:
+            Logging.consoleLog('error','None Type passed to EndOfDaySales.filterEndOfSalesByDate()')
+            return None

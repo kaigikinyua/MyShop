@@ -67,7 +67,17 @@ class FormatTime:
         month=date.month
         day=date.day
         return f'{day}/{month}/{year}'
-        
+    
+    @staticmethod
+    def getDateTodayTimeStamp():
+        date=datetime.datetime.now()
+        return FormatTime.toTimeStamp(date.year,date.month,date.day,0,0,0)
+
+    @staticmethod
+    def getEndOfDayTimeStamp():
+        date=datetime.datetime.now()
+        return FormatTime.toTimeStamp(date.year,date.month,date.day,23,59,59)
+
     @staticmethod
     def getMonthStartTimeStamp(month,year):
         return FormatTime.toTimeStamp(year,month,1,0,0,0)
