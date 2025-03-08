@@ -385,15 +385,20 @@ class Cashier(User):
                 xRState,xReport=self.genXReport(userId,shiftId)
                 cRState,cReport=self.genCreditReport(userId)
                 sRState,sReport=self.genStockReport(userId,shiftId)
+                state=True
             else:
-                message=f'Shift could not be closed {cShiftMsg}'
+                message=f'{cShiftMsg}'
+        else:
+            message='None type passed to Cashier.closeShift()'
         return state,message,{'z':zReport,'x':xReport,'c':cReport,'s':sReport}
 
     def genCreditReport(self,userId):
         state=False
         report=''
         if(userId!=None):
-            pass
+            reportsObj=Reports()
+            report=reportsObj.genFullCreditReport()
+            state=True
         else:
             report='None type passed to Cashier.genStockReport()'
         return state,report

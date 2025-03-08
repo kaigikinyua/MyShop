@@ -26,7 +26,7 @@ async function logOut(){
     }
 }
 function redirectToPage(page){
-    const pages={'admin':'admin.html','cashier':'till.html','login':'login.html'}
+    const pages={'admin':'admin.html','cashier':'till.html','login':'login.html','reports':'reportsPage.html'}
     location.href=pages[page]
 }
 

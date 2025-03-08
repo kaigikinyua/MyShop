@@ -72,7 +72,6 @@ class CashierActions:
     @staticmethod
     def declareStartingAmount(userId,shiftId,startingAmount):
         if(userId!=None and shiftId!=None and startingAmount!=None):
-            Logging.consoleLog('message',int(startingAmount))
             c=Cashier()
             sA=int(startingAmount)
             state,message=c.declareStartingAmount(userId,shiftId,sA)
@@ -145,9 +144,9 @@ class CashierActions:
         return {'state':True,'message':report,'report':report}
 
     @staticmethod
-    def genCreditReport(startDate,endDate):
-        reportObj=Reports()
-        report=reportObj.generateFullCreditReport(startDate,endDate)
+    def genCreditReport(userId):
+        cObject=Cashier()
+        rportState=report=cObject.genCreditReport(userId)
         return {'state':True,'message':report,'report':report}
 
     @staticmethod

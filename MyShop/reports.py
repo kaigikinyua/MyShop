@@ -12,12 +12,11 @@ class Reports:
         storeDetails={'storeId':salesSettings.tillId}
         dateTime=f'Date: {FormatTime.dateTimeToStandardTime(FormatTime.now())} Time: {datetime.datetime.time}'
         openningFloat=shiftObj.startingAmount
+        closingAmount=shiftObj.closingAmount
 
         grossSales=EndOfDaySales.calcEndOfDaySales(shiftObj.startTime,FormatTime.now())
         taxes=EndOfDaySales.calcTaxes(grossSales)
         netSales=grossSales-taxes
-
-        cashInHand=grossSales+openningFloat
         
         auth={
             'shiftId':shiftObj.shiftId,
@@ -38,25 +37,26 @@ class Reports:
             Num of Logins: {auth['logins']}
             -------------------------------------------------------------
             Sales:
-            Number of Sales : --------------{numberOfTransactions}
-            Gross Sales:--------------------{grossSales}
-            Tax:----------------------------{taxes}
-            Net Sales:----------------------{netSales}
+            Number of Sales : --------------\t{numberOfTransactions}
+            Gross Sales:--------------------\t{grossSales}
+            Tax:----------------------------\t{taxes}
+            Net Sales:----------------------\t{netSales}
 
-            Number of Cash Transactions:    {cashSales['num']}
-            Cash(Float):--------------------{openningFloat}
-            Cash(Collected):----------------{cashSales['totalAmount']}
-            Total Cash: --------------------{openningFloat+cashSales["totalAmount"]}
+            Number of Cash Transactions:    \t{cashSales['num']}
+            Cash(Starting Amount):----------\t{openningFloat}
+            Cash(Collected):----------------\t{cashSales['totalAmount']}
+            Total Cash: --------------------\t{openningFloat+cashSales["totalAmount"]}
+            Cash(Closing Amount):-----------\t{closingAmount}
 
-            Number of Bank Transactions:    {bankSales['num']}
-            Bank(Collected):----------------{bankSales["totalAmount"]}
+            Number of Bank Transactions:    \t{bankSales['num']}
+            Bank(Collected):----------------\t{bankSales["totalAmount"]}
 
-            Number of Mpesa Transactions:   {mpesaSales['num']}
-            Mpesa Total Collected-----------{mpesaSales['totalAmount']}
+            Number of Mpesa Transactions:   \t{mpesaSales['num']}
+            Mpesa Total Collected-----------\t{mpesaSales['totalAmount']}
 
             -----------------------------------------------------------------
-            Credit Paid today---------------{creditObj['paid']}
-            Credit Unpaid ------------------{creditObj['unpaid']}
+            Credit Paid today---------------\t{creditObj['paid']}
+            Credit Unpaid ------------------\t{creditObj['unpaid']}
 
         '''
         return reportString
@@ -86,15 +86,18 @@ class Reports:
         paidCredit,unpaidCredit=EndOfDaySales.calcAllPaidAndUnpaidCredit()
         creditView=CustomerCreditView()
         reportName,creditReport=creditView.genFullCreditReport(False)
+        Logging.consoleLog('message',creditReport)
         if(reportName!=False):
             custReportTxt=''
             for credit in creditReport:
+                custReportTxt+='\n---------------------------------------------------------\n'
                 custReportTxt+='Name: '+credit['name']+'\n'+'Phone: '+credit['phone']+'\n\n'
-                for c in creditReport['credit']:
-                    custReportTxt+='\n\nTransaction Id: '+c['transactionId']
-                    custReportTxt+='\nDeadLine '+c['deadLine']
-                    custReportTxt+='\nCredit Amount '+c['creditAmount']
-                    custReportTxt+='\nPaid Amount   '+c['paidAmount']
+                for c in credit['credit']:
+                    custReportTxt+='\t\n\nTransaction Id:------- '+str(c['transactionId'])
+                    custReportTxt+='\t\nDeadLine:--------------- '+str(c['deadLine'])
+                    custReportTxt+='\t\nCredit Amount:---------- '+str(c['creditAmount'])
+                    custReportTxt+='\t\nPaid Amount:------------ '+str(c['paidAmount'])
+                    custReportTxt+='\t\nDeficit----------------- '+str(float(c['creditAmount'])-float(c['paidAmount']))+'\n'
         allCreditReport=f'''
         Full Credit Report 
         Date:{FormatTime.dateTimeToStandardTime(FormatTime.now())}\n\n
@@ -103,13 +106,12 @@ class Reports:
         Paid Credit-------------------------{paidCredit}
 
 
-        Credit List:
-        {allCreditReport}
+        Unpaid Credit List:
+        {custReportTxt}
 
         '''
 
         return allCreditReport
-
 
     def genCustomerCreditReport(self,customerId):
         pass

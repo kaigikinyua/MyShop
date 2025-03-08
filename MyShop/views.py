@@ -157,7 +157,7 @@ class ShiftView:
     @staticmethod
     def openShift(openningId=0):
         sId=ShiftView.createShiftId()
-        sId=ShiftView.createShift(sId,openningId,False)
+        sId,message=ShiftView.createShift(sId,openningId,False)
         return sId      
 
     @staticmethod
@@ -1155,8 +1155,6 @@ class CustomerCreditView:
         allCredit=session.query(CustomerCreditModel).filter_by(fullyPaid=False).all()
         return allCredit
 
-
-
 class SoldItemsView:
     def addSoldItem(self,tId,productId,barCode,quantity,actualSellingPrice,itemsCollected):
         if(tId!=None and productId!=None and quantity!=None and actualSellingPrice!=None and itemsCollected!=None):
@@ -1635,9 +1633,9 @@ class EndOfDaySales:
         totalPaidCredit=0
         for credit in allCreditObj:
             if(credit.fullyPaid==False):
-                totalUnpaidCredit=totalUnpaidCredit+(credit.creditAmount-credit.totalCreditPaid)
+                totalUnpaidCredit=totalUnpaidCredit+(float(credit.creditAmount)-float(credit.totalCreditPaid))
             else:
-                totalPaidCredit=totalPaidCredit+credit.totalCreditPaid
+                totalPaidCredit=totalPaidCredit+float(credit.totalCreditPaid)
         return totalPaidCredit,totalUnpaidCredit
 
     @staticmethod
