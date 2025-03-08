@@ -157,7 +157,7 @@ class ShiftView:
     @staticmethod
     def openShift(openningId=0):
         sId=ShiftView.createShiftId()
-        sId,message=ShiftView.createShift(sId,openningId,False)
+        sIdState,sId=ShiftView.createShift(sId,openningId,False)
         return sId      
 
     @staticmethod

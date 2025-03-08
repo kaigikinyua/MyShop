@@ -384,7 +384,7 @@ class Cashier(User):
                 zRState,zReport=self.genZReport(userId,shiftId)
                 xRState,xReport=self.genXReport(userId,shiftId)
                 cRState,cReport=self.genCreditReport(userId)
-                sRState,sReport=self.genStockReport(userId,shiftId)
+                #sRState,sReport=self.genStockReport(userId,shiftId)
                 state=True
             else:
                 message=f'{cShiftMsg}'

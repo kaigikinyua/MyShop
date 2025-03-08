@@ -850,7 +850,11 @@ class Shift{
         var shiftId=Auth.getShiftId()
         var response=await eel.closeShift(userId,shiftId)()
         if(response['state']==true){
-            localStorage.setItem('reports',response['reports'])
+            var r=response['reports']
+            localStorage.setItem('xReport',r['x'])
+            localStorage.setItem('zReport',r['z'])
+            localStorage.setItem('cReport',r['c'])
+            localStorage.setItem('sReport',r['s'])
             redirectToPage('reports')
             return response
         }else{
