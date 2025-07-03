@@ -2,7 +2,7 @@ import random
 import sys
 from views import StockView,UserView,CustomerView,ProductsView,SaleSettingsView,BranchesView,CustomerModel
 from settings import Settings
-from utils import FormatTime
+from utils import FormatTime,CSV
 class UsersSetUp:
     @staticmethod
     def createUsers():
@@ -33,23 +33,28 @@ class BranchesSetUp:
             branchObj.addBranch(b['name'],b['loc'],b['phone'],b['tillNumb'],b['mName'],b['mPhone'])
 
 class ProductsSetUp:
-    products=[
-            {'name':'Tusker Malt 500ml','barCode':'134253456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Guiness Malt 500ml','barCode':'13678456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'County 1000ml','barCode':'15234456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Honey Master 300ml','barCode':'5346356','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Sugar Malt','barCode':'856785456','tags':'tusker','desc':'500ml','bPrice':300,'sPrice':500,'returnContainers':False},
-            {'name':'Keg Black','barCode':'123456789','tags':'keg;black','desc':'50000ml','bPrice':5500,'sPrice':6000,'returnContainers':False},
-            {'name':'Keg Dark','barCode':'56789032','tags':'keg;dark','desc':'50000ml','bPrice':5500,'sPrice':6000,'returnContainers':False},
-        ]
+
+    @staticmethod
+    def setUpProducts():
+        allData=CSV.readCSVFile('./data/products.csv')
+        headers,noHeaders=CSV.removeCSVHeaders(allData)
+        # dictNames=['id','name','barCode','tags','desc';'bPirce','sPrice','returnContainers']
+        products=[]
+        for row in noHeaders:
+            print(row)
+            r=row.split(',')
+            products.append({'id':r[0],'barCode':r[1],'name':r[2],'desc':r[2],'tags':r[3],'quantity':r[4],'sPrice':r[5],'bPrice':r[6],'returnContainers':bool(r[7])})
+        return products
     
     @staticmethod
     def createProducts():
+        products=ProductsSetUp.setUpProducts()
         i=1
-        for p in ProductsSetUp.products:
+        for p in products:
             x=ProductsView()
             x.addProduct(i,p['name'],p['barCode'],p['tags'],p['desc'],p['bPrice'],p['sPrice'],p['returnContainers'])
             i=i+1
+
     @staticmethod
     def removeProducts():
         pass
@@ -57,11 +62,12 @@ class ProductsSetUp:
 class StockSetUp:
     @staticmethod
     def addStock():
+        products=ProductsSetUp.setUpProducts()
         i=1
         time=FormatTime.now()
-        for p in ProductsSetUp.products:
+        for p in products:
             x=StockView()
-            x.addProductToStock(i,p['barCode'],random.randrange(10,1000),2,time)
+            x.addProductToStock(i,p['barCode'],p['quantity'],2,time)
             i=i+1
 
 class SaleSettingsSetUp:
@@ -107,9 +113,6 @@ class CustomerSetUp:
         custViewObj=CustomerView()
         for c in CustomerSetUp.customers:
             custViewObj.addCustomer(c['name'],c['phoneNum'])
-
-class CSV_Data_Dump:
-    pass
 
 
 def addAllSetUps():

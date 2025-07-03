@@ -8,7 +8,7 @@ class Reports:
         sTime,endTime=startTime,endTime
         mpesaSales,cashSales,bankSales,creditObj=ReportData.getSalesByType(startTime,endTime)
         numberOfTransactions=mpesaSales['num']+cashSales['num']+bankSales['num']
-        salesSettings=SaleSettingsView.getSalesSettings()
+        salesSettingsState,salesSettings=SaleSettingsView.getSalesSettings()
         storeDetails={'storeId':salesSettings.tillId}
         dateTime=f'Date: {FormatTime.dateTimeToStandardTime(FormatTime.now())} Time: {datetime.datetime.time}'
         openningFloat=shiftObj.startingAmount

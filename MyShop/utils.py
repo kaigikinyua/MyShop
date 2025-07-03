@@ -1,6 +1,6 @@
 import datetime,os
 from settings import Settings
-
+import csv
 class FormatTime:
     #Jan:31 Feb Mar:31 Apr:30 May:31 June:30 July:31 Aug:31 Sep:30 Oct Nov:30 Dec:31
     @staticmethod
@@ -148,11 +148,11 @@ class CSV:
     @staticmethod
     def readCSVFile(pathToFile):
         data=[]
-        infile=open(pathToFile)
-        reader=CSV.reader(infile)
-        for row in reader:
-            data.append(row)
-        infile.close()
+
+        with open(pathToFile,newline='') as csvfile:
+            datareader=csv.reader(csvfile,delimiter=',',quotechar='|')
+            for row in datareader:
+                data.append(','.join(row))
         return data
     
     @staticmethod
@@ -162,7 +162,7 @@ class CSV:
 
     @staticmethod
     def removeCSVHeaders(data):
-        return data[0],data[1:len(data)]
+        return data[0],data[1:len(data)-1]
 
     @staticmethod
     def getColumn(headers=None,columnName='',data=[]):

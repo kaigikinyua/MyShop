@@ -214,7 +214,7 @@ class ShiftView:
     @staticmethod
     def createShiftId():
         timeStamp=FormatTime.now()
-        settings=SaleSettingsView.getSalesSettings()
+        settingsState,settings=SaleSettingsView.getSalesSettings()
         if(settings!=None):
             tillId=settings.tillId
         else:
@@ -1298,15 +1298,15 @@ class SaleSettingsView:
         settings=None
         settings=session.query(SalesSettingsModel).filter_by(id=1).one_or_none()
         if(settings!=None):
-            return settings
-        return None 
+            return True,settings
+        return None,None 
 
     def deleteSalesSettings(self):
         state,settings=self.getSalesSettings()
         if(state==True):
             Session=sessionmaker(bind=engine)
             session=Session()
-            session.delete(settings)
+            session.query(SalesSettingsModel).filter_by(id=1).delete()
             session.commit()
             return True
         return False

@@ -1,0 +1,15 @@
+-- database: ./myshop.db
+DELETE FROM Products WHERE ID>0; 
+
+DELETE FROM `Stock` WHERE stockId>0;
+
+DELETE FROM StockHistory WHERE ID>0;
+
+DELETE FROM SoldItems WHERE ID>0;
+
+DELETE FROM Authenticated WHERE id>0;
+
+DELETE from Payments where id>0;
+
+DELETE from `Transaction` WHERE id>0;
+

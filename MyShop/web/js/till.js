@@ -1115,6 +1115,8 @@ class Reports{
     }
 }
 
+
+//redundant Auth class and methods in till.js and admin.js
 class Auth{
     static renderShiftId(){
         var shiftId=Auth.getShiftId()
