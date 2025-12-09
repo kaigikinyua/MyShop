@@ -1,43 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script type="text/javascript" src="eel.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vue Page</title>
-    <script src="./js/vue_0.4.1_dist_petite-vue.iife.js"></script>
+    <script src="./js/vue.js"></script>
 </head>
-<body>
-    <script type="module">
-         import { createApp } from './js/petite_vue.js?module'
-         function TillProduct(props) {
-            return {
-                $template: '#counter-template',
-                price: props.initialCount,
-                removeProduct(){
+    <body>
+        <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> -->
 
-                }
-            }
-        }
-        function ProductsTill(props){
-            return{
-                $template:'#productsTill',
-                products:props.products
-            }
-        }
-        
-
-        createApp({
-            TillProduct
-        }).mount()
-    </script>
-    <template id="counter-template">
-        My count is {{ count }}
-        <button @click="inc">++</button>
-    </template>
-    <div id="productsTill" v-scope="ProductsTill([{'name':'Tusker 250ml','barcode':'1343464','price':100}])">
-        <div v-for="product in products">
-            <div v-scope="TillProduct({name:'Tusker 250ml',barcode:'0123245','price':100})"></div>
+        <div id="app">
+            <products-component></products-component>
+            <transactions-component></transactions-component>
         </div>
-    </div>
-</body>
+
+
+    </body>
+    <script src="./js/VueComponents.js"></script>
 </html>

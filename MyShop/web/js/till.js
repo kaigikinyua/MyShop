@@ -186,7 +186,7 @@ function displayPayCreditBox(){
             var name=String(cust['name'].toLowerCase())
             if(id.includes(value) || name.includes(value)){
                 var h3Cust=document.createElement('h3')
-                h3Cust.innerHTML+="ID "+cust['id']+"<small>Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
+                h3Cust.innerHTML+="ID "+cust['id']+"<small> Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
                 h3Cust.addEventListener('click',()=>{
                     var x=document.getElementById('customerId')
                     x.value=cust['id']

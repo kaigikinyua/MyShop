@@ -460,9 +460,9 @@ class CustomerView:
         if(custId!=None):
             Session=sessionmaker(bind=engine)
             session=Session()
-            customer=session.query(CustomerModel).filter_by(id=custId).one_or_none(),''
+            customer=session.query(CustomerModel).filter_by(id=int(custId)).one_or_none()
             session.close()
-            return customer
+            return customer,''
         else:
             return False,'Passed a None Parameter to CustomerView.getCustomer()'
 

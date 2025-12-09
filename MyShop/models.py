@@ -71,7 +71,7 @@ class TransactionModel(Base):
     __tablename__='Transaction'
     id=Column(Integer,primary_key=True)
     transactionId=Column(String)
-    customerId=Column(String)
+    customerId=Column(String,default=0)#for all customers who are not registerd and don't want to be registerd their id =0
     sellerId=Column(String)
     tillId=Column(String)
     time=Column(Float)
