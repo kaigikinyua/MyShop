@@ -2,6 +2,7 @@ from views import UserView,TransactionView,PaymentView,CustomerView
 from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
 from utils import Logging,FormatTime
 from reports import Reports
+
 class User:
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
@@ -63,7 +64,14 @@ class User:
         products=pV.getAllProducts()
         pList=[]
         for i in products:
-            pList+=[{'id':i.id,'name':i.name,'barCode':i.barCode,'sPrice':i.sellingPrice}]
+            pList+=[
+                {
+                    'id':i.id,
+                    'name':i.name,
+                    'barCode':i.barCode,
+                    'sPrice':i.sellingPrice
+                    }
+            ]
         return pList
     
     def fetchAllTransactions(self):
@@ -75,6 +83,7 @@ class User:
                 'id':t.id,
                 'transactionId':t.transactionId,
                 'custId':t.customerId,
+                'customerDetails':self.fetchCustomerById(t.customerId),
                 'sellerId':t.sellerId,
                 'tillId':t.tillId,
                 'saleAmount':t.saleAmount,
@@ -122,6 +131,22 @@ class User:
            customer['creditTrasactions']=creditTransactions
         return customersList
 
+    def fetchCustomerById(self,custId):
+        cObject=CustomerView()
+        customer,msg=cObject.getCustomer(custId)
+        if(customer!=False and customer!=None):
+            print(customer)
+            print(custId)
+            return {
+                'id':customer.id,
+                'name':customer.name,
+                'phoneNumber':customer.phoneNumber,
+                'totalCreditOwed':customer.totalCreditOwed,
+                'error':None,
+            }
+        else:
+            return {'error':msg}
+    
     def fetchCustomerTotalCredit(self,custId):
         creditTaken=0
         creditAvailable=0
@@ -374,23 +399,31 @@ class Cashier(User):
     def closeShift(self,userId,shiftId):
         state=False
         message=''
-        zReport='',xReport='',cReport='',sReport=''
+        zReport=''
+        xReport=''
+        cReport=''
+        sReport=''
         if(userId!=None and shiftId!=None):
             cShiftState,cShiftMsg=ShiftView.closeShift(shiftId,userId)
             if(cShiftState==True):
                 zRState,zReport=self.genZReport(userId,shiftId)
                 xRState,xReport=self.genXReport(userId,shiftId)
                 cRState,cReport=self.genCreditReport(userId)
-                sRState,sReport=self.genStockReport(userId,shiftId)
+                #sRState,sReport=self.genStockReport(userId,shiftId)
+                state=True
             else:
-                message=f'Shift could not be closed {cShiftMsg}'
+                message=f'{cShiftMsg}'
+        else:
+            message='None type passed to Cashier.closeShift()'
         return state,message,{'z':zReport,'x':xReport,'c':cReport,'s':sReport}
 
     def genCreditReport(self,userId):
         state=False
         report=''
         if(userId!=None):
-            pass
+            reportsObj=Reports()
+            report=reportsObj.genFullCreditReport()
+            state=True
         else:
             report='None type passed to Cashier.genStockReport()'
         return state,report

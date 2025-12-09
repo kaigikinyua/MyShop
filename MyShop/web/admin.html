@@ -20,7 +20,7 @@
             <div>Admin</div>
             <div>
                 <button onclick="viewWindow('reportsWindow')">Reports</button>
-                <button onclick="viewWindow('stockWindow')">Stock</button>
+                <!-- <button onclick="viewWindow('stockWindow')">Stock</button> -->
                 <button onclick="viewWindow('productsWindow')">Products</button>
                 <button onclick="viewWindow('usersWindow')">Users</button>
                 <button onclick="logOut()">LogOut</button>
@@ -33,10 +33,12 @@
                     <div>
                         <input type="date" name="startDate" id="startDate" placeholder="13/10/2020"/>
                         <input type="date" name="endDate" id="endDate"/>
-                        <button>Generate X Report</button>
-                        <button>Generate Z Report</button>
-                        <button>Generate Credit Report</button>
-                        <button>Generate Stock Movement</button>
+                        <button onclick="ButtonActions.clickXReport()">X Report</button>
+                        <button onclick="ButtonActions.clickZReport()">Z Report</button>
+                        <button onclick="ButtonActions.clickCreditReport()">Credit Report</button>
+                        <button>Stock Report</button>
+                        <button>Stock Take</button>
+                        <button>Receive Stock</button>
 
                     </div>
                 </div>
@@ -45,27 +47,13 @@
                     <div id="reportContent"></div>
                 </div>
             </div>
-            <div class="tab" id="stockWindow">
-                <div class="col1">
-                    <h3>Stock</h3>
-                    <div>
-                        <button>Generate Stock Movement</button>
-                        <button>Generate Stock Take</button>
-                        <button>Receive Stock</button>
-                        <button>Dispatch Stock</button>
-                    </div>
-                </div>
-                <div class="col2">
-                    <h3 id="stockReportType">Stock Report</h3>
-                    <div id="stockReportContent"></div>
-                </div>
-            </div>
             <div class="tab" id="productsWindow">
                 <div class="col1">
                     <h3>Products</h3>
                     <div>
                         <button>View Products</button>
                         <button>Products Reports</button>
+                        <button>Create Product</button>
                     </div>
                 </div>
                 <div class="col2">
@@ -110,6 +98,11 @@
             </div>
         </div>
     </div>
-
+    <div class="statusBar">
+        <div id="shiftId"></div>
+        <div id="username">User:Username</div>
+        <div id="date">Date:11/11/2024 | Time: 12:00</div>
+    </div>
+    <div id="notification" class="passive"></div>
   </body>
 </html>

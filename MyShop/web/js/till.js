@@ -186,7 +186,7 @@ function displayPayCreditBox(){
             var name=String(cust['name'].toLowerCase())
             if(id.includes(value) || name.includes(value)){
                 var h3Cust=document.createElement('h3')
-                h3Cust.innerHTML+="ID "+cust['id']+"<small>Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
+                h3Cust.innerHTML+="ID "+cust['id']+"<small> Name "+cust["name"]+" Phone "+cust['phoneNum']+"</small>"
                 h3Cust.addEventListener('click',()=>{
                     var x=document.getElementById('customerId')
                     x.value=cust['id']
@@ -675,8 +675,13 @@ function displayReports(){
             r.innerHTML=response['report']
         }
     })
-    creditReportBtn.addEventListener('click',()=>{
-        var response=Reports.getZreport()
+
+    creditReportBtn.addEventListener('click',async ()=>{
+        var response=await Reports.genCreditReport()
+        if(response['state']==true){
+            var r=document.getElementById('reportsContent')
+            r.innerHTML=response['report']
+        }
     })
 
     emptiesAndStockReportBtn.addEventListener('click',()=>{
@@ -685,6 +690,7 @@ function displayReports(){
 
     var reportsContent=document.createElement('pre')
     reportsContent.id='reportsContent'
+    reportsContent.style='padding:5px;max-height:300px;overflow-y:scroll;'
 
     var cancel=document.createElement("button")
     cancel.innerHTML="Cancel"
@@ -699,6 +705,10 @@ function displayReports(){
     popUpPanel.appendChild(reportsContent)
     popUpPanel.appendChild(cancel)
 }
+async function closeShift(){
+    var response=await Shift.closeShift()
+}
+
 
 class Render{
     static renderItems(items){
@@ -835,8 +845,23 @@ class Shift{
             notificationBubble("ShiftId or Closing amout is empty",2,4)
         }
     }
-    static printXReport(){}
-    closeShift(){}
+    static async closeShift(){
+        var userId=Auth.getUserId()
+        var shiftId=Auth.getShiftId()
+        var response=await eel.closeShift(userId,shiftId)()
+        if(response['state']==true){
+            var r=response['reports']
+            localStorage.setItem('xReport',r['x'])
+            localStorage.setItem('zReport',r['z'])
+            localStorage.setItem('cReport',r['c'])
+            localStorage.setItem('sReport',r['s'])
+            redirectToPage('reports')
+            return response
+        }else{
+            notificationBubble(response['message'],0,10)
+            return response
+        }
+    }
 }
 
 class Customer{
@@ -1070,10 +1095,10 @@ class Reports{
         }
     }
 
-    static async creditReport(){
+    static async genCreditReport(){
         var shiftId=Auth.getShiftId()
         var userId=Auth.getUserId()
-        var response=await eel.generateCreditReport(userId,shiftId)()
+        var response=await eel.generateCreditReport(userId)()
         if(response['state']==true){
             return response
         }else{
@@ -1091,6 +1116,7 @@ class Reports{
 }
 
 
+//redundant Auth class and methods in till.js and admin.js
 class Auth{
     static renderShiftId(){
         var shiftId=Auth.getShiftId()
