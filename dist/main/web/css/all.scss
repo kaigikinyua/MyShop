@@ -1,0 +1,248 @@
+$backgroundColor:gray;
+$accentColor:lightgreen;
+
+*{
+    padding:0px;
+    margin:0px;
+}
+body{
+    background-color: $backgroundColor;
+}
+//all pages
+button,input{
+    padding:10px;
+    margin:5px;
+    outline: none;
+    border-radius: 10px;
+    border:1px rgba(0,0,0,1);
+}
+button.longButton, button.submit{
+    position: relative;
+    border:1px 1px $accentColor;
+    width: 90%;
+}
+.paddedContainer{
+    padding:10px;
+}
+.centerH{
+    max-width: 60vw;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.centerV{
+    display: block;
+    margin-top:auto;
+    margin-bottom: auto;
+
+}
+.whiteBg{
+    background-color: white;
+}
+
+
+.iconBtn{
+    text-align: center;
+    font-size: 1.2em;
+    background:none;
+    text-align: center;
+    padding:2px;
+}
+.iconBtn:hover{
+    font-size: 1.3em;
+    color:$accentColor;
+    background-color: lighten($color: $backgroundColor, $amount: 90);
+    transition-duration: 0.5s;
+}
+
+input{
+    position: relative;
+    width:90%;
+    background-color: lighten($color: $backgroundColor, $amount: 40);
+}
+input:hover{
+    background-color:lighten($backgroundColor,80);
+    border:3px $accentColor;
+    transition-duration: 0.5s;
+}
+
+.minLen{
+    padding:3px;
+    width: auto;
+}
+
+//re-useable Containers
+.two_columns{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.grid{
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
+}
+.listView .listItem{
+    margin-top: 5px;
+    padding:3px;
+    background-color: none;
+}
+.listView :nth-child(odd){
+    background-color: rgba(0,0,0,0.05);
+}
+.listView{
+    .danger{
+        background-color: crimson;
+        color:white;
+        font-weight: bold;
+    }
+    .success{
+        background-color: lightgreen;
+        color:white;
+        font-weight: bold;
+    }
+    .cool{
+        background-color: turquoise;
+        color:white;
+        font-weight: bold;
+    } 
+}
+
+ul.searchBox{
+    max-height: 100px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    li.item{
+        position: relative;
+        width: 100%;
+        padding: 5px;
+        margin:3px;
+    }
+    li.clickable:hover{
+        background-color: lighten($color: $backgroundColor, $amount: 60);
+        transition-duration: 1s;
+    }
+}
+
+
+#notification{
+    position: fixed;
+    left:50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding:10px;
+    border-radius: 10px;
+    box-shadow:1px 1px 10px 10px rgba(0,0,0,0.2);
+    color:white;
+}
+@keyframes showNotification{
+    0%{top:100vh;}
+    3%{top:90vh;}
+    95%{top:90vh;}
+    100%{top:100vh;}
+}
+.active{
+    animation-name: showNotification;
+    //animation-duration: 4s;
+}
+.passive{
+    display: none;
+    box-shadow: none;
+}
+
+//login page
+div#loginPanel{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width:100vw;
+}
+div.loginCard{
+    position: relative;
+    padding:10px;
+    border-radius: 20px;
+    width:30%;
+    height:50%;
+    min-width: 300px;
+    min-height: 350px;
+    max-height: 400px;
+    max-width: 400px;
+    background-color: rgba(255,255,255,0.9);
+    box-shadow: 2px 2px 10px 10px rgba(0,0,0,0.2);
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+}
+div.circle{
+    position: relative;
+    margin-inline: auto;
+    margin-top:30px;
+    height:100px;
+    width:100px;
+    border-radius: 50%;
+    background:purple;
+}
+div.loginFields{
+    margin-top:50px;
+    margin-inline:auto;
+}
+
+
+
+//colors
+.danger{
+    background-color: crimson;
+    color:white;
+    font-weight: bold;
+}
+.success{
+    background-color: lightgreen;
+    color:white;
+    font-weight: bold;
+}
+.cool{
+    background-color: turquoise;
+    color:white;
+    font-weight: bold;
+}
+.innactive{
+    background-color: lightgray;
+    color:gray;
+    font-weight: lighter;
+    border-radius: darkgray;
+}
+//
+
+#popUp{
+    position: fixed;
+    top:0px;
+    left: 0px;
+    z-index: 50;
+    height: 100vh;
+    width:100vw;
+    background-color: rgba(0,0,0,0.2);
+    //opacity: 0.2;
+}
+#popUp div#popUpPanel{
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+    z-index: 100;
+    min-width: 300px;
+    min-height: 300px;
+    background-color: white;
+    border-radius: 20px;
+    display: inline-flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    flex-flow: column;
+    .header{
+        padding:10px;
+        margin-bottom: 20px;
+    }
+}
+
+//fontweights
+.boldFont{
+    font-size: 1.3em;
+}

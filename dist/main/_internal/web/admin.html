@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="css/all.css"/>
+    <link rel="stylesheet" href="css/admin.css"/>
+    <script type="text/javascript" src="eel.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin</title>
+
+  </head>
+  <body>
+    <div class="mainContainer">
+        <div class="titleBar">
+            <div>Admin</div>
+            <div>
+                <button onclick="viewWindow('reportsWindow')">Reports</button>
+                <!-- <button onclick="viewWindow('stockWindow')">Stock</button> -->
+                <button onclick="viewWindow('productsWindow')">Products</button>
+                <button onclick="viewWindow('usersWindow')">Users</button>
+                <button onclick="logOut()">LogOut</button>
+            </div>
+        </div>
+        <div id="mainScreen">
+            <div class="tab" id="reportsWindow">
+                <div class="col1">
+                    <h3>Reports</h3>
+                    <div>
+                        <input type="date" name="startDate" id="startDate" placeholder="13/10/2020"/>
+                        <input type="date" name="endDate" id="endDate"/>
+                        <button onclick="ButtonActions.clickXReport()">X Report</button>
+                        <button onclick="ButtonActions.clickZReport()">Z Report</button>
+                        <button onclick="ButtonActions.clickCreditReport()">Credit Report</button>
+                        <button>Stock Report</button>
+                        <button>Stock Take</button>
+                        <button>Receive Stock</button>
+
+                    </div>
+                </div>
+                <div class="col2">
+                    <h3 id="reportType">Report Type</h3>
+                    <div id="reportContent"></div>
+                </div>
+            </div>
+            <div class="tab" id="productsWindow">
+                <div class="col1">
+                    <h3>Products</h3>
+                    <div>
+                        <button>View Products</button>
+                        <button>Products Reports</button>
+                        <button>Create Product</button>
+                    </div>
+                </div>
+                <div class="col2">
+                    <div id="products">
+                        <h3>Products</h3>
+                        <div id="productList" class="listView">
+
+                        </div>
+                    </div>
+                    <div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab" id="usersWindow">
+                <div class="col1">
+                    <h3>User Actions</h3>
+                    <div>
+                        <button>New User</button>
+                        <button>View Users</button>
+                        <button>Users History</button>
+                    </div>
+                </div>
+                <div class="col2">
+                    <div id="newUser">
+                        <h3>Create User</h3>
+                        <input type="text" placeholder="User name" name="username"/>
+                        <select name="userLevel" id="userLevel">
+                            <option value="0">Cashier</option>
+                            <option value="1">Admin</option>
+                        </select>
+                        <button>Create User</button>
+                    </div>
+                    <div>
+                        <div id="usersList"></div>
+                        <div>
+                            <button>Modify</button>
+                            <button>Suspend</button>
+                            <button>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="statusBar">
+        <div id="shiftId"></div>
+        <div id="username">User:Username</div>
+        <div id="date">Date:11/11/2024 | Time: 12:00</div>
+    </div>
+    <div id="notification" class="passive"></div>
+  </body>
+</html>
