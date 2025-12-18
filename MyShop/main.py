@@ -201,6 +201,20 @@ class AdminActions:
     def updateStock():
         pass
 
+    @staticmethod
+    def getReportByName(userId,reportName,startDate,endDate):
+        u=User()
+        authenticated=u.getUserLevel(userId,'admin')
+        if(authenticated==False):
+            Logging.logToFile('Error: Unauthorized access to ' \
+            'getReportByName(userId={userId},reportName={reportName}, startDate={startDate}), endDate={endDate}')
+
+            return {'state':False,'msg':'Unauthorized access','reports':[]}
+        else:
+            Logging.consoleLog('Generated report {reportName} starting from date {startDate} to end date {endDate}')
+            report=Reports.generateReportByName(reportName,startDate,endDate)
+            return {'state':True,'msg':'Success','report':report}
+        
 if __name__=="__main__":
     fetchData=FetchData()
     cashierActions=CashierActions()

@@ -1,0 +1,8 @@
+Index,Product Name,Bar Code,Selling Price,WholeSale Price,Search Tags,Return Containers,Current Stock
+1,Tusker 500ml,0000001,500,450,tusker;lite,yes,100,
+2,Guiness 500ml,0000002,550,530,guiness;malt,yes,154,
+3,Chrome Vodka 750ml,0000003,800,770,chrome;vodka,no,800,
+4,Chrome Jin 750ml,0000004,800,770,chrome;jin,no,300,
+5,Keg Dark 20 Liter,0000005,5030,5030,keg;dark,yes,800,
+6,Keg Light 20 Liter,0000006,5030,5030,keg;light,yes,650,
+7,Keg Malt 20 Liter,0000007,5030,5030,keg;malt,yes,500,

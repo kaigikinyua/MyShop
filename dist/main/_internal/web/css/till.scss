@@ -1,0 +1,70 @@
+body{
+    overflow-x: hidden;
+    overflow: hidden;
+}
+div.mainContainer{
+    height:93vh;
+    width:100vw;
+    display:grid;
+    grid-template-columns: 2fr 1fr;
+}
+div.statusBar{
+    position: fixed;
+    bottom:0px;
+    left:0px;
+    height:3vh;
+    width:100vw;
+    display: inline-flex;
+    background:gray;
+}
+div.items,div.tillFunctionButtons{
+    height:100vh;
+    padding:10px;
+}
+div.items{
+    background:white;
+}
+div.tillFunctionButtons{
+    background:rgb(200,200,200);
+}
+div.itemSearch{
+    display: flex;
+}
+div.inline{
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+
+.itemList{
+    padding:10px;
+    height:70vh;
+    overflow-y:scroll;
+    .item{
+        padding:5px;
+    }
+}
+
+div#total{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top:20px;
+    margin-bottom: 20px;
+}
+div.dash{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding:5px;
+    margin-top:10px;
+}
+div.uiPanel{
+    margin-top:5px;
+    padding:5px;
+    background:lighten(lightgray,10);
+    h3{
+        font-weight: lighter;
+        font-size: 1.1em;
+    }
+}

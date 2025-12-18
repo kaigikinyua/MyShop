@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="favicon"  href="images/icon.png">
+
+    <link rel="stylesheet" href="css/all.css"/>
+    <link rel="stylesheet" href="css/till.css"/>
+
+    <script type="text/javascript" src="eel.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/till.js"></script>
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Till</title>
+
+  </head>
+  <body>
+    <div class="mainContainer">
+        <div class="items">
+            <div class="itemSearch">
+                <div class="inline">
+                    <h3>Item Code</h3>
+                    <input type="text" id="itemCode" placeholder="Item Code or name"/>
+                    
+                </div>
+                <div class="inline">
+                    <h3>Quantity</h3>
+                    <input style="width:100px;" type="number" id="quantity" placeholder="Quantity" value="1" min="0" oninput="this.value = Math.abs(this.value)"/>
+                </div>
+                <div class="inline">
+                    <button onclick="addItem()" onkeypress="searchItem()">Add Product</button>
+                </div>
+            </div>
+            <div class="itemList listView" id="itemList">
+            </div>
+            <div class="inline boldFont"><h3>Total(KSH) = </h3><h3 id="basketTotal">0</h3></div>
+            <div class="itemListActions">
+                <button onclick="voidTransaction()">Void Transaction</button>
+                <button onclick="displayPaymentBox()">Pay</button>
+                <select name="counterID" id="counterID"></select>
+            </div>
+        </div>
+        <div class="tillFunctionButtons">
+            <div class="uiPanel">
+                <h3>Customer Service Desk</h3>
+                <div class="dash">
+                    <button class="success" onclick="registerCustomerPanel()">Register</button>
+                    <button class="success" onclick="checkCustomerCredit()">Check credit</button>
+                    <button class="danger" onclick="displayPayCreditBox()">Pay Credit</button>
+                </div>
+            </div>
+            <div class="uiPanel">
+                <h3>Cashier Actions</h3>
+                <div class="dash">
+                    <button class="minLenBtn danger" onclick="displayStartingAmount()">Starting Amount</button>
+                    <button class="minLenBtn danger" onclick="displayClosingAmount()">Closing Amount</button>
+                    <button class="minLenBtn cool" onclick="displayReports()">Reports</button>
+                    <button class="minLenBtn cool" onclick="displaySales()" >Sales</button>
+                    <button class="minLenBtn success" onclick="logOut()">LogOut</button>
+                    <button class="minLenBtn danger" onclick="closeShift()">Close Shift</button>
+                </div>
+            </div>
+            <div class="uiPanel">
+                <h3>Stock Actions</h3>
+                <div class="dash">
+                    <button class="minLenBtn cool" onclick="displayReceiveStock()">Receive Stock</button>
+                    <button class="minLenBtn danger">Dispatch Empties</button>
+                    <button class="minLenBtn success">Receive Empties</button>
+                </div>
+            </div>
+            <div class="uiPanel">
+                <h3>All products</h3>
+                <div class="dash" style="display: block;">
+                    <div>
+                        <input type="text" placeholder="Product name or barcode" id="searchAllProducts"/>
+                    </div>
+                    <ul id="allProductsBox" class="searchBox"></ul>
+                </div>
+            </div>
+            <div class="uiPanel">
+                <h3>Transactions History</h3>
+                <div class="dash">
+                    <div>
+                        <input type="text" placeholder="Search Transaction" id="'searchTransactions"/>
+                        <input type="date" placeholder="Transaction Date" id="searchTransactionDate"/>
+                    </div>
+                </div>
+                <div>
+                    <ul class="itemList" id="miniTransactionBox"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="statusBar">
+        <div id="shiftId"></div>
+        <div id="username">User:Username</div>
+        <div id="date">Date:11/11/2024 | Time: 12:00</div>
+    </div>
+    <div id="notification" class="passive"></div>
+    <div id="popUp" class="passive">
+        <div id="popUpPanel" class="passive" onclick=""></div>
+    </div>
+  </body>
+</html>

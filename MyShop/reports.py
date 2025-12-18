@@ -140,6 +140,26 @@ class Reports:
     def printReport(self,reportData,outPutFile):
         pass
 
+    @staticmethod
+    def generateReportByName(reportName,startDate,endDate):
+        if(reportName==None or startDate==None or endDate==None):
+            Logging.consoleLog('Cannot pass None to generateReportByName(reportName={reportName},startDate={startDate},endDate={endDate})')
+            return {}
+        else:
+            report={'name':reportName,'data':['not implemented','not implemented']}
+            if(reportName=='saleReport'):
+                pass
+            elif(reportName=='stockReport'):
+                pass
+            elif(reportName=='creditReport'):
+                pass
+            elif(reportName=='xReport'):
+                pass
+            elif(report=='zReport'):
+                pass
+            return report
+
+
 class ReportData:
 
     @staticmethod

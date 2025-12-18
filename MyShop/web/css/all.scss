@@ -1,24 +1,47 @@
-$backgroundColor:gray;
-$accentColor:lightgreen;
+:root{
+    --bgColor:#01303f;
+    --primaryColor:#02A9f7;
+    --highlightColor:lightgreen;
+    --darkTextColor:#89d6fb;
+    --brightTextColor:#d4f0fc;
+    
+    --innactiveColor:color-mix(in srgb,var(--bgColor) 90%, black);
+    --activeColor:color-mix(in srgb,var(--bgColor) 90%,white);
+
+    --formLevel01:color-mix(in srgb,var(--bgColor) 20%,var(--primaryColor));
+
+    --dangerColor:crimson;
+    --warningColor:yellow;
+    --successColor:lightgreen;
+    --boxShadow:rgba(0,0,0,0.2);
+}
 
 *{
     padding:0px;
     margin:0px;
 }
 body{
-    background-color: $backgroundColor;
+    background-color: var(--bgColor);
 }
 //all pages
 button,input{
     padding:10px;
     margin:5px;
-    outline: none;
+    outline: transparent;
     border-radius: 10px;
-    border:1px rgba(0,0,0,1);
+    border:1px var(--primaryColor);
+    font-size: 1.1em;
+}
+input{
+    border-radius: 0;
+    border-bottom: 1px solid var(--activeColor);
+}
+input::placeholder{
+    color:var(--brightTextColor);
 }
 button.longButton, button.submit{
     position: relative;
-    border:1px 1px $accentColor;
+    border:1px 1px var(--highlightColor);
     width: 90%;
 }
 .paddedContainer{
@@ -50,20 +73,23 @@ button.longButton, button.submit{
 }
 .iconBtn:hover{
     font-size: 1.3em;
-    color:$accentColor;
-    background-color: lighten($color: $backgroundColor, $amount: 90);
+    color:var(--highlightColor);
+    background-color: var(--primaryColor);
     transition-duration: 0.5s;
 }
 
 input{
     position: relative;
     width:90%;
-    background-color: lighten($color: $backgroundColor, $amount: 40);
+    background-color: transparent;
+    border-bottom: 1px solid white;
+    color:var(--brightTextColor);
 }
 input:hover{
-    background-color:lighten($backgroundColor,80);
-    border:3px $accentColor;
+    background-color:var(--activeColor);
+    border-bottom:1px var(--highlightColor);
     transition-duration: 0.5s;
+    color:var(--brightTextColor);
 }
 
 .minLen{
@@ -87,22 +113,22 @@ input:hover{
     background-color: none;
 }
 .listView :nth-child(odd){
-    background-color: rgba(0,0,0,0.05);
+    background-color: --bgColor;
 }
 .listView{
     .danger{
-        background-color: crimson;
-        color:white;
+        background-color: var(--dangerColor);
+        color:var(--brightTextColor);
         font-weight: bold;
     }
     .success{
-        background-color: lightgreen;
-        color:white;
+        background-color: var(--successColor);
+        color:var(--brightTextColor);
         font-weight: bold;
     }
     .cool{
-        background-color: turquoise;
-        color:white;
+        background-color: var(--highlightColor);
+        color:var(--brightTextColor);
         font-weight: bold;
     } 
 }
@@ -118,7 +144,7 @@ ul.searchBox{
         margin:3px;
     }
     li.clickable:hover{
-        background-color: lighten($color: $backgroundColor, $amount: 60);
+        background-color: var(--primaryColor);
         transition-duration: 1s;
     }
 }
@@ -131,8 +157,8 @@ ul.searchBox{
     z-index: 1000;
     padding:10px;
     border-radius: 10px;
-    box-shadow:1px 1px 10px 10px rgba(0,0,0,0.2);
-    color:white;
+    box-shadow:1px 1px 10px 10px var(--boxShadow);
+    color:var(--brightTextColor);
 }
 @keyframes showNotification{
     0%{top:100vh;}
@@ -167,10 +193,12 @@ div.loginCard{
     min-height: 350px;
     max-height: 400px;
     max-width: 400px;
-    background-color: rgba(255,255,255,0.9);
-    box-shadow: 2px 2px 10px 10px rgba(0,0,0,0.2);
-    display: grid;
-    grid-template-rows: 1fr 1fr;
+    background-color: var(--formLevel01);
+    box-shadow: 2px 2px 10px 10px var(--boxShadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
 }
 div.circle{
     position: relative;
@@ -179,7 +207,7 @@ div.circle{
     height:100px;
     width:100px;
     border-radius: 50%;
-    background:purple;
+    background:var(--primaryColor);
 }
 div.loginFields{
     margin-top:50px;

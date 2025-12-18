@@ -70,7 +70,7 @@ div.dash {
 div.uiPanel {
   margin-top: 5px;
   padding: 5px;
-  background: #ededed;
+  background: rgb(236.5, 236.5, 236.5);
 }
 div.uiPanel h3 {
   font-weight: lighter;

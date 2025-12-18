@@ -6,25 +6,6 @@ function viewWindow(windowId){
     })
     document.getElementById(windowId).style.display=''
 }
-
-class ButtonActions{
-    static async clickXReport(){
-        var report=await ReportsActions.getXReport()
-        RenderClass.renderReport(report,'X Report')
-    }
-    static async clickZReport(){
-        var report=await ReportsActions.getZreport()
-        RenderClass.renderReport(report,'Z Report')
-    }
-    static async clickCreditReport(){
-        var report=await ReportsActions.genCreditreport()
-        RenderClass.renderReport(report,'Credit Report') 
-    }
-    static async clickStockReport(){}
-    static async clickStockTake(){}
-    static async clickReceiveStock(){}
-}
-
 class ReportsActions{
     static async getXReport(){
         var shiftId=Auth.getShiftId()
@@ -60,6 +41,9 @@ class ReportsActions{
             return response
         }
     }
+    static async getReportByName(reportName,startDate,endDate){
+        
+    }
 }
 
 class ProductActions{
@@ -82,37 +66,6 @@ class AdminFetchDataItems{
         return products
     }
 }
-class RenderClass{
-    //reportsWindow [xReport,zReport,creditReport,stockReport,stockTake,receiveStock]
-    static headerId="reportType"
-    static parentId="reportContent"
-    
-    static renderReport(reportContent,reportName){
-        var header=document.getElementById(this.headerId)
-        var parent=document.getElementById(this.parentId)
-        parent.innerHTML='<pre>'+reportContent+'</pre>'
-        header.innerHTML=reportName
-    }
-
-    static renderStockTake(){}
-    static renderReceiveStock(){}
-
-    //products
-    static renderProduct(product){
-        var parent=document.getElementById('productList')
-        var pElement=document.createElement('div')
-        var pName=document.createElement('p')
-        pName.innerHTML=product['name']
-        var deleteProduct=document.createElement('button')
-        deleteProduct.classList='danger'
-        deleteProduct.innerHTML='Delete'
-        deleteProduct.onclick=(()=>{
-            AdminActions.deleteProduct(product['id'])
-        });
-    }
-    //users
-}
-
 
 //redundant Auth class and methods in till.js and admin.js
 class Auth{
@@ -140,3 +93,98 @@ function setUpAdmin(){
 setTimeout(async ()=>{
     setUpAdmin()
 },1000)
+
+
+
+//*******VUE APP **********/
+const reportsComponent ={
+  template: `
+    <div class="col1">
+        <h3>Reports</h3>
+        <div>
+            <input type="date" name="startDate" id="startDate_reports" placeholder="13/10/2020"/>
+            <input type="date" name="endDate" id="endDate_reports"/>
+            <button>X Report</button>
+            <button>Z Report</button>
+            <button @click='creditReport'>Credit Report</button>
+            <button @click='salesReport'>Sales Report</button>
+            <button @click='stockReport'>Stock Report</button>
+        </div>
+    </div>
+    <div class="col2" id="reportContent">
+        {{title}}
+        <xzcomponent :test_data="From"/>
+    </div>
+  `,
+  props:{
+    test_data:"componentONe"
+  },
+  data(){
+    return {
+        title:'Report Name',
+        reportContents:[],
+        exportToExcelSheet:false
+    }
+  },
+  methods:{
+    xReport(){},
+    zReport(){},
+    creditReport(){
+        var dates=this.getStartAndEndDate()
+        this.test_data='changed the props'
+        if(dates!=undefined){
+            console.log('creditReport between '+dates.start+" to "+dates.end)
+        }else{
+            console.log('please enter the start date and end date')
+        }
+    },
+    salesReport(){
+        var dates=this.getStartAndEndDate()
+        if(dates!=undefined){
+            console.log('sales Report between '+dates.start+" to "+dates.end)
+        }else{
+            console.log('please enter the start date and end date')
+        }
+    },
+    stockReport(){
+        var dates=this.getStartAndEndDate()
+        if(dates!=undefined){
+            console.log('sales Report between '+dates.start+" to "+dates.end)
+        }else{
+            console.log('please enter the start date and end date')
+        }
+    },
+    getStartAndEndDate(event){
+        var sDate=document.getElementById('startDate_reports').value;
+        var eDate=document.getElementById('endDate_reports').value;
+        if(sDate!='' && sDate!=undefined && eDate!='' && sDate!=undefined){
+            return {'start':sDate,'end':eDate}
+        }else{
+            notificationBubble("Please fill in the dates",0,4);
+        }
+        return undefined
+    },
+  },
+};
+
+const XZComponent={
+    props:{
+        test_data:undefined
+    },
+    data(){
+        return {
+        }
+    },
+    template:`
+        <h3>Component 2</h3>
+        <p>{{test_data}}</p>
+    `
+}
+
+
+
+
+const app=Vue.createApp({})
+app.component('xzcomponent',XZComponent)
+app.component('reports-component',reportsComponent)
+app.mount('#reportsWindow')
