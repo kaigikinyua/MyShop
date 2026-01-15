@@ -1,12 +1,15 @@
 :root{
-    --bgColor:#01303f;
+    --bgColor:hsl(0,0%,10%);
+    --mutedBg:hsl(0,0%,80%);
+    --highlightedBg:hsl(0, 0%, 100%);
     --primaryColor:#02A9f7;
     --highlightColor:lightgreen;
-    --darkTextColor:#89d6fb;
+    --darkTextColor:hsl(0,0%,5%);
+    --mutedTextColor:hsl(0,0%,60%);
     --brightTextColor:#d4f0fc;
     
     --innactiveColor:color-mix(in srgb,var(--bgColor) 90%, black);
-    --activeColor:color-mix(in srgb,var(--bgColor) 90%,white);
+    --activeColor:color-mix(in srgb,var(--bgColor) 100%,white);
 
     --formLevel01:color-mix(in srgb,var(--bgColor) 20%,var(--primaryColor));
 
@@ -28,17 +31,12 @@ button,input{
     padding:10px;
     margin:5px;
     outline: transparent;
-    border-radius: 10px;
-    border:1px var(--primaryColor);
+    border-radius: 0.8em;
+    border:1px solid transparent;
     font-size: 1.1em;
 }
-input{
-    border-radius: 0;
-    border-bottom: 1px solid var(--activeColor);
-}
-input::placeholder{
-    color:var(--brightTextColor);
-}
+
+
 button.longButton, button.submit{
     position: relative;
     border:1px 1px var(--highlightColor);
@@ -81,15 +79,18 @@ button.longButton, button.submit{
 input{
     position: relative;
     width:90%;
-    background-color: transparent;
-    border-bottom: 1px solid white;
-    color:var(--brightTextColor);
+    color:var(--darkTextColor);
+    background-color: var(--mutedBg);
+    
 }
-input:hover{
-    background-color:var(--activeColor);
-    border-bottom:1px var(--highlightColor);
+input:hover, input:active, input:focus{
+    background-color:var(--highlightedBg);
+    border-bottom:1px solid var(--highlightedBg);
+    color:var(--darkTextColor);
     transition-duration: 0.5s;
-    color:var(--brightTextColor);
+    ::placeholder{
+        color:var(--brightTextColor);
+    }
 }
 
 .minLen{
