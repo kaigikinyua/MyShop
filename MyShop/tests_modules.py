@@ -1,7 +1,5 @@
 import sys,unittest
 from unittest import TestCase
-sys.path.insert(0,'../')
-
 from reports import CSV
 
 class TestReports(unittest.TestCase):

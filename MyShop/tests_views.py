@@ -1,6 +1,5 @@
 import unittest,sys
 from unittest import TestCase
-sys.path.insert(0,'../')
 
 from utils import FormatTime
 from views import UserView,ShiftView,CustomerView,TransactionView,PaymentView,ProductsView

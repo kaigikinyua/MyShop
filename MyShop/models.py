@@ -16,6 +16,8 @@ class UserModel(Base):
     password=Column(String)
     userLevel=Column(String)
     usrLevelChoices=['admin','cashier']
+    #userPermissions=Column(String)
+    #passwordExpireRyDate=Column(Float) 
 
 class AuthModel(Base):
     __tablename__='Authenticated'

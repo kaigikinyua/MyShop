@@ -1,5 +1,6 @@
 import datetime,os
 from settings import Settings
+import numpy as np
 import csv
 class FormatTime:
     #Jan:31 Feb Mar:31 Apr:30 May:31 June:30 July:31 Aug:31 Sep:30 Oct Nov:30 Dec:31
@@ -147,14 +148,13 @@ class File:
 class CSV:
     @staticmethod
     def readCSVFile(pathToFile):
-        data=[]
-
-        with open(pathToFile,newline='') as csvfile:
-            datareader=csv.reader(csvfile,delimiter=',',quotechar='|')
-            for row in datareader:
-                data.append(','.join(row))
-        return data
-    
+        if(File.fileExists(pathToFile)==False):
+            Logging.consoleLog('err',f'Error: File {pathToFile} does not exist')
+            return []
+        else:
+            data=np.genfromtxt(pathToFile,dtype=str,delimiter=',',encoding=None)
+            return data
+        
     @staticmethod
     def writeCSVFile(pathToFile):
         pass
@@ -165,30 +165,12 @@ class CSV:
         return data[0],data[1:len(data)-1]
 
     @staticmethod
-    def getColumn(headers=None,columnName='',data=[]):
-        i=0
-        headerIndex=0
-        headerString=""
-        for header in headers:
-            if(header.lower()==columnName.lower()):
-                headerIndex=i
-                headerString=header
-                break
-            i=i+1
-        columnData=[]
-        for row in data:
-            columnData.append(row[headerIndex])
-        return headerString,columnData
+    def getColumnByName(headers=None,columnName='',data=[]):
+        pass
     
     @staticmethod
     def getRow(data=[],rowIndex=0,removedHeaders=True):
-        if(removedHeaders==False):
-            h,data=CSV.removeHeaders(data)
-        if(len(data)<=rowIndex):
-            return data[rowIndex]
-        else:
-            print("Array out of bounds index")
-        return None
+        pass
 
     @staticmethod
     def createCsv(headers=[],data=[],autoIndexRows=True):

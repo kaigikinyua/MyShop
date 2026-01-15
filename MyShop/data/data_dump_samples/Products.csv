@@ -1,8 +1,38 @@
-Index,Product Name,Bar Code,Selling Price,WholeSale Price,Search Tags,Return Containers,Current Stock
-1,Tusker 500ml,0000001,500,450,tusker;lite,yes,100,
-2,Guiness 500ml,0000002,550,530,guiness;malt,yes,154,
-3,Chrome Vodka 750ml,0000003,800,770,chrome;vodka,no,800,
-4,Chrome Jin 750ml,0000004,800,770,chrome;jin,no,300,
-5,Keg Dark 20 Liter,0000005,5030,5030,keg;dark,yes,800,
-6,Keg Light 20 Liter,0000006,5030,5030,keg;light,yes,650,
-7,Keg Malt 20 Liter,0000007,5030,5030,keg;malt,yes,500,
+id,name,barCode,productTags,desc,buyingPrice,sellingPrice,returnContainers
+1,Black & White 37.5c 04X06,558325,black;&;white;37.5,Black & White 37.5c 04X06,400,500,1
+2,Bond 7 350ml 24X01,603360,Bond;7;350;,Bond 7 350ml 24X01,100,200,1
+3,Bond 7 Whisky 25CL 40x01,646998,Bond;7;whisky;,Bond 7 Whisky 25CL 40x01,100,200,1
+4,Captain Morgan Gold 750ml,740964,captain;morgan;gold;,Captain Morgan Gold 750ml,500,600,1
+5,Chrome Jin 25CL 40X01,763596,chrome;jin;25;,Chrome Jin 25CL 40X01,750,850,1
+6,Chrome Jin 75CL 12X01 40%Vol,763534,chrome;jin;75;12;,Chrome Jin 75CL 12X01 40%Vol,430,530,1
+7,Chrome T Shirts,945009,chrome;t;shirts,Chrome T Shirts,460,560,1
+8,Chrome Vodka 25CL 40X01,704795,chrome;vodka;25,Chrome Vodka 25CL 40X01,510,610,1
+9,Chrome Vodka 75CL 12X01,704842,chrome;vodka;75;,Chrome Vodka 75CL 12X01,510,610,1
+10,Free Club Soda Lemonade 330ml,FP1001,free;club;soda;lemonade;,Free Club Soda Lemonade 330ml,4900,5000,1
+11,Gilbeys Gin 25CL 40X01,647001,gilbeys;gin;25;,Gilbeys Gin 25CL 40X01,790,890,1
+12,Gilbeys Gin 350ml 24X01,603379,gilbeys;gin;350;,Gilbeys Gin 350ml 24X01,5550,5650,1
+13,Gilbeys Gin 75CL 12X01,604021,gilbeys;gin;75;,Gilbeys Gin 75CL 12X01,1460,1560,1
+14,Just Right Smooth 25CL 40X01,790740,just;right;smooth;25;,Just Right Smooth 25CL 40X01,680,780,1
+15,Kane Extra 25CL 40X01 ACFC*,721471,kane;extra;25;40;acfc;,Kane Extra 25CL 40X01 ACFC*,841,941,1
+16,Keg Cans 50Lt,350348,keg;cans;,Keg Cans 50Lt,1791,1891,1
+17,Kenya Cane 25CL 40X01,647009,kenya;cane;25;,Kenya Cane 25CL 40X01,2551,2651,1
+18,Kenya Cane 350ml 24X01,603390,kenya;cane;350;,Kenya Cane 350ml 24X01,7900,8000,1
+19,Kenya Cane 750ml 12X01,603387,kenya;cane;750;,Kenya Cane 750ml 12X01,5500,5600,1
+20,Kenya Cane Paper Posters,944413,kenya;cane;paper;posters,Kenya Cane Paper Posters,8842,8942,1
+21,Kenya Cane Pnep 25CL 40X01,753255,kenya;cane;pinnaple;pnep;25;,Kenya Cane Pnep 25CL 40X01,5800,5900,1
+22,Kenya Cane Pnep 75CL 12X01,753314,kenya;cane;pinnaple;pnep;75;,Kenya Cane Pnep 75CL 12X01,1550,1650,1
+23,MrDowell s No. 75CL 12X01,769633,mrdowell s;no;75;,MrDowell s No. 75CL 12X01,462,562,1
+24,Orijin Bitters 25CL 40X01,704964,orijin;bitters;25;,Orijin Bitters 25CL 40X01,460,560,1
+25,Orijin Bitters 75CL 12X01 5YO,704931,orijin;bitters;75;12;5yo,Orijin Bitters 75CL 12X01 5YO,843,943,1
+26,Richot Brandy 25CL 40X01 5 Yo,664078,richot;brand;25;40;5yo,Richot Brandy 25CL 40X01 5 Yo,793,893,1
+27,Richot Brandy 35CL 24X01 5 Yo,664118,richot;brand;35;24;5yo,Richot Brandy 35CL 24X01 5 Yo,553,653,1
+28,Richot Brandy 75CL 12X01 5 Yo,664036,richot;brand;75;12;5yo,Richot Brandy 75CL 12X01 5 Yo,463,563,1
+29,Senetor Dark Lg 50L Keg Extra,688295,senetor;dark;keg;extra;50,Senetor Dark Lg 50L Keg Extra,20,120,1
+30,Senetor Keg 50L Keg,603482,senetor;keg;50;,Senetor Keg 50L Keg,260,360,1
+31,Smenof Black Ice 330ml Can 24X01,672303,smernof;black;ice;330;can;24,Smenof Black Ice 330ml Can 24X01,794,894,1
+32,Smirldb & Guarana 330ml Can 24X01,695601,smirldb;guarana;330;can;24,Smirldb & Guarana 330ml Can 24X01,554,654,1
+33,Smirnf Ice PP R 330ml CAN 24X01 local,781190,smernof;ice;pp;r;330;can;24;smirnf,Smirnf Ice PP R 330ml CAN 24X01 local,464,564,1
+35,Snapp 330ml Can 24X01,672314,snapp;330;can;24,Snapp 330ml Can 24X01,845,945,1
+37,V & A Imp Cr Liqr 25CL 40X01,647015,v;&;a;imperial;cr;liqr;25;40,V & A Imp Cr Liqr 25CL 40X01,555,655,1
+38,V & A Imperial C 750ml 12X01,603447,v;&;a;imperial;c;750;12,V & A Imperial C 750ml 12X01,465,565,1
+39,Vat 69 37.5C 04X06,557417,vat;69;37.5;,Vat 69 37.5C 04X06,5515,5615,1
