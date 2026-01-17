@@ -1,5 +1,5 @@
 import datetime,os
-from settings import Settings
+from .settings import Settings
 import numpy as np
 import csv
 class FormatTime:

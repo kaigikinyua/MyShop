@@ -1,7 +1,7 @@
 import eel
-from utils import Logging
-from users import User,Cashier
-from reports import Reports
+from modules.utils import Logging
+from modules.users import User,Cashier
+from modules.reports import Reports
 
 pages=["index.html","till.html","admin.html"]
 

@@ -1,10 +1,9 @@
 from sqlalchemy.orm import sessionmaker
 
-from models import engine,UserModel,EndOfDaySalesModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,StockModel,EmptiesModel,StockHistoryModel
-from models import PaymentModel,CustomerModel,SoldItemsModel,SalesSettingsModel,CustomerCreditModel,BranchesModel
-
-from utils import FormatTime,Logging
-from settings import Settings
+from .models import engine,UserModel,EndOfDaySalesModel,AuthModel,ProductsModel,ShiftModel,TransactionModel,StockModel,EmptiesModel,StockHistoryModel
+from .models import PaymentModel,CustomerModel,SoldItemsModel,SalesSettingsModel,CustomerCreditModel,BranchesModel
+from .utils import FormatTime,Logging
+from .settings import Settings
 
 #All the CRUD operations for a model MUST be in a class <modelName>View
 class UserView:

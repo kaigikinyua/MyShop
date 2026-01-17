@@ -1,8 +1,8 @@
 import random
 import sys
-from src.views import StockView,UserView,CustomerView,ProductsView,SaleSettingsView,BranchesView,CustomerModel
-from src.settings import Settings
-from src.utils import FormatTime,CSV
+from modules.views import StockView,UserView,CustomerView,ProductsView,SaleSettingsView,BranchesView,CustomerModel
+from modules.settings import Settings
+from modules.utils import FormatTime,CSV
 class UsersSetUp:
     @staticmethod
     def createUsers():

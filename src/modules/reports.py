@@ -1,6 +1,6 @@
 import datetime
-from views import ShiftView,EndOfDaySales,CustomerCreditView,SaleSettingsView,UserView,TransactionView,PaymentView,SoldItemsView
-from utils import Logging,CSV,FormatTime
+from .views import ShiftView,EndOfDaySales,CustomerCreditView,SaleSettingsView,UserView,TransactionView,PaymentView,SoldItemsView
+from .utils import Logging,CSV,FormatTime
 
 class Reports:
     #daily reports

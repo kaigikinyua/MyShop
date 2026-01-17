@@ -1,6 +1,6 @@
 import sys,unittest
 from unittest import TestCase
-from reports import CSV
+from modules.reports import CSV
 
 class TestReports(unittest.TestCase):
     def test_headers(self):

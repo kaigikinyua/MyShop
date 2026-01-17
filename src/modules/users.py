@@ -1,7 +1,7 @@
-from views import UserView,TransactionView,PaymentView,CustomerView
-from views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
-from utils import Logging,FormatTime
-from reports import Reports
+from .views import UserView,TransactionView,PaymentView,CustomerView
+from .views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
+from .utils import Logging,FormatTime
+from .reports import Reports
 
 class User:
     def login(self,username,password):

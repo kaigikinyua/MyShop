@@ -1,8 +1,8 @@
 import unittest,sys
 from unittest import TestCase
 
-from utils import FormatTime
-from views import UserView,ShiftView,CustomerView,TransactionView,PaymentView,ProductsView
+from modules.utils import FormatTime
+from modules.views import UserView,ShiftView,CustomerView,TransactionView,PaymentView,ProductsView
 
 class TestData:
     userTestData={

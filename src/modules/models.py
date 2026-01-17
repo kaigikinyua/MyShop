@@ -2,7 +2,7 @@ from sqlalchemy import create_engine,ForeignKey,Float, Column, Integer, String,B
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base
 
-from settings import Settings
+from .settings import Settings
 
 dbUrl=Settings.getDataBaseUrl()
 engine=create_engine(dbUrl)
