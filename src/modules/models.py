@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine,ForeignKey,Float, Column, Integer, String,Boolean
+from sqlalchemy import create_engine,ForeignKey,Float, Column, Integer, String,Boolean,LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base
 
@@ -13,12 +13,18 @@ class UserModel(Base):
     __tablename__='Users'
     id=Column(Integer,primary_key=True)
     name=Column(String)
-    password=Column(String)
-    userLevel=Column(String)
+    password=Column(LargeBinary)
+    userLevel=Column(String,default='cashier')
     usrLevelChoices=['admin','cashier']
-    #userPermissions=Column(String)
-    #passwordExpireRyDate=Column(Float) 
+    userPermissions=Column(String,default='0000000000')
+    passwordExpireRyDate=Column(Float,default=90)
 
+class ApplicationSettings(Base):
+    __tablename__='ApplicationSettings'
+    id=Column(Integer,primary_key=True)
+    passWordLifeTime=Column(Integer)
+    configFilePath=Column(String)
+    
 class AuthModel(Base):
     __tablename__='Authenticated'
     id=Column(Integer,primary_key=True)
@@ -68,7 +74,8 @@ class CustomerModel(Base):
     phoneNumber=Column(String)
     totalCreditOwed=Column(Integer,default=0)
     #registrationDate=Column(Float)
-##transactions
+    ##transactions
+
 class TransactionModel(Base):
     __tablename__='Transaction'
     id=Column(Integer,primary_key=True)
@@ -201,6 +208,10 @@ class BusinessCostsModel(Base):
     costTimeline=Column(String)
     desc=Column(String)
     paid=Column(Boolean)
+
+
+def runMigration():
+    Base.metadata.create_all(engine)
 
 if __name__=="__main__":
     Base.metadata.create_all(engine)

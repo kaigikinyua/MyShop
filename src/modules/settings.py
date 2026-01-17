@@ -1,4 +1,4 @@
-import datetime,json
+import datetime,bcrypt
 
 class Settings:
     dataBaseUrl="sqlite:///data/databases/current/myshop.db"
@@ -10,6 +10,7 @@ class Settings:
         if(Settings.mode!='DEBUG'):
             Settings.dataBaseUrl="sqlite:///data/databases/prod/myshop.db"
         return "sqlite:///data/databases/debug/myshop.db"
+    
     @staticmethod
     def logFile():
         sessionLogDir=f"./data/logs/sessionLogs/"
@@ -19,3 +20,14 @@ class Settings:
     @staticmethod
     def tillId():
         return "ErrorSettingTillId"
+    
+    @staticmethod
+    def hashAndsalt(data):
+        data=str(data)
+        salt=bcrypt.gensalt()
+        hashedData=bcrypt.hashpw(data.encode('utf-8'),salt)
+        return hashedData
+    
+    @staticmethod
+    def hashCompare(data,hashedData):
+        return bcrypt.checkpw(bytes(data,'utf-8'),hashedData)

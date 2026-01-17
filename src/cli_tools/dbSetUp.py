@@ -1,21 +1,45 @@
 import random
-import sys
+import sys,os,shutil
 from modules.views import StockView,UserView,CustomerView,ProductsView,SaleSettingsView,BranchesView,CustomerModel
 from modules.settings import Settings
 from modules.utils import FormatTime,CSV
+from modules.models import runMigration
+
+class DatabaseMigration:
+    @staticmethod
+    def moveDataBaseToFolder():
+        dbFile="./data/databases/prod/myshop.db"
+        backupFile="./data/databases/backups/myshop.db"
+        if(Settings.mode=='DEBUG'):
+            dbFile="./data/databases/debug/myshop.db"
+        #for now if there is a filename collisions the method does not cater to
+        #renaming the file to something new so expect to loose some data
+        shutil.move(dbFile,backupFile)
+    
+    @staticmethod
+    def makeMigrations():
+        DatabaseMigration.moveDataBaseToFolder()
+        runMigration()
+
+
 class UsersSetUp:
+    
     @staticmethod
     def createUsers():
         users=[
-            {'name':'admin','password':'admin12345','level':0},
-            {'name':'cashier','password':'admin12345','level':1}
+            {'name':'admin','password':Settings.hashAndsalt("admin12345"),'level':0},
+            {'name':'cashier','password':Settings.hashAndsalt("admin12345"),'level':1}
         ]
         for u in users:
             x=UserView()
             x.addUser(u['name'],u['password'],u['level'])
+
     @staticmethod
-    def removeUsers():
-        pass
+    def removeUsers(users):
+        x=UserView()
+        for u in users:
+            user=x.getUser(u['name'])
+            x.deleteUser(user.id)
 
 class BranchesSetUp:
     branches=[
@@ -42,8 +66,8 @@ class ProductsSetUp:
         products=[]
         for row in noHeaders:
             print(row)
-            r=row.split(',')
-            products.append({'id':r[0],'barCode':r[1],'name':r[2],'desc':r[2],'tags':r[3],'quantity':r[4],'sPrice':r[5],'bPrice':r[6],'returnContainers':bool(r[7])})
+            #r=row.split(',')
+            #products.append({'id':r[0],'barCode':r[1],'name':r[2],'desc':r[2],'tags':r[3],'quantity':r[4],'sPrice':r[5],'bPrice':r[6],'returnContainers':bool(r[7])})
         return products
     
     @staticmethod
@@ -114,17 +138,16 @@ class CustomerSetUp:
         for c in CustomerSetUp.customers:
             custViewObj.addCustomer(c['name'],c['phoneNum'])
 
+def migrate():
+    DatabaseMigration.makeMigrations()
 
 def addAllSetUps():
     UsersSetUp.createUsers()
     BranchesSetUp.addBranches(BranchesSetUp.branches)
-    ProductsSetUp.createProducts()
+    #ProductsSetUp.createProducts()
     SaleSettingsSetUp.addSalesSettings()
     StockSetUp.addStock()
     CustomerSetUp.addCustomers()
-
-def backupdb():
-    pass
 
 def addSpecificSetUp(setUp):
     implementedArgs=['users','products','salessettings']
@@ -139,12 +162,11 @@ def addSpecificSetUp(setUp):
         print(f'Implemented arguments are {implementedArgs}')
 
 
+
 if __name__=="__main__":
     systemArguments=sys.argv[1:len(sys.argv)]
     if Settings.mode=="DEBUG":
         if(systemArguments[0]=='all'):
             addAllSetUps()
-        elif(systemArguments[0]=='backup'):
-            backupdb()
         else:
             addSpecificSetUp(systemArguments[0])

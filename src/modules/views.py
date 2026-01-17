@@ -12,8 +12,9 @@ class UserView:
     def login(self,username,password):
         Session=sessionmaker(bind=engine)
         session=Session()
-        u=session.query(UserModel).filter_by(name=username,password=password).all()
-        if(len(u)==1):
+        password=Settings.hash_and_salt(password)
+        u=session.query(UserModel).filter_by(name=username).all()
+        if(len(u)==1 and Settings.hashCompare(password,u[0].password)):
             if(self.is_authenticated(u[0].id)):
                 self.logout(u[0].id)
             time=FormatTime.now()
@@ -97,6 +98,7 @@ class UserView:
                 return False,'User name collision'
             else:
                 ulevel=UserModel.usrLevelChoices[userLevel]
+                userpassword=Settings.hashAndsalt(userpassword)
                 user=UserModel(name=username,password=userpassword,userLevel=ulevel)
                 #add checks incase database failed connection
                 session.add(user)
@@ -126,7 +128,7 @@ class UserView:
             session=Session()
             user=session.query(UserModel).filter_by(id=uid).one_or_none()
             if(user!=None):
-                user.password=newPassword
+                user.password=Settings.hashAndsalt(newPassword)
                 session.commit()
                 return True,'Updated user password'
             session.close()
