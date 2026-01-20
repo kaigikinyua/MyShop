@@ -159,7 +159,6 @@ class Reports:
                 pass
             return report
 
-
 class ReportData:
 
     @staticmethod

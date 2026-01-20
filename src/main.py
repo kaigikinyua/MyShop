@@ -41,8 +41,15 @@ def customerCreditWorthy(custId,custPhone,amount):
 
 class FetchData:
     @staticmethod
+    def fetchAppConfigurations():
+        u=User()
+        configData=u.fetchAppConfiguration()
+        return {"configs":configData}
+    
+    @staticmethod
     def fetchTransactions():
         pass
+    
     @staticmethod
     def fetchTransaction():
         pass
@@ -234,9 +241,7 @@ if __name__=="__main__":
     eel._expose("generateZReport",cashierActions.genZReport)
     eel._expose("generateCreditReport",cashierActions.genCreditReport)
     eel._expose("closeShift",cashierActions.closeShift)
-    import os
 
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    print("Root Directory:", root_dir)
+    #start app
     eel.init('web')
     eel.start("login.html",port=4040)

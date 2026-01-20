@@ -28,10 +28,6 @@ function notificationBubble(message,mode,delay){
         timeOutId=null
     },1000*delay)
 }
-function highlightField(field){
-    
-}
-
 
 function closePopUp(){
     var popUp=document.getElementById('popUp')

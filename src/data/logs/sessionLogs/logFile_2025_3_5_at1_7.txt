@@ -1,4 +1,0 @@
-
-error| 5/3/2025 1:7:51| One or more payments failed to be added to the database There is no transaction whose with transactionId=There could be a null value passed to function TransactionView.createTransaction()
-customerId None sellerId 2 tillId 1 saleAmount 500
-warn| 5/3/2025 1:7:51| Deleted Sold Item {'id': 7, 'transactionId': 'There could be a null value passed to function TransactionView.createTransaction()\ncustomerId None sellerId 2 tillId 1 saleAmount 500', 'productId': '1', 'barCode': '134253456', 'quantity': 1, 'soldPrice': 500, 'expectedSellingPrice': 500, 'itemsCollected': True, 'time': 1741126071.672929}

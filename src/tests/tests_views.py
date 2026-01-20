@@ -1,4 +1,8 @@
-import unittest,sys
+'''
+Tests for all the views in modules.views.py
+'''
+
+import unittest
 from unittest import TestCase
 
 from modules.utils import FormatTime
