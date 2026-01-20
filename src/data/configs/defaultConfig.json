@@ -1,7 +1,7 @@
 {
     "identity":{
         "terminalName":"MainStore01",
-        "terminalTac":"MS01"
+        "terminalTic":"MS01"
     },
     "uiSettings":{
         "backgroundImageUrl":"images/Compiled_image_.png",

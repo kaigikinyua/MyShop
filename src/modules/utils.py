@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Settings:
-    dataBaseUrl="sqlite:///data/databases/current/myshop.db"
+    dataBaseUrl="sqlite:///data/databases/prod/myshop.db"
     configFileUrl="./data/configs/defaultConfig.json"
     serverUrl=None
     serverToken=None
@@ -39,7 +39,9 @@ class Settings:
     
     @staticmethod
     def tillId():
-        return "ErrorSettingTillId"
+        configData=JsonFile.readJsonFile(Settings.configFileUrl)
+        return configData["identity"]["terminalName"],configData["identity"]["terminalTic"]
+
     
     @staticmethod
     def hashAndsalt(data):
@@ -51,8 +53,6 @@ class Settings:
     @staticmethod
     def hashCompare(data,hashedData):
         return bcrypt.checkpw(bytes(data,'utf-8'),hashedData)
-
-
 
 class FormatTime:
     #Jan:31 Feb Mar:31 Apr:30 May:31 June:30 July:31 Aug:31 Sep:30 Oct Nov:30 Dec:31
