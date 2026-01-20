@@ -1,7 +1,59 @@
-import datetime,os
-from .settings import Settings
+import datetime,os,json,bcrypt
 import numpy as np
-import csv
+
+
+class Settings:
+    dataBaseUrl="sqlite:///data/databases/current/myshop.db"
+    configFileUrl="./data/configs/defaultConfig.json"
+    serverUrl=None
+    serverToken=None
+    mode="DEBUG" #[DEBUG|PROD]
+    
+    @staticmethod
+    def getDataBaseUrl():
+        if(Settings.mode!='DEBUG'):
+            Settings.dataBaseUrl="sqlite:///data/databases/prod/myshop.db"
+        return "sqlite:///data/databases/debug/myshop.db"
+    
+    @staticmethod
+    def getServerCredentials():
+        if(Settings.serverToken==None and Settings.serverUrl==None):
+            configData=JsonFile.readJsonFile(Settings.configFileUrl)
+            serverUrl=configData["reportToServer"]["serverUrl"]
+            token=Settings.serverUrl=configData["reportToServer"]["token"]
+            if(serverUrl!=None and token!=None):
+                Settings.serverUrl=configData["reportToServer"]["serverUrl"]
+                return serverUrl,token
+            else:
+                Logging.consoleLog('warn',f'Warning Server url and token not set in {Settings.configFileUrl}')
+                return None,None
+        else:
+            return Settings.serverUrl,Settings.serverToken
+    
+    
+    @staticmethod
+    def logFile():
+        sessionLogDir=f"./data/logs/sessionLogs/"
+        dTimeObj=datetime.datetime.now()
+        return f'{sessionLogDir}logFile_{dTimeObj.year}_{dTimeObj.month}_{dTimeObj.day}_at{dTimeObj.hour}_{dTimeObj.minute}.txt'
+    
+    @staticmethod
+    def tillId():
+        return "ErrorSettingTillId"
+    
+    @staticmethod
+    def hashAndsalt(data):
+        data=str(data)
+        salt=bcrypt.gensalt()
+        hashedData=bcrypt.hashpw(data.encode('utf-8'),salt)
+        return hashedData
+    
+    @staticmethod
+    def hashCompare(data,hashedData):
+        return bcrypt.checkpw(bytes(data,'utf-8'),hashedData)
+
+
+
 class FormatTime:
     #Jan:31 Feb Mar:31 Apr:30 May:31 June:30 July:31 Aug:31 Sep:30 Oct Nov:30 Dec:31
     @staticmethod
@@ -108,7 +160,17 @@ class Logging:
 class JsonFile:
     @staticmethod
     def readJsonFile(filePath):
-        pass
+        try:
+            # Open the file in read mode ('r')
+            with open(filePath, 'r') as file:
+                # Load the JSON data and convert it to a Python object (dictionary)
+                data = json.load(file)
+                return data
+        except FileNotFoundError:
+            Logging.consoleLog('err',f"Error: File {filePath} not found")
+        except json.JSONDecodeError as e:
+            Logging.consoleLog('err',f"Error: Failed to decode JSON from the file. Details: {e}")
+        return []
 
 class File:
     @staticmethod

@@ -1,6 +1,13 @@
-import sys,unittest
+'''
+Unit/Module tests for the following
+modules.utils.py
+    FormatTime,Logging,JsonFile,File,CSV
+'''
+import unittest
 from unittest import TestCase
-from modules.reports import CSV
+from modules.utils import FormatTime,Logging,JsonFile,CSV
+
+
 
 class TestReports(unittest.TestCase):
     def test_headers(self):

@@ -1,9 +1,13 @@
 from .views import UserView,TransactionView,PaymentView,CustomerView
 from .views import ProductsView,StockView,StockHistoryView,SoldItemsView,CustomerCreditView,ShiftView,BranchesView
-from .utils import Logging,FormatTime
+from .utils import Logging,FormatTime,JsonFile,Settings
 from .reports import Reports
 
 class User:
+    def fetchAppConfiguration():
+        data=JsonFile.readJsonFile(Settings.configFileUrl)
+        return data
+    
     def login(self,username,password):
         if(len(username)>4 and len(password)>7):
             u=UserView()
@@ -550,4 +554,3 @@ class Admin(Cashier):
         else:
             message='User level is not allowed to delete a user'
         return state,message
-

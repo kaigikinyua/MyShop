@@ -1,4 +1,0 @@
-
-warn| 15/1/2026 21:58:17| Deleted user id=3 name=jimmy1 level=cashier
-warn| 15/1/2026 21:58:17| Deleted user id=3 name=jimmy1 level=cashier
-warn| 15/1/2026 21:58:17| Deleted user id=4 name=jimmy4 level=cashier

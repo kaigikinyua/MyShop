@@ -1,0 +1,33 @@
+{
+    "identity":{
+        "terminalName":"MainStore01",
+        "terminalTac":"MS01"
+    },
+    "uiSettings":{
+        "backgroundImageUrl":"images/Compiled_image_.png",
+        "BrandStoreName":"Shop Brand",
+        "theme":"lightTheme"
+    },
+    "reportToServer":{
+        "serverUrl":"http://127.0.0.1:5000",
+        "token":"testToken",
+        "reportStartingAmount":null,
+        "reportEndOfDay":null,
+        "reportErrors":true,
+        "csvReportsDir":null,
+        "lastConnectedDetails":{
+            "timeLastConnected":null,
+            "status":null
+        }
+    },
+    "localDB":{
+        "backUpDir":null,
+        "backUpFreqDays":null,
+        "remoteBackUpUrl":null,
+        "remoteBackUpFreqDays":null
+    },
+    "logs":{
+        "logsDir":null,
+        "logsLevel":0
+    }
+}
