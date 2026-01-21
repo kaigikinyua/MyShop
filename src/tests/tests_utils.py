@@ -48,5 +48,26 @@ class Tests_Settings(unittest.TestCase):
         match=Settings.hashCompare('password',hashPw)
         self.assertEqual(match,True)
 
+
+class Tests_FormatTime(unittest.TestCase):
+    
+    def test_monthsTotalDays(self):
+        pass
+    
+    def test_now(self):
+        pass
+
+    def test_toTimeStamp(self):
+        pass
+
+    def test_getDateTime(self):
+        pass
+
+    def test_getDateTime(self):
+        pass
+
+    
+
+
 if __name__=='__main__':
     unittest.main()

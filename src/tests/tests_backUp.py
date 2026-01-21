@@ -5,6 +5,7 @@ modules.backUp.py
 '''
 import unittest
 from unittest import TestCase
+from unittest.mock import patch
 from modules.backUp import BackUp,Server
 
 class TestBackUp(unittest.TestCase):
@@ -23,14 +24,24 @@ class TestBackUp(unittest.TestCase):
 
 class TestPostServer(unittest.TestCase):
  
-    def test_postData(self):
+    def test_getData(self):
+        data,state=Server.getData('api/items')
+        self.assertEqual(state,True)
+        self.assertNotEqual(data,[])
+        print(data)
+
+    @patch('modules.backUp.requests.post')
+    def test_postData(self,mock_post):
+        mock_post.return_value={"data":"data from server"},True
+
         data,state=Server.postData('api/items','new item')
         self.assertEqual(state,True)
-        self.assertNotEqual(data,{'key':'value'})
+        self.assertEqual(data,{"data":"data from server"})
 
+    @patch('modules.backUp.requests.get')
+    def test_getData2(self,mock_get):
+        mock_get.return_value={'data':'data from server'},True
 
-class TestGetServer(unittest.TestCase):
-    def test_getData(self):
         data,state=Server.getData('api/items')
         self.assertEqual(state,True)
         self.assertNotEqual(data,[])
