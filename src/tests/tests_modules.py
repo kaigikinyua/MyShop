@@ -5,11 +5,44 @@ modules.utils.py
 '''
 import unittest
 from unittest import TestCase
-from modules.utils import FormatTime,Logging,JsonFile,CSV
+from modules.utils import File,FormatTime,Logging,JsonFile,CSV
+
+import numpy as np
+
+class TestCSVData:
+    filePath='./data/products.csv'
+
+class TestCSV(unittest.TestCase):
+    def test_readCSVFile(self):
+        data=CSV.readCSVFile(TestCSVData.filePath)
+        self.assertGreater(len(data),0)
+
+    def test_writeCSVFile(self):
+        pass
+
+    def test_removeCSVHeaders(self):
+        allData=CSV.readCSVFile(TestCSVData.filePath)
+        headers,data=CSV.removeCSVHeaders(allData)
+        self.assertEqual(len(data),len(allData)-1)
+        self.assertEqual(len(headers),len(allData[0]))
+
+    def test_getColumnByName(self):
+        allData=CSV.readCSVFile(TestCSVData.filePath)
+        headers,data=CSV.removeCSVHeaders(allData)
+        # for h in headers:
+        #     column=CSV.getColumnByName(h,data)
+        #     print(column)
+
+    def test_getRow(self):
+        pass
+
+    def test_createCsv(self):
+        pass
 
 
 
-class TestReports(unittest.TestCase):
+
+'''class TestReports(unittest.TestCase):
     def test_headers(self):
         result1=',Item Name,Bar Code,Quantity,\n'
         array=['Item Name','Bar Code','Quantity']
@@ -33,6 +66,6 @@ class TestReports(unittest.TestCase):
         f=open('test_csv.csv','w')
         f.write(dataString)
         f.close()
-
+'''
 if __name__=='__main__':
     unittest.main()

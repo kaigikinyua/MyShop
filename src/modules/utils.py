@@ -214,25 +214,27 @@ class CSV:
             Logging.consoleLog('err',f'Error: File {pathToFile} does not exist')
             return []
         else:
-            data=np.genfromtxt(pathToFile,dtype=str,delimiter=',',encoding=None)
+            data=np.genfromtxt(pathToFile,dtype=str,names=True,delimiter=',',encoding=None)
             return data
         
     @staticmethod
-    def writeCSVFile(pathToFile):
-        pass
-        #do some reaserch on csv.writer
+    def writeCSVFile(pathToFile,data):
+        if(File.fileExists(pathToFile)==False):
+            pass
+        np.savetxt(pathToFile, data, delimiter=',', fmt='%d')
+
 
     @staticmethod
     def removeCSVHeaders(data):
-        return data[0],data[1:len(data)-1]
+        return data[0],data[1:]
 
     @staticmethod
-    def getColumnByName(headers=None,columnName='',data=[]):
-        pass
+    def getColumnByName(columnName='',data=[]):
+        return data[columnName]
     
     @staticmethod
     def getRow(data=[],rowIndex=0,removedHeaders=True):
-        pass
+        return data[rowIndex,:]
 
     @staticmethod
     def createCsv(headers=[],data=[],autoIndexRows=True):
