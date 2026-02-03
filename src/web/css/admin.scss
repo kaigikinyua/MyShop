@@ -1,12 +1,16 @@
+//variables and defaults
+
 :root{
     --topNavHeight:60px;
 }
-
 
 *{
     padding:0px;
     margin:0px;
 }
+
+
+
 
 div.adminPanel{
     position: relative;
@@ -63,7 +67,3 @@ div.appView{
     overflow-y:scroll;
     background-color: white;
 }
-
-
-
-

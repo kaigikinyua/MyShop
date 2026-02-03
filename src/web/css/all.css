@@ -107,6 +107,10 @@ input:hover ::placeholder, input:active ::placeholder, input:focus ::placeholder
   color: var(--brightTextColor);
 }
 
+input.dateField {
+  max-width: 100px;
+}
+
 .minLen {
   padding: 3px;
   width: auto;
@@ -147,6 +151,12 @@ input:hover ::placeholder, input:active ::placeholder, input:focus ::placeholder
   background-color: var(--highlightColor);
   color: var(--brightTextColor);
   font-weight: bold;
+}
+
+.inline {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 ul.searchBox {

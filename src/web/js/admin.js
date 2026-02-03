@@ -1,11 +1,5 @@
-const windows=['reportsWindow','usersWindow','productsWindow']
-function viewWindow(windowId){
-    windows.forEach(w=>{
-        //console.log(w)
-        document.getElementById(w).style.display='none'
-    })
-    document.getElementById(windowId).style.display=''
-}
+
+
 class ReportsActions{
     static async getXReport(){
         var shiftId=Auth.getShiftId()
@@ -97,91 +91,128 @@ setTimeout(async ()=>{
 
 
 //*******VUE APP **********/
-const reportsComponent ={
-  template: `
-    <div class="col1">
-        <h3>Reports</h3>
+
+//*********Sales Components*************/
+const sales_reports={
+    template:`
+    <div class="topNav" id="sales_reports">
         <div>
-            <input type="date" name="startDate" id="startDate_reports" placeholder="13/10/2020"/>
-            <input type="date" name="endDate" id="endDate_reports"/>
-            <button>X Report</button>
-            <button>Z Report</button>
-            <button @click='creditReport'>Credit Report</button>
-            <button @click='salesReport'>Sales Report</button>
-            <button @click='stockReport'>Stock Report</button>
+            <h3> {{ currentTab }} </h3>
         </div>
     </div>
-    <div class="col2" id="reportContent">
-        {{title}}
-        <xzcomponent :test_data="From"/>
+    <div class="appView">
+        <div>
+            Get report for date <input class="dateField" type="date" placeholder="Pick a day"/>
+        </div>
+        <div>
+            <h4>X Report</h4>
+            <div>X Report Content</div>
+        </div>
+        <div>
+            <h4>Z Report</h4>
+            <div>Z Report Content</div>
+        </div>
+        <div>
+            <h4>Stock Report</h4>
+            <div>Stock Report Content</div>
+        </div>
+        <div>
+            <h4>Credit Report</h4>
+            <div>Credit Report Content</div>
+        </div>
     </div>
-  `,
-  props:{
-    test_data:"componentONe"
-  },
-  data(){
-    return {
-        title:'Report Name',
-        reportContents:[],
-        exportToExcelSheet:false
-    }
-  },
-  methods:{
-    xReport(){},
-    zReport(){},
-    creditReport(){
-        var dates=this.getStartAndEndDate()
-        this.test_data='changed the props'
-        if(dates!=undefined){
-            console.log('creditReport between '+dates.start+" to "+dates.end)
-        }else{
-            console.log('please enter the start date and end date')
-        }
-    },
-    salesReport(){
-        var dates=this.getStartAndEndDate()
-        if(dates!=undefined){
-            console.log('sales Report between '+dates.start+" to "+dates.end)
-        }else{
-            console.log('please enter the start date and end date')
-        }
-    },
-    stockReport(){
-        var dates=this.getStartAndEndDate()
-        if(dates!=undefined){
-            console.log('sales Report between '+dates.start+" to "+dates.end)
-        }else{
-            console.log('please enter the start date and end date')
-        }
-    },
-    getStartAndEndDate(event){
-        var sDate=document.getElementById('startDate_reports').value;
-        var eDate=document.getElementById('endDate_reports').value;
-        if(sDate!='' && sDate!=undefined && eDate!='' && sDate!=undefined){
-            return {'start':sDate,'end':eDate}
-        }else{
-            notificationBubble("Please fill in the dates",0,4);
-        }
-        return undefined
-    },
-  },
-};
-
-const XZComponent={
-    props:{
-        test_data:undefined
-    },
+    `,
     data(){
         return {
+            currentTab:'Sales Reports'
         }
-    },
+    }
+}
+const sales_analysis={
     template:`
-        <h3>Component 2</h3>
-        <p>{{test_data}}</p>
-    `
+        <div class="topNav" id="sales_analysis">
+        <div>
+            <h3> {{ currentTab }} </h3>
+        </div>
+        </div>
+        <div class="appView">
+            <div class='inline'>
+                <span>
+                    From: <input class="dateField" type="date" name="startDate"/>
+                </span>
+                <span>
+                    To:<input class="dateField" type="date" name="endDate"/>
+                </span>
+            </div>
+            <div>
+
+            </div>
+        </div>
+    `,
+    data(){
+        return {
+            currentTab:'Sales Analysis'
+        }
+    }
+}
+const sales_targets={
+    template:`
+        <div class="topNav" id="sales_targets">
+        <div>
+            <h3> {{ currentTab }} </h3>
+        </div>
+        </div>
+        <div class="appView">
+            <div class='inline'>
+                <span>
+                    From: <input class="dateField" type="date" name="startDate"/>
+                </span>
+                <span>
+                    To:<input class="dateField" type="date" name="endDate"/>
+                </span>
+            </div>
+        
+        </div>
+    `,
+    data(){
+        return {
+            currentTab:'Sales Targets',
+            id:'testId'
+        }
+    }
 }
 
+//*********Stock Components****************/
+
+
+//*********Main App***********************/
+const appView={
+    template:`
+    <sales_reports></sales_reports>
+    <sales_analysis></sales_analysis>
+    <sales_targets></sales_targets>    
+    `,
+    components:{
+        sales_reports,
+        sales_analysis,
+        sales_targets
+    },
+    data(){
+        return{
+            currentTab:'sales_reports',
+            tabs:['sales_reports','sales_analysis','sales_targets']
+        }
+    },
+    methods:{
+        changeComponent(componentName){
+            console.log('changing tab')
+            this.currentTab=componentName
+        }
+    }
+
+}
+
+
 const app=Vue.createApp({})
-app.component('xzcomponent',XZComponent)
-app.component('reports-component',reportsComponent)
-app.mount('#reportsWindow')
+app.component('app-view',appView)
+app.mount('#mainAppView')

@@ -105,6 +105,9 @@ input:hover, input:active, input:focus{
     }
 }
 
+input.dateField{
+    max-width: 100px;
+}
 .minLen{
     padding:3px;
     width: auto;
@@ -144,6 +147,11 @@ input:hover, input:active, input:focus{
         color:var(--brightTextColor);
         font-weight: bold;
     } 
+}
+.inline{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
 }
 
 ul.searchBox{

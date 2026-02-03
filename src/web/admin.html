@@ -16,7 +16,7 @@
   </head>
   <body>
     <div class="adminPanel">
-        <div id="sideNav" class="sideNav">
+        <div class="sideNav">
             <div id="userProfile" class="userProfile">
                 <img class='circle' src="images/icon.png" alt="userProfile image"/>
                 <div>
@@ -27,15 +27,15 @@
                     <button class="btn">Logout</button>
                 </div>
             </div>
-            <div id="navBtns" class="navBtns">
+            <div class="navBtns">
                 <!--Search Buttons-->
                 <div class="search">
                     <input type="text" class="search" placeholder="search...."/>
                 </div>
                 <!--Sales Stuff-->
-                <button class="navBtn">Sales Reports</button>
-                <button class="navBtn">Sales Analysis</button>
-                <button class="navBtn">Sales Targets</button>
+                <button class="navBtn" onclick="navigateTo('sales_reports')">Sales Reports</button></a>
+                <button class="navBtn" onclick="navigateTo('sales_analysis')">Sales Analysis</button></a>
+                <button class="navBtn" onclick="navigateTo('sales_targets')">Sales Targets</button></a>
                 <!--Stock Stuff-->
                 <button class="navBtn">Stock Reports</button>
                 <button class="navBtn">Stock Take</button>
@@ -45,16 +45,16 @@
             </div>
         </div>
         <div id="mainAppView" class="mainAppView">
-            <div id="topNav" class="topNav">
-                <div>
-                    <h3>Main View App</h3>
-                </div>
-                <div></div>
-            </div>
-            <div id="appView" class="appView"></div>
+            <!--Entry for the main vue App-->
+            <app-view ref="appView"></app-view>
         </div>
     </div>
     <div id="notification" class="passive"></div>
   </body>
   <script type="module" src="js/admin.js"></script>
+  <script>
+    function navigateTo(componentId){
+        window.location.hash=componentId
+    }
+  </script>
 </html>
