@@ -181,9 +181,6 @@ const XZComponent={
     `
 }
 
-
-
-
 const app=Vue.createApp({})
 app.component('xzcomponent',XZComponent)
 app.component('reports-component',reportsComponent)

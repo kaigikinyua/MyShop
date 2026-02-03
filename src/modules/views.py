@@ -12,7 +12,7 @@ class UserView:
     def login(self,username,password):
         Session=sessionmaker(bind=engine)
         session=Session()
-        password=Settings.hash_and_salt(password)
+        password=Settings.hashAndsalt(password)
         u=session.query(UserModel).filter_by(name=username).all()
         if(len(u)==1 and Settings.hashCompare(password,u[0].password)):
             if(self.is_authenticated(u[0].id)):

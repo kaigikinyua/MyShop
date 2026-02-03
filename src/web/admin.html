@@ -15,77 +15,44 @@
 
   </head>
   <body>
-    <div class="mainContainer">
-        <div class="titleBar">
-            <div>Admin</div>
-            <div>
-                <button onclick="viewWindow('reportsWindow')">Reports</button>
-                <!-- <button onclick="viewWindow('stockWindow')">Stock</button> -->
-                <button onclick="viewWindow('productsWindow')">Products</button>
-                <button onclick="viewWindow('usersWindow')">Users</button>
-                <button onclick="logOut()">LogOut</button>
+    <div class="adminPanel">
+        <div id="sideNav" class="sideNav">
+            <div id="userProfile" class="userProfile">
+                <img class='circle' src="images/icon.png" alt="userProfile image"/>
+                <div>
+                    <h3>UserName</h3>
+                    <h4>Time 12:05</h4>
+                </div>
+                <div>
+                    <button class="btn">Logout</button>
+                </div>
+            </div>
+            <div id="navBtns" class="navBtns">
+                <!--Search Buttons-->
+                <div class="search">
+                    <input type="text" class="search" placeholder="search...."/>
+                </div>
+                <!--Sales Stuff-->
+                <button class="navBtn">Sales Reports</button>
+                <button class="navBtn">Sales Analysis</button>
+                <button class="navBtn">Sales Targets</button>
+                <!--Stock Stuff-->
+                <button class="navBtn">Stock Reports</button>
+                <button class="navBtn">Stock Take</button>
+                <button class="navBtn">Price/Discounts</button>
+                <!--Configuration-->
+                <button class="navBtn">Configure App</button>
             </div>
         </div>
-        <div id="mainScreen">
-            <div class="tab" id="reportsWindow">
-                <reports-component></reports-component>
+        <div id="mainAppView" class="mainAppView">
+            <div id="topNav" class="topNav">
+                <div>
+                    <h3>Main View App</h3>
+                </div>
+                <div></div>
             </div>
-            <div class="tab" id="productsWindow">
-                <div class="col1">
-                    <h3>Admin Actions</h3>
-                    <div>
-                        <button>Receive Stock</button>
-                        <button>Stock Take</button>
-                        <button>Products</button>
-                        <button>Products Reports</button>
-                    </div>
-                </div>
-                <div class="col2">
-                    <div id="products">
-                        <h3>{{title}}</h3>
-                        <div id="productList" class="listView">
-
-                        </div>
-                    </div>
-                    <div>
-                    </div>
-                </div>
-            </div>
-            <div class="tab" id="usersWindow">
-                <div class="col1">
-                    <h3>User Actions</h3>
-                    <div>
-                        <button>New User</button>
-                        <button>View Users</button>
-                        <button>Users History</button>
-                    </div>
-                </div>
-                <div class="col2">
-                    <div id="newUser">
-                        <h3>Create User</h3>
-                        <input type="text" placeholder="User name" name="username"/>
-                        <select name="userLevel" id="userLevel">
-                            <option value="0">Cashier</option>
-                            <option value="1">Admin</option>
-                        </select>
-                        <button>Create User</button>
-                    </div>
-                    <div>
-                        <div id="usersList"></div>
-                        <div>
-                            <button>Modify</button>
-                            <button>Suspend</button>
-                            <button>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="appView" class="appView"></div>
         </div>
-    </div>
-    <div class="statusBar">
-        <div id="shiftId"></div>
-        <div id="username">User:Username</div>
-        <div id="date">Date:11/11/2024 | Time: 12:00</div>
     </div>
     <div id="notification" class="passive"></div>
   </body>
